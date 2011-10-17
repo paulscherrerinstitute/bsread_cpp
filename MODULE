@@ -1,0 +1,4 @@
+# Please fill in the following information.
+Email: simon.ebner@psi.ch
+Module-Name: G_CRLOGIC
+Description: Provides a fast IOC based continuous scan functionality. It supersedes the G/OTFSCAN project.
