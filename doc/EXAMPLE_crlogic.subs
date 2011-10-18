@@ -1,0 +1,19 @@
+# $Source: /cvs/G/CRLOGIC/doc/EXAMPLE_crlogic.subs,v $
+# $Author: ebner $
+# $Revision: 1.1 $   $Date: 2011/10/18 07:03:28 $
+#
+# Responsible:  S.Ebner
+# Description:  This file contains some example macro definitions for the 
+#               crlogic.template
+# Notes:        -
+#
+
+# Macros
+# ======
+#   P         - Record prefix, e.g. MTEST-HW3-CRL
+
+file crlogic.template {
+	{
+		P = "MTEST-HW3-CRL"
+	} 
+}
