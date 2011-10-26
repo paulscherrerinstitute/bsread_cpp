@@ -56,7 +56,7 @@ static void initializeDCR508 (resource *self, rstatus status, char* emessage) {
 	printf("Initialize DCR508 memory access [base address] %p [channel number] %d\n", baseAddress, self->channel);
 
 	/* Retrieve pointer to memory */
-	retStatus = sysBusToLocalAdrs( VME_AM_USR_SHORT_IO, baseAddress, (char **) &memory);
+	retStatus = sysBusToLocalAdrs( VME_AM_EXT_USR_DATA, baseAddress, (char **) &memory);
 	if(retStatus != OK) {
 		printf ("Cannot retrieve pointer to motor card memory structure\n");
 		printf ("Check that module base address = %p is correct\n", baseAddress);
