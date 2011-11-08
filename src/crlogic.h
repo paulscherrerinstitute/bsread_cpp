@@ -21,7 +21,7 @@
 #define pvaddress struct dbAddr
 #define rstatus STATUS
 
-#define maxNumberResources 10
+#define maxNumberResources 40
 
 typedef struct _message {
 	double values[maxNumberResources];
