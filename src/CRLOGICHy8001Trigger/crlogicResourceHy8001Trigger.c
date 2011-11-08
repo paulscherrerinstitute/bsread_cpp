@@ -23,6 +23,13 @@
 #include <timers.h>
 #include <epicsVersion.h>
 
+/**
+ * Structure for holding state of this module
+ */
+typedef struct _state {
+	int counter;
+} state;
+
 extern resourceListItem *resourceList;
 
 /* Function provided by the Hytec 8001 driver*/
@@ -33,6 +40,9 @@ static void initializeHy8001Trigger (resource *self, rstatus status, char* emess
 
 	printf("Initialize Hy8001 trigger [card number] %d [channel number] %d\n", self->baseAddress, self->channel);
 	status = OK;
+
+	/* Reset trigger count to 0*/
+	((state*)self->pointer)->counter = 0;
 }
 
 static void readHy8001Trigger(resource *self, double *message){
@@ -52,15 +62,18 @@ static void readHy8001Trigger(resource *self, double *message){
 	Dim8001_write( self->baseAddress, self->channel, 1, 1);
 	Dim8001_write( self->baseAddress, self->channel, 1, 0);
 
-	/*TODO return trigger count*/
-	*message = 1;
+	/*Return trigger count and increment counter */
+	*message = ((state*)self->pointer)->counter;
+	((state*)self->pointer)->counter++;
 }
 
 static void initResourceHy8001Trigger (resource *self) {
     self->initialize = (void *) &initializeHy8001Trigger;
     self->read = (void *) &readHy8001Trigger;
 
-    /*TODO reset trigger count to 0*/
+    /*Create sate object holding the trigger count (initialize with 0)*/
+    self->pointer = calloc (1, sizeof(state));
+    ((state*)self->pointer)->counter = 0;
 }
 
 
