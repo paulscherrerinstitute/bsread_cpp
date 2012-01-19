@@ -5,7 +5,7 @@
 
 # $Source: /cvs/G/CRLOGIC/crlogic.template,v $
 # $Author: ebner $
-# $Revision: 1.1 $   $Date: 2011/10/18 07:03:28 $
+# $Revision: 1.2 $   $Date: 2012/01/19 13:28:32 $
 # Macros
 # ======
 #   P         - Record prefix, e.g. MTEST-HW3-OTFX
@@ -86,7 +86,7 @@ record(waveform, "$(P):RRES") {
   field(DESC, "Read modules")
   field(FTVL, "STRING")
 # This value must correspond with the value of the variable "maxNumberResources" defined in crlogic.h
-  field(NELM, "10")
+  field(NELM, "40")
 }
 
 #! Further lines contain data used by VisualDCT
