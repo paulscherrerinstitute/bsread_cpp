@@ -1,0 +1,44 @@
+
+epicsEnvSet("EPICS_CA_MAX_ARRAY_BYTES","6000000")
+
+#=========================================================================
+# Set a faster tick rate for DCR508 operation
+#
+sysClkRateSet 1000
+
+
+#====================================================================
+# --- CRLOGIC ---
+# -----------------------
+require "CRLOGICCore", "test"
+require "CRLOGICTimestamp", "test"
+##require "CRLOGICMaxV", "test"
+require "CRLOGICVME58", "test"
+require "CRLOGICECM5xx", "test"
+require "CRLOGICVSC16", "test"
+require "CRLOGICHy8001Trigger", "test"
+
+# IOC Timestamp
+crlogicAddTimestampResource "TIMESTAMP"
+
+# MaxV Motors/Encoders
+##crlogicAddMaxVMotorResource "MAXV1", 0x8000, 0
+##crlogicAddMaxVEncoderResource "MAXV1ENC", 0x8000, 0
+
+# OMS Motors
+crlogicAddVME58MotorResource "MTEST-HW3:MOT1", 0x8000, 0
+crlogicAddVME58MotorResource "MTEST-HW3:MOT2", 0x8000, 1
+
+# ECM5xx Encoders
+crlogicAddECM5xxEncoderResource "MTEST-HW3:EC1", 0x20000, 0
+crlogicAddECM5xxEncoderResource "MTEST-HW3:EC2", 0x20000, 1
+
+# VSC16 Scaler Channels
+crlogicAddVSC16Resource "SCALER0", 0x04400000, 0
+crlogicAddVSC16Resource "SCALER1", 0x04400000, 1
+crlogicAddVSC16Resource "SCALER2", 0x04400000, 2
+crlogicAddVSC16Resource "SCALER3", 0x04400000, 3
+
+# Hy8001 Trigger
+crlogicAddHy8001TriggerResource "TRIGGER0", 2, 0
+crlogicAddHy8001TriggerResource "TRIGGER1", 2, 1

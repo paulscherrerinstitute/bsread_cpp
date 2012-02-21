@@ -1,0 +1,18 @@
+# =====================================
+# Post-iocInit script for MTEST-VME-HW3
+# =====================================
+#
+  shellPromptSet "MTEST-HW3> "
+#
+#======================================
+
+# Motor initialization
+##  motorInit "MTEST-HW3:MOT1",  "MTEST-HW3:EC1"
+##  motorInit "MTEST-HW3:MOT2",  "MTEST-HW3:EC2"
+  
+# OTF Startup
+otfInitializeBackend "MTEST-HW3-OTFX"
+otfInitializeFrontend "MTEST-HW3-OTFX", "_OFF", "_SCL", "_DIR", 0
+
+
+crlogicInitializeCore "MTEST-HW3-CRL"
