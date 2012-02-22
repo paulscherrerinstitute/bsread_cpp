@@ -1,4 +1,4 @@
-# $Header: /cvs/G/CRLOGIC/Makefile,v 1.1 2011/10/18 07:03:28 ebner Exp $
+# $Header: /cvs/G/CRLOGIC/Makefile,v 1.2 2012/02/22 07:57:09 ebner Exp $
 
 build:
 	$(MAKE) build -C src/CRLOGICCore
@@ -7,6 +7,7 @@ build:
 	$(MAKE) build -C src/CRLOGICVSC16
 	$(MAKE) build -C src/CRLOGICDCR508
 	$(MAKE) build -C src/CRLOGICVME58
+	$(MAKE) build -C src/CRLOGICVME58E
 	$(MAKE) build -C src/CRLOGICECM5xx
 	$(MAKE) build -C src/CRLOGICHy8001Trigger
 	$(MAKE) build -C src/CRLOGICChannel
@@ -18,6 +19,7 @@ clean:
 	$(MAKE) clean -C src/CRLOGICVSC16
 	$(MAKE) clean -C src/CRLOGICDCR508
 	$(MAKE) clean -C src/CRLOGICVME58
+	$(MAKE) clean -C src/CRLOGICVME58E
 	$(MAKE) clean -C src/CRLOGICECM5xx
 	$(MAKE) clean -C src/CRLOGICHy8001Trigger
 	$(MAKE) clean -C src/CRLOGICChannel
@@ -29,6 +31,7 @@ install: build
 	$(MAKE) install -C src/CRLOGICVSC16
 	$(MAKE) install -C src/CRLOGICDCR508
 	$(MAKE) install -C src/CRLOGICVME58
+	$(MAKE) install -C src/CRLOGICVME58E
 	$(MAKE) install -C src/CRLOGICECM5xx
 	$(MAKE) install -C src/CRLOGICHy8001Trigger
 	$(MAKE) install -C src/CRLOGICChannel
@@ -40,6 +43,7 @@ uninstall:
 	$(MAKE) uninstall -C src/CRLOGICVSC16
 	$(MAKE) uninstall -C src/CRLOGICDCR508
 	$(MAKE) uninstall -C src/CRLOGICVME58
+	$(MAKE) uninstall -C src/CRLOGICVME58E
 	$(MAKE) uninstall -C src/CRLOGICECM5xx
 	$(MAKE) uninstall -C src/CRLOGICHy8001Trigger
 	$(MAKE) uninstall -C src/CRLOGICChannel
