@@ -1,4 +1,4 @@
-# $Header: /cvs/G/CRLOGIC/Makefile,v 1.2 2012/02/22 07:57:09 ebner Exp $
+# $Header: /cvs/G/CRLOGIC/Makefile,v 1.3 2012/02/22 11:22:50 ebner Exp $
 
 build:
 	$(MAKE) build -C src/CRLOGICCore
@@ -10,6 +10,7 @@ build:
 	$(MAKE) build -C src/CRLOGICVME58E
 	$(MAKE) build -C src/CRLOGICECM5xx
 	$(MAKE) build -C src/CRLOGICHy8001Trigger
+	$(MAKE) build -C src/CRLOGICHy8401
 	$(MAKE) build -C src/CRLOGICChannel
 
 clean:
@@ -22,6 +23,7 @@ clean:
 	$(MAKE) clean -C src/CRLOGICVME58E
 	$(MAKE) clean -C src/CRLOGICECM5xx
 	$(MAKE) clean -C src/CRLOGICHy8001Trigger
+	$(MAKE) clean -C src/CRLOGICHy8401
 	$(MAKE) clean -C src/CRLOGICChannel
 
 install: build
@@ -34,6 +36,7 @@ install: build
 	$(MAKE) install -C src/CRLOGICVME58E
 	$(MAKE) install -C src/CRLOGICECM5xx
 	$(MAKE) install -C src/CRLOGICHy8001Trigger
+	$(MAKE) install -C src/CRLOGICHy8401
 	$(MAKE) install -C src/CRLOGICChannel
 
 uninstall:
@@ -46,6 +49,7 @@ uninstall:
 	$(MAKE) uninstall -C src/CRLOGICVME58E
 	$(MAKE) uninstall -C src/CRLOGICECM5xx
 	$(MAKE) uninstall -C src/CRLOGICHy8001Trigger
+	$(MAKE) uninstall -C src/CRLOGICHy8401
 	$(MAKE) uninstall -C src/CRLOGICChannel
 
 help:

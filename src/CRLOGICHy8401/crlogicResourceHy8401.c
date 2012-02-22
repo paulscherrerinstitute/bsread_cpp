@@ -38,7 +38,7 @@ static void initializeHy8401 (resource *self, rstatus status, char* emessage) {
 static void readHy8401(resource *self, double *message){
 	
 	unsigned long val;
-	Hy8401_read_ai(cardNumber,inputChannel,NULL,&val);
+	Hy8401_read_ai(self->baseAddress, self->channel, NULL, &val);
 	
 	/*Return trigger count and increment counter */
 	*message = (double) val;
