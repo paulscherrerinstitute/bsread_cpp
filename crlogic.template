@@ -5,12 +5,12 @@
 
 # $Source: /cvs/G/CRLOGIC/crlogic.template,v $
 # $Author: ebner $
-# $Revision: 1.2 $   $Date: 2012/01/19 13:28:32 $
+# $Revision: 1.3 $   $Date: 2012/02/22 07:24:15 $
 # Macros
 # ======
 #   P         - Record prefix, e.g. MTEST-HW3-OTFX
 # Ticks per seconds of the IOC
-# ATTENTION - This field must only be set bu the IOC - ATTENTION
+# ATTENTION - This field must only be set by the IOC - ATTENTION
 record(longin, "$(P):TPS") {
   field(DESC, "Ticks per second")
   field(SCAN, "Passive")
