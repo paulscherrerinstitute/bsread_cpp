@@ -1,4 +1,4 @@
-# $Header: /cvs/G/CRLOGIC/Makefile,v 1.3 2012/02/22 11:22:50 ebner Exp $
+# $Header: /cvs/G/CRLOGIC/Makefile,v 1.4 2012/05/25 06:50:13 ebner Exp $
 
 build:
 	$(MAKE) build -C src/CRLOGICCore
@@ -40,6 +40,8 @@ install: build
 	$(MAKE) install -C src/CRLOGICChannel
 
 uninstall:
+	rm /work/sls/config/medm/G_CRLOGIC_expert.adl
+
 	$(MAKE) uninstall -C src/CRLOGICCore
 	$(MAKE) uninstall -C src/CRLOGICTimestamp
 	$(MAKE) uninstall -C src/CRLOGICMaxV
@@ -51,6 +53,9 @@ uninstall:
 	$(MAKE) uninstall -C src/CRLOGICHy8001Trigger
 	$(MAKE) uninstall -C src/CRLOGICHy8401
 	$(MAKE) uninstall -C src/CRLOGICChannel
+
+medm:
+	cp App/config/medm/G_CRLOGIC_expert.adl /work/sls/config/medm
 
 help:
 	@echo "The following targets are available with this Makefile:-"
