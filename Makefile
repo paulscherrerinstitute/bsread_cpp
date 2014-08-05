@@ -1,6 +1,6 @@
 # $Header: /cvs/G/CRLOGIC/Makefile,v 1.4 2012/05/25 06:50:13 ebner Exp $
 
-LIBVERSION = 4.4.4
+LIBVERSION = 4.4.5
 
 build:
 	$(MAKE) build -C src LIBVERSION=$(LIBVERSION)
