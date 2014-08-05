@@ -2,7 +2,9 @@
 CRLOGIC provides a fast IOC based continuous scan functionality. It reads configured hardware resources within a certain
 time interval and streams out the data via ZMQ. All hardware resources to be read out need to reside on the same IOC than the CRLOGIC code is running.
 
+
 Currently following hardware resources are supported:
+
   * VME58 - OMS motor card
   * VME58E - OMS motor card encoder field
   * MaxV - MaxV motor card
@@ -24,7 +26,7 @@ The data stream is served in a ZMQ PUB/SUB delivery scheme.
 To configure CRLOGIC on your IOC continue as follows:
 
   * Copy latest `crlogic.template` file from the CRLOGIC project to your IOC configuration folder
-  * Create substitution file `crlogic.subs` for crlogic.template ([doc/EXAMPLE_crlogic.subs])
+  * Create substitution file `crlogic.subs` for crlogic.template ((Example)[doc/EXAMPLE_crlogic.subs])
  
 ```
 file crlogic.template {
