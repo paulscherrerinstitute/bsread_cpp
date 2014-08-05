@@ -26,7 +26,7 @@ The data stream is served in a ZMQ PUB/SUB delivery scheme.
 To configure CRLOGIC on your IOC continue as follows:
 
   * Copy latest `crlogic.template` file from the CRLOGIC project to your IOC configuration folder
-  * Create substitution file `crlogic.subs` for crlogic.template ((Example)[doc/EXAMPLE_crlogic.subs])
+  * Create substitution file `crlogic.subs` for crlogic.template ( (doc/EXAMPLE_crlogic.subs) )
  
 ```
 file crlogic.template {
