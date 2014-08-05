@@ -1,5 +1,8 @@
 # $Header: /cvs/G/CRLOGIC/Makefile,v 1.4 2012/05/25 06:50:13 ebner Exp $
 
+LIBVERSION = 4.4.4
+export LIBVERSION
+
 build:
 	$(MAKE) build -C src/CRLOGICCore
 	$(MAKE) build -C src/CRLOGICTimestamp
@@ -28,15 +31,15 @@ clean:
 
 install: build
 	$(MAKE) install -C src/CRLOGICCore
-	$(MAKE) install -C src/CRLOGICTimestamp
-	$(MAKE) install -C src/CRLOGICMaxV
-	$(MAKE) install -C src/CRLOGICVSC16
-	$(MAKE) install -C src/CRLOGICDCR508
-	$(MAKE) install -C src/CRLOGICVME58
-	$(MAKE) install -C src/CRLOGICVME58E
-	$(MAKE) install -C src/CRLOGICECM5xx
-	$(MAKE) install -C src/CRLOGICHy8001Trigger
-	$(MAKE) install -C src/CRLOGICHy8401
+	$(MAKE) install -C src/CRLOGICTimestamp $(PROJECTVARS)
+	$(MAKE) install -C src/CRLOGICMaxV $(PROJECTVARS)
+	$(MAKE) install -C src/CRLOGICVSC16 $(PROJECTVARS)
+	$(MAKE) install -C src/CRLOGICDCR508 $(PROJECTVARS)
+	$(MAKE) install -C src/CRLOGICVME58 $(PROJECTVARS)
+	$(MAKE) install -C src/CRLOGICVME58E $(PROJECTVARS)
+	$(MAKE) install -C src/CRLOGICECM5xx $(PROJECTVARS)
+	$(MAKE) install -C src/CRLOGICHy8001Trigger $(PROJECTVARS)
+	$(MAKE) install -C src/CRLOGICHy8401 $(PROJECTVARS)
 	$(MAKE) install -C src/CRLOGICChannel
 
 uninstall:

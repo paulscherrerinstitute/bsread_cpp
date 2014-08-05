@@ -47,7 +47,7 @@ static void *zmqSock;
 rstatus crlogicDataWriterOpen(char* pvPrefix, int resourceCount, resource* resourceArray, char* emessage){
 
 	int hwm = 100;
-	char *addr = "tcp://*:8080"
+	char *addr = "tcp://*:8080";
 
 	zmqCtx = zmq_ctx_new();
 	zmqSock= zmq_socket (zmqCtx, ZMQ_PUSH);
@@ -75,7 +75,7 @@ void crlogicDataWriterWrite(message* message) {
 	char buf[256];
 	int len, res;
 
-	len = sprintf(buf, jsonFmt, frmId, w, h, typeStr);
+	len = sprintf(buf, jsonFmt, 1, 2, 3, 4);
 
 	res = zmq_send(zmqSock, buf, len, ZMQ_SNDMORE);
 
