@@ -4,3 +4,4 @@ include /ioc/tools/driver.makefile
 EXCLUDE_VERSIONS = 3.13
 USR_CFLAGS += -O0
 PROJECT = CRLOGICVME58E
+LIBVERSION=4.4.4
