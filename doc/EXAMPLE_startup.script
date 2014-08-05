@@ -10,13 +10,7 @@ sysClkRateSet 1000
 #====================================================================
 # --- CRLOGIC ---
 # -----------------------
-require "CRLOGICCore", "test"
-require "CRLOGICTimestamp", "test"
-##require "CRLOGICMaxV", "test"
-require "CRLOGICVME58", "test"
-require "CRLOGICECM5xx", "test"
-require "CRLOGICVSC16", "test"
-require "CRLOGICHy8001Trigger", "test"
+require "CRLOGIC", "test"
 
 # IOC Timestamp
 crlogicAddTimestampResource "TIMESTAMP"

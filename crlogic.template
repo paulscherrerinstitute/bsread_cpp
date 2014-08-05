@@ -2,10 +2,6 @@
 #! DBDSTART
 #! DBDEND
 
-
-# $Source: /cvs/G/CRLOGIC/crlogic.template,v $
-# $Author: ebner $
-# $Revision: 1.3 $   $Date: 2012/02/22 07:24:15 $
 # Macros
 # ======
 #   P         - Record prefix, e.g. MTEST-HW3-OTFX
@@ -53,30 +49,6 @@ record(stringin, "$(P):MSG") {
 # Ticks between interrupts
 record(longout, "$(P):TBINT") {
   field(DESC, "Ticks between two interrupts")
-  field(SCAN, "Passive")
-  field(VAL, "0")
-}
-
-# NFS server
-record(stringout, "$(P):NFSSE") {
-  field(DESC, "NFS server name")
-  field(SCAN, "Passive")
-}
-
-# NFS share
-record(stringout, "$(P):NFSSH") {
-  field(DESC, "NFS share name")
-  field(SCAN, "Passive")
-}
-
-# Data file name
-record(stringout, "$(P):DFNAM") {
-  field(DESC, "Data file name")
-  field(SCAN, "Passive")
-}
-
-record(bo, "$(P):FAPPE") {
-  field(DESC, "Append to file?")
   field(SCAN, "Passive")
   field(VAL, "0")
 }
