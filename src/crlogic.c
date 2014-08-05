@@ -24,7 +24,7 @@
 #include <string.h>
 
 /* Header(s) */
-#include "../crlogic.h"
+#include "crlogic.h"
 
 /* Global constants */
 enum CRLOGIC_STATUS {LOGIC_SETUP, LOGIC_INACTIVE, LOGIC_INITIALIZE, LOGIC_ACTIVE, LOGIC_STOP, LOGIC_FAULT, LOGIC_ERROR};

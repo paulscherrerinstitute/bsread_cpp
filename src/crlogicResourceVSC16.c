@@ -17,7 +17,7 @@
  *
  */
 
-#include "../crlogic.h"
+#include "crlogic.h"
 
 #include <time.h>
 #include <timers.h>
@@ -25,25 +25,37 @@
 
 extern resourceListItem *resourceList;
 
-/* ECM5xx memory structure */
+/* VSC16 memory structure */
 typedef volatile struct {
-	int counter[4];
-} ecm5xxmemory;
+	usint reset[2]; /* Reset (write only) */
+	usint control[2]; /* Control */
+	usint dirn[2]; /* Direction */
+	uchar dummy1[4]; /* Filler */
+	usint status_id[2]; /* Status ID */
+	usint irq_lvl[2]; /* IRQ level */
+	usint irq_mask[2]; /* IRQ mask */
+	usint irq_reset[2]; /* IRQ reset (write only) */
+	usint ser_num[2]; /* Serial number */
+	usint type[2]; /* Module type */
+	usint manuf[2]; /* Manufacturer */
+	uchar dummy2[0x54]; /* Filler */
+	uint channel[16]; /* Scaler channels  1 to 16 */
+} vsc16memory;
 
 
-static void initializeECM5xx (resource *self, rstatus status, char* emessage) {
+static void initializeVSC16 (resource *self, rstatus status, char* emessage) {
 
-	ecm5xxmemory *memory;
+	vsc16memory *memory;
 	rstatus retStatus;
 	usint retValue;
 
 	char * baseAddress;
 	baseAddress = (char*) self->baseAddress;
 
-	printf("Initialize ECM5xx memory access [base address] %p [channel number] %d\n", baseAddress, self->channel);
+	printf("Initialize VSC16 memory access [base address] %p [channel number] %d\n", baseAddress, self->channel);
 
 	/* Retrieve pointer to memory */
-	retStatus = sysBusToLocalAdrs (VME_AM_STD_USR_DATA, baseAddress, (char **) &memory);
+	retStatus = sysBusToLocalAdrs( VME_AM_EXT_USR_DATA, baseAddress, (char **) &memory);
 	if(retStatus != OK) {
 		printf ("Cannot retrieve pointer to motor card memory structure\n");
 		printf ("Check that module base address = %p is correct\n", baseAddress);
@@ -53,10 +65,10 @@ static void initializeECM5xx (resource *self, rstatus status, char* emessage) {
 	}
 
 	/* Check if memory is readable */
-	retStatus = vxMemProbe ((char *) &memory, VX_READ, 4, (char *) &retValue);
+	retStatus = vxMemProbe ((char *) &memory->channel, VX_READ, 4, (char *) &retValue); /* TODO check if 4 can be replaced by sizeof(uint)*/
 	if(retStatus != OK){
-		printf ("Cannot read encoder card memory\n");
-		sprintf (emessage, "Cannot read encoder memory");
+		printf ("Cannot read memory\n");
+		sprintf (emessage,"Cannot read memory");
 		status = ERROR;
 		return;
 	}
@@ -65,16 +77,14 @@ static void initializeECM5xx (resource *self, rstatus status, char* emessage) {
 	status = OK;
 }
 
-static void readECM5xx(resource *self, double *message){
-	
-	/* Read memory */
-	int data = ((ecm5xxmemory *)self->pointer)->counter[self->channel];
-	*message = (double) data;
+static void readVSC16(resource *self, double *message){
+	uint value = ((vsc16memory *)self->pointer)->channel[self->channel];
+	*message = (double) value;
 }
 
-static void initResourceECM5xx (resource *self) {
-    self->initialize = (void *) &initializeECM5xx;
-    self->read = (void *) &readECM5xx;
+static void initResourceVSC16 (resource *self) {
+    self->initialize = (void *) &initializeVSC16;
+    self->read = (void *) &readVSC16;
 }
 
 
@@ -82,15 +92,15 @@ static void initResourceECM5xx (resource *self) {
  * Add timestamp resource to resource list
  * key	-	Key of the resource
  */
-rstatus crlogicAddECM5xxEncoderResource(char* key, int baseAddress, int channel){
+rstatus crlogicAddVSC16Resource(char* key, int baseAddress, int channel){
 	resourceListItem* newNode;
 
-	printf("Add ECM5xx encoder resource\n");
+	printf("Add VSC16 resource\n");
 
 	/* Append at the beginning */
 	newNode = calloc (1, sizeof(resourceListItem) );
 
-	initResourceECM5xx( &(newNode->res));
+	initResourceVSC16( &(newNode->res));
 	sprintf(newNode->res.key,"%.63s", key);
 	newNode->res.baseAddress = baseAddress;
 	newNode->res.channel = channel;
@@ -100,3 +110,4 @@ rstatus crlogicAddECM5xxEncoderResource(char* key, int baseAddress, int channel)
 
 	return(OK);
 }
+

@@ -1,7 +1,0 @@
-# $Header: /cvs/G/CRLOGIC/src/CRLOGICDCR508/Makefile,v 1.1 2011/10/18 07:03:27 ebner Exp $
-
-include /ioc/tools/driver.makefile
-EXCLUDE_VERSIONS = 3.13
-USR_CFLAGS += -O0
-PROJECT = CRLOGICDCR508
-LIBVERSION=4.4.4

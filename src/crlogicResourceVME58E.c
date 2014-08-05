@@ -17,7 +17,7 @@
  *
  */
 
-#include "../crlogic.h"
+#include "crlogic.h"
 
 #include <time.h>
 #include <timers.h>
@@ -25,37 +25,30 @@
 
 extern resourceListItem *resourceList;
 
-/* VSC16 memory structure */
+/* VME58E memory structure */
 typedef volatile struct {
-	usint reset[2]; /* Reset (write only) */
-	usint control[2]; /* Control */
-	usint dirn[2]; /* Direction */
-	uchar dummy1[4]; /* Filler */
-	usint status_id[2]; /* Status ID */
-	usint irq_lvl[2]; /* IRQ level */
-	usint irq_mask[2]; /* IRQ mask */
-	usint irq_reset[2]; /* IRQ reset (write only) */
-	usint ser_num[2]; /* Serial number */
-	usint type[2]; /* Module type */
-	usint manuf[2]; /* Manufacturer */
-	uchar dummy2[0x54]; /* Filler */
-	uint channel[16]; /* Scaler channels  1 to 16 */
-} vsc16memory;
+	char dummy0[1024];
+	struct Motors { /* A memory block for each motor */
+		/*char dummy1[4];*/
+		usint pos[2]; /* Position is stored in 2 16 bit words */
+		char dummy2[124];
+	} motors[8]; /* The controller can have up to 8 motors */
+} vme58memory;
 
 
-static void initializeVSC16 (resource *self, rstatus status, char* emessage) {
+static void initializeVME58E (resource *self, rstatus status, char* emessage) {
 
-	vsc16memory *memory;
+	vme58memory *memory;
 	rstatus retStatus;
 	usint retValue;
 
 	char * baseAddress;
 	baseAddress = (char*) self->baseAddress;
 
-	printf("Initialize VSC16 memory access [base address] %p [channel number] %d\n", baseAddress, self->channel);
+	printf("Initialize VME58 memory access [base address] %p [channel number] %d\n", baseAddress, self->channel);
 
 	/* Retrieve pointer to memory */
-	retStatus = sysBusToLocalAdrs( VME_AM_EXT_USR_DATA, baseAddress, (char **) &memory);
+	retStatus = sysBusToLocalAdrs (VME_AM_USR_SHORT_IO, baseAddress, (char **) &memory);
 	if(retStatus != OK) {
 		printf ("Cannot retrieve pointer to motor card memory structure\n");
 		printf ("Check that module base address = %p is correct\n", baseAddress);
@@ -65,7 +58,7 @@ static void initializeVSC16 (resource *self, rstatus status, char* emessage) {
 	}
 
 	/* Check if memory is readable */
-	retStatus = vxMemProbe ((char *) &memory->channel, VX_READ, 4, (char *) &retValue); /* TODO check if 4 can be replaced by sizeof(uint)*/
+	retStatus = vxMemProbe ((char *) memory, VX_READ, 2, (char *) &retValue); /* TODO check if 2 can be replaced by sizeof(usint)*/
 	if(retStatus != OK){
 		printf ("Cannot read memory\n");
 		sprintf (emessage,"Cannot read memory");
@@ -77,14 +70,20 @@ static void initializeVSC16 (resource *self, rstatus status, char* emessage) {
 	status = OK;
 }
 
-static void readVSC16(resource *self, double *message){
-	uint value = ((vsc16memory *)self->pointer)->channel[self->channel];
+static void readVME58E(resource *self, double *message){
+
+	int value;
+	uint high = ((vme58memory *)self->pointer)->motors[self->channel].pos[0];
+	uint low = ((vme58memory *)self->pointer)->motors[self->channel].pos[1];
+
+	/* Combine the 2 16bit words of the motor */
+	value = ((high << 16) | (low & 0x0000ffff));
 	*message = (double) value;
 }
 
-static void initResourceVSC16 (resource *self) {
-    self->initialize = (void *) &initializeVSC16;
-    self->read = (void *) &readVSC16;
+static void initResourceVME58E (resource *self) {
+    self->initialize = (void *) &initializeVME58E;
+    self->read = (void *) &readVME58E;
 }
 
 
@@ -92,15 +91,15 @@ static void initResourceVSC16 (resource *self) {
  * Add timestamp resource to resource list
  * key	-	Key of the resource
  */
-rstatus crlogicAddVSC16Resource(char* key, int baseAddress, int channel){
+rstatus crlogicAddVME58EMotorResource(char* key, int baseAddress, int channel){
 	resourceListItem* newNode;
 
-	printf("Add VSC16 resource\n");
+	printf("Add VME58E motor resource\n");
 
 	/* Append at the beginning */
 	newNode = calloc (1, sizeof(resourceListItem) );
 
-	initResourceVSC16( &(newNode->res));
+	initResourceVME58E( &(newNode->res));
 	sprintf(newNode->res.key,"%.63s", key);
 	newNode->res.baseAddress = baseAddress;
 	newNode->res.channel = channel;

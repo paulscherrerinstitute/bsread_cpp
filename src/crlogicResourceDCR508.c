@@ -17,7 +17,7 @@
  *
  */
 
-#include "../crlogic.h"
+#include "crlogic.h"
 
 #include <time.h>
 #include <timers.h>

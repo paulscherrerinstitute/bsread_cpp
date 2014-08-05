@@ -17,7 +17,7 @@
  *
  */
 
-#include "../crlogic.h"
+#include "crlogic.h"
 
 #include <time.h>
 #include <timers.h>
@@ -25,31 +25,26 @@
 
 extern resourceListItem *resourceList;
 
-static void initializeTimestamp (resource *self, rstatus status, char* emessage) {
-	printf("Initialize timestamp\n");
+
+static void initializeChannel (resource *self, rstatus status, char* emessage) {
+
+	pvaddress channel_pvAddr;
+
+	printf("Initialize DataWriter\n");
+
+	dbNameToAddr(self->key, &channel_pvAddr);
+
+	self->pointer = (void *) &channel_pvAddr;
 	status = OK;
 }
 
-static void readTimestamp(resource *self, double *message){
-
-	struct timespec timestamp;
-#if EPICS_REVISION >= 14
-	/* Get timestamp is IOC is running on Epics 3.14.x */
-	epicsTimeStamp timest;
-	epicsTimeGetCurrent(&timest);
-	epicsTimeToTimespec(&timestamp, &timest);
-#else
-	/* Get timestamp if IOC is running on Epics 3.13.x */
-	clock_gettime(CLOCK_REALTIME, &timestamp);
-#endif
-
-	/* *message = timestamp.tv_sec*1000000000+timestamp.tv_nsec;*/
-	*message = (double)timestamp.tv_sec+((double)timestamp.tv_nsec/1000000000.0);
+static void readChannel(resource *self, double *message){
+	dbGetField (((pvaddress *)self->pointer), DBR_DOUBLE, message, NULL, NULL, NULL);
 }
 
-static void initResourceTimestamp (resource *self) {
-    self->initialize = (void *) &initializeTimestamp;
-    self->read = (void *) &readTimestamp;
+static void initResourceChannel (resource *self) {
+    self->initialize = (void *) &initializeChannel;
+    self->read = (void *) &readChannel;
 }
 
 
@@ -57,15 +52,15 @@ static void initResourceTimestamp (resource *self) {
  * Add timestamp resource to resource list
  * key	-	Key of the resource
  */
-rstatus crlogicAddTimestampResource(char* key){
+rstatus crlogicAddChannelResource(char* key){
 	resourceListItem* newNode;
 
-	printf("Add Timestamp resource\n");
+	printf("Add Channel resource\n");
 
 	/* Append at the beginning */
 	newNode = calloc (1, sizeof(resourceListItem) );
 
-	initResourceTimestamp( &(newNode->res));
+	initResourceChannel( &(newNode->res));
 	sprintf(newNode->res.key,"%.63s", key);
 
 	newNode->next = resourceList;
@@ -73,3 +68,4 @@ rstatus crlogicAddTimestampResource(char* key){
 
 	return(OK);
 }
+

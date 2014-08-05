@@ -17,7 +17,7 @@
  *
  */
 
-#include "../crlogic.h"
+#include "crlogic.h"
 
 #include <time.h>
 #include <timers.h>
@@ -25,30 +25,25 @@
 
 extern resourceListItem *resourceList;
 
-/* VME58E memory structure */
+/* ECM5xx memory structure */
 typedef volatile struct {
-	char dummy0[1024];
-	struct Motors { /* A memory block for each motor */
-		/*char dummy1[4];*/
-		usint pos[2]; /* Position is stored in 2 16 bit words */
-		char dummy2[124];
-	} motors[8]; /* The controller can have up to 8 motors */
-} vme58memory;
+	int counter[4];
+} ecm5xxmemory;
 
 
-static void initializeVME58E (resource *self, rstatus status, char* emessage) {
+static void initializeECM5xx (resource *self, rstatus status, char* emessage) {
 
-	vme58memory *memory;
+	ecm5xxmemory *memory;
 	rstatus retStatus;
 	usint retValue;
 
 	char * baseAddress;
 	baseAddress = (char*) self->baseAddress;
 
-	printf("Initialize VME58 memory access [base address] %p [channel number] %d\n", baseAddress, self->channel);
+	printf("Initialize ECM5xx memory access [base address] %p [channel number] %d\n", baseAddress, self->channel);
 
 	/* Retrieve pointer to memory */
-	retStatus = sysBusToLocalAdrs (VME_AM_USR_SHORT_IO, baseAddress, (char **) &memory);
+	retStatus = sysBusToLocalAdrs (VME_AM_STD_USR_DATA, baseAddress, (char **) &memory);
 	if(retStatus != OK) {
 		printf ("Cannot retrieve pointer to motor card memory structure\n");
 		printf ("Check that module base address = %p is correct\n", baseAddress);
@@ -58,10 +53,10 @@ static void initializeVME58E (resource *self, rstatus status, char* emessage) {
 	}
 
 	/* Check if memory is readable */
-	retStatus = vxMemProbe ((char *) memory, VX_READ, 2, (char *) &retValue); /* TODO check if 2 can be replaced by sizeof(usint)*/
+	retStatus = vxMemProbe ((char *) &memory, VX_READ, 4, (char *) &retValue);
 	if(retStatus != OK){
-		printf ("Cannot read memory\n");
-		sprintf (emessage,"Cannot read memory");
+		printf ("Cannot read encoder card memory\n");
+		sprintf (emessage, "Cannot read encoder memory");
 		status = ERROR;
 		return;
 	}
@@ -70,20 +65,16 @@ static void initializeVME58E (resource *self, rstatus status, char* emessage) {
 	status = OK;
 }
 
-static void readVME58E(resource *self, double *message){
-
-	int value;
-	uint high = ((vme58memory *)self->pointer)->motors[self->channel].pos[0];
-	uint low = ((vme58memory *)self->pointer)->motors[self->channel].pos[1];
-
-	/* Combine the 2 16bit words of the motor */
-	value = ((high << 16) | (low & 0x0000ffff));
-	*message = (double) value;
+static void readECM5xx(resource *self, double *message){
+	
+	/* Read memory */
+	int data = ((ecm5xxmemory *)self->pointer)->counter[self->channel];
+	*message = (double) data;
 }
 
-static void initResourceVME58E (resource *self) {
-    self->initialize = (void *) &initializeVME58E;
-    self->read = (void *) &readVME58E;
+static void initResourceECM5xx (resource *self) {
+    self->initialize = (void *) &initializeECM5xx;
+    self->read = (void *) &readECM5xx;
 }
 
 
@@ -91,15 +82,15 @@ static void initResourceVME58E (resource *self) {
  * Add timestamp resource to resource list
  * key	-	Key of the resource
  */
-rstatus crlogicAddVME58EMotorResource(char* key, int baseAddress, int channel){
+rstatus crlogicAddECM5xxEncoderResource(char* key, int baseAddress, int channel){
 	resourceListItem* newNode;
 
-	printf("Add VME58E motor resource\n");
+	printf("Add ECM5xx encoder resource\n");
 
 	/* Append at the beginning */
 	newNode = calloc (1, sizeof(resourceListItem) );
 
-	initResourceVME58E( &(newNode->res));
+	initResourceECM5xx( &(newNode->res));
 	sprintf(newNode->res.key,"%.63s", key);
 	newNode->res.baseAddress = baseAddress;
 	newNode->res.channel = channel;
@@ -109,4 +100,3 @@ rstatus crlogicAddVME58EMotorResource(char* key, int baseAddress, int channel){
 
 	return(OK);
 }
-
