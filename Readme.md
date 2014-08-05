@@ -51,13 +51,22 @@ file crlogic.template {
     ```
     
     * Configure potential resources to be read out by CRLOGIC
-      * VME 58
+      * VME58
       
       ```
       # resourceID            -       ID of the "resource" (used to configure and identify the readout)
       # slot			-	Slot of the motor card (counting starts at 0)
       # cardBaseAddress	-	Base address of the motor card
       crlogicAddVME58MotorResource "<resourceID>", <cardBaseAddress>, <slot>
+      ```
+      
+      * VME58E
+      
+      ```
+      # resourceID            -       ID of the "resource" (used to configure and identify the readout)
+      # slot			-	Slot of the motor card (counting starts at 0)
+      # cardBaseAddress	-	Base address of the motor card
+      crlogicAddVME58EMotorResource "<resourceID>", <cardBaseAddress>, <slot>
       ```
       
 
