@@ -52,29 +52,29 @@ rstatus crlogicDataWriterOpen(char* pvPrefix, int resourceCount, resource* resou
  */
 void crlogicDataWriterWrite(message* message) {
 
-	char jsonFmt[] = "{\"htype\":\"crlogic-1.0\",\"frame\":%d,\"shape\":[%d,%d],\"type\":\"%s\"}";
+	char jsonFmt[] = "{\"htype\":\"crlogic-1.0\",\"length\":\"%d\"}";
 	char buf[256];
-	int len, res;
-	int count = 0;
+	int len, res, i;
+        double* val = message->values;
 
-	char buffer[(message->length*4)];
+	char arr[sizeof(double)* message->length];
 
-	printf(".");
-	len = sprintf(buf, jsonFmt, 1, 2, 3, "cool");
+	/*printf(". %d", message->length);*/
+	len = sprintf(buf, jsonFmt, message->length);
 
 	res = zmq_send(zmqSock, buf, len, ZMQ_SNDMORE);
 
 	/*len = sprintf(buf, "%.12f", message->values[0]);*/
 
 
-	char arr[sizeof(double)*message->lenght];
-	for(i=0;i<message->length;i++){
-		memcpy(arr[count],message->values[i],sizeof(double));
-		count++;
+	for(i=0; i<message->length; i++){
+                /*printf("*");*/
+                printf("%f", message->values[i]);
+		memcpy(arr + i*sizeof(double), val+i, sizeof(double));
 	}
 
 
-	res = zmq_send(zmqSock, arr, message->length*4, 0);
+	res = zmq_send(zmqSock, arr, message->length * sizeof(double), 0);
 
 }
 
