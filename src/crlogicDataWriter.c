@@ -37,7 +37,7 @@ rstatus crlogicDataWriterOpen(char* pvPrefix, int resourceCount, resource* resou
 
 	printf("open writer");
 	zmqCtx = zmq_ctx_new();
-	zmqSock = zmq_socket(zmqCtx, ZMQ_PUSH);
+	zmqSock = zmq_socket(zmqCtx, ZMQ_PUB);
 	zmq_setsockopt(zmqSock, ZMQ_SNDHWM, &hwm, sizeof(hwm));
 	zmq_bind(zmqSock, addr);
 
@@ -50,7 +50,7 @@ rstatus crlogicDataWriterOpen(char* pvPrefix, int resourceCount, resource* resou
  */
 void crlogicDataWriterWrite(message* message) {
 
-	char jsonFmt[] = "{\"htype\":\"crlogic-1.0\",\"length\":\"%d\"}";
+	char jsonFmt[] = "{\"htype\":\"crlogic-1.0\",\"elements\":\"%d\"}";
 	char buf[256];
 	int len, res, i;
 	double* val = message->values;
