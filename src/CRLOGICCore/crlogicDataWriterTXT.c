@@ -52,17 +52,29 @@ rstatus crlogicDataWriterOpen(char* pvPrefix, int resourceCount, resource* resou
  */
 void crlogicDataWriterWrite(message* message) {
 
-	char jsonFmt[] = "{\"htype\":\"chunk-1.0\",\"frame\":%d,\"shape\":[%d,%d],\"type\":\"%s\"}";
+	char jsonFmt[] = "{\"htype\":\"crlogic-1.0\",\"frame\":%d,\"shape\":[%d,%d],\"type\":\"%s\"}";
 	char buf[256];
 	int len, res;
+	int count = 0;
+
+	char buffer[(message->length*4)];
 
 	printf(".");
 	len = sprintf(buf, jsonFmt, 1, 2, 3, "cool");
 
 	res = zmq_send(zmqSock, buf, len, ZMQ_SNDMORE);
 
-	len = sprintf(buf, "%.12f", message->values[0]);
-	res = zmq_send(zmqSock, buf, len, 0);
+	/*len = sprintf(buf, "%.12f", message->values[0]);*/
+
+
+	char arr[sizeof(double)*message->lenght];
+	for(i=0;i<message->length;i++){
+		memcpy(arr[count],message->values[i],sizeof(double));
+		count++;
+	}
+
+
+	res = zmq_send(zmqSock, arr, message->length*4, 0);
 
 }
 
