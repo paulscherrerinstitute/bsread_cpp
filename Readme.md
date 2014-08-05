@@ -36,6 +36,29 @@ file crlogic.template {
 } 
 ```
 
+  * Configure startup script as follows:
+    * Increase the system clock rate (*Note*: increasing the system clock rate might have effects on the IOC and its hardware. Please check if things working properly after increasing the clock rate)
+    
+    ```
+    sysClkRateSet 1000
+    ```
+    
+    * Load ZMQ and CRLOGIC drivers
+    
+    ```
+    require "ZMQ", "<version>"
+    require "CRLOGIC", "<version>"
+    ```
+    
+    * Configure potential resources to be read out by CRLOGIC
+      * VME 58
+      
+      ```
+# resourceID            -       ID of the "resource" (used to configure and identify the readout)
+# slot			-	Slot of the motor card (counting starts at 0)
+# cardBaseAddress	-	Base address of the motor card
+crlogicAddVME58MotorResource "<resourceID>", <cardBaseAddress>, <slot>
+      ```
 
 # Development
 
