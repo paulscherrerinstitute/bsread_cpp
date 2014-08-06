@@ -50,7 +50,7 @@ static void initResourceChannel (resource *self) {
 
 /**
  * Add timestamp resource to resource list
- * key	-	Key of the resource
+ * key	-	Key/Channel name of the resource
  */
 rstatus crlogicAddChannelResource(char* key){
 	resourceListItem* newNode;
