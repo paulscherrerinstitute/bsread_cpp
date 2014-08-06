@@ -48,91 +48,91 @@ To configure CRLOGIC on your IOC continue as follows:
   * Configure startup script as follows:
     * Increase the system clock rate (*Note*: increasing the system clock rate might have effects on the IOC and its hardware. Please check if things working properly after increasing the clock rate)
     
-		```
-		sysClkRateSet 1000
-		```
+	```
+	sysClkRateSet 1000
+	```
     
     * Load ZMQ and CRLOGIC drivers
     
-```
-require "ZMQ", "<version>"
-require "CRLOGIC", "<version>"
-```
+	```
+	require "ZMQ", "<version>"
+	require "CRLOGIC", "<version>"
+	```
     
     * Configure potential resources to be read out by CRLOGIC
       * VME58
       
-```
-# resourceID            -       ID of the "resource" (used to configure and identify the readout)
-# slot			-	Slot of the motor card (counting starts at 0)
-# cardBaseAddress	-	Base address of the motor card
-crlogicAddVME58MotorResource "<resourceID>", <cardBaseAddress>, <slot>
-```
+	```
+	# resourceID            -       ID of the "resource" (used to configure and identify the readout)
+	# slot			-	Slot of the motor card (counting starts at 0)
+	# cardBaseAddress	-	Base address of the motor card
+	crlogicAddVME58MotorResource "<resourceID>", <cardBaseAddress>, <slot>
+	```
       
       * VME58E
       
-```
-# resourceID            -       ID of the "resource" (used to configure and identify the readout)
-# slot			-	Slot of the motor card (counting starts at 0)
-# cardBaseAddress	-	Base address of the motor card
-crlogicAddVME58EMotorResource "<resourceID>", <cardBaseAddress>, <slot>
-```
+	```
+	# resourceID            -       ID of the "resource" (used to configure and identify the readout)
+	# slot			-	Slot of the motor card (counting starts at 0)
+	# cardBaseAddress	-	Base address of the motor card
+	crlogicAddVME58EMotorResource "<resourceID>", <cardBaseAddress>, <slot>
+	```
       
       * MaxV
       
-```
-# resourceID            -       ID of the "resource" (used to configure and identify the readout)
-# slot			-	Slot of the motor card (counting starts at 0)
-# cardBaseAddress	-	Base address of the motor card
-crlogicAddVME58EMotorResource "<resourceID>", <cardBaseAddress>, <slot>
-```
+	```
+	# resourceID            -       ID of the "resource" (used to configure and identify the readout)
+	# slot			-	Slot of the motor card (counting starts at 0)
+	# cardBaseAddress	-	Base address of the motor card
+	crlogicAddVME58EMotorResource "<resourceID>", <cardBaseAddress>, <slot>
+	```
       * MaxV Internal Encoder
       
-```
-# resourceID            -       ID of the "resource" (used to configure and identify the readout)
-# slot			-	Slot of the card (counting starts at 0)
-# cardBaseAddress	-	Base address of the encoder card
-crlogicAddECM5xxEncoderResource "<resourceID>", <cardBaseAddress>, <slot>
-```
+	```
+	# resourceID            -       ID of the "resource" (used to configure and identify the readout)
+	# slot			-	Slot of the card (counting starts at 0)
+	# cardBaseAddress	-	Base address of the encoder card
+	crlogicAddECM5xxEncoderResource "<resourceID>", <cardBaseAddress>, <slot>
+	```
 
       * VSC16
       
-```
-# resourceID            -       ID of the "resource" (used to configure and identify the readout)
-# channel			-	Slot of the scaler card (counting starts at 0)
-# cardBaseAddress	-	Base address of the scaler card
-crlogicAddVSC16Resource "<resourceID>", <cardBaseAddress>, <channel>
-```
+	```
+	# resourceID            -       ID of the "resource" (used to configure and identify the readout)
+	# channel			-	Slot of the scaler card (counting starts at 0)
+	# cardBaseAddress	-	Base address of the scaler card
+	crlogicAddVSC16Resource "<resourceID>", <cardBaseAddress>, <channel>
+	```
 
       * Hy8001 - Trigger
       
-```
-# resourceID            -       ID of the "resource" (used to configure and identify the "readout"/trigger)
-# cardNumber		-	Number of the card as configured in the Hy8001 driver setup
-# signal	-	Signal of the card to send the trigger out [signal starts at 0]
-
-crlogicAddHy8001TriggerResource "<resourceID>", <cardNumer>, <signal>
-```
+	```
+	# resourceID            -       ID of the "resource" (used to configure and identify the "readout"/trigger)
+	# cardNumber		-	Number of the card as configured in the Hy8001 driver setup
+	# signal	-	Signal of the card to send the trigger out [signal starts at 0]
+	
+	crlogicAddHy8001TriggerResource "<resourceID>", <cardNumer>, <signal>
+	```
 
       * Hy8401 - Analog-In
       
-```
-# resourceID            -       ID of the "resource" (used to configure and identify the "readout"/trigger)
-# cardNumber		-	Number of the card as configured in the Hy8001 driver setup
-# signal	-	Signal of the card to send the trigger out [signal starts at 0]
-
-crlogicAddHy8401Resource "<resourceID>", <cardNumer>, <signal>
-```
+	```
+	# resourceID            -       ID of the "resource" (used to configure and identify the "readout"/trigger)
+	# cardNumber		-	Number of the card as configured in the Hy8001 driver setup
+	# signal	-	Signal of the card to send the trigger out [signal starts at 0]
+	
+	crlogicAddHy8401Resource "<resourceID>", <cardNumer>, <signal>
+	```
       
       * Channel
       
-```
-/**
- * Add timestamp resource to resource list
- * key	-	Key/Channel name of the resource
- */
-crlogicAddChannelResource "key"
-```
+	```
+	/**
+	 * Add timestamp resource to resource list
+	 * key	-	Key/Channel name of the resource
+	 */
+	crlogicAddChannelResource "key"
+	```
 
 A detailed configuration example can be found [here](doc/EXAMPLE_startup.script)
 
