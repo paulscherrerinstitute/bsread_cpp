@@ -38,26 +38,26 @@ file crlogic.template {
 
   * Configure SNL startup script. The IOC SNL Startup Script which is located in the *snl* directory of the IOC project.It has to include following line:
 
-  ```
-  # pvPrefix			-	Prefix of the CRLOGIC Epics records
-  crlogicInitializeCore "<pvPrefix>"
-  ```
+```
+# pvPrefix			-	Prefix of the CRLOGIC Epics records
+crlogicInitializeCore "<pvPrefix>"
+```
   
     * A detailed [example](doc/EXAMPLE_snl_startup.script) can be found [here](doc/EXAMPLE_snl_startup.script) )
 
   * Configure startup script as follows:
     * Increase the system clock rate (*Note*: increasing the system clock rate might have effects on the IOC and its hardware. Please check if things working properly after increasing the clock rate)
     
-    ```
-    sysClkRateSet 1000
-    ```
+```
+sysClkRateSet 1000
+```
     
     * Load ZMQ and CRLOGIC drivers
     
-    ```
-    require "ZMQ", "<version>"
-    require "CRLOGIC", "<version>"
-    ```
+```
+require "ZMQ", "<version>"
+require "CRLOGIC", "<version>"
+```
     
     * Configure potential resources to be read out by CRLOGIC
       * VME58
