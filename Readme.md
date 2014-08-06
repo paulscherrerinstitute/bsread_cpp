@@ -129,7 +129,7 @@ To configure CRLOGIC on your IOC continue as follows:
 	crlogicAddChannelResource "key"
 	```
 
-A detailed configuration example can be found [here](doc/EXAMPLE_startup.script)
+      * A detailed configuration example can be found [here](doc/EXAMPLE_startup.script)
 
 # Development
 
