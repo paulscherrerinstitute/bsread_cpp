@@ -110,7 +110,6 @@ To configure CRLOGIC on your IOC continue as follows:
 	# resourceID            -       ID of the "resource" (used to configure and identify the "readout"/trigger)
 	# cardNumber		-	Number of the card as configured in the Hy8001 driver setup
 	# signal	-	Signal of the card to send the trigger out [signal starts at 0]
-	
 	crlogicAddHy8001TriggerResource "<resourceID>", <cardNumer>, <signal>
 	```
 
@@ -120,17 +119,13 @@ To configure CRLOGIC on your IOC continue as follows:
 	# resourceID            -       ID of the "resource" (used to configure and identify the "readout"/trigger)
 	# cardNumber		-	Number of the card as configured in the Hy8001 driver setup
 	# signal	-	Signal of the card to send the trigger out [signal starts at 0]
-	
 	crlogicAddHy8401Resource "<resourceID>", <cardNumer>, <signal>
 	```
       
       * Channel
       
 	```
-	/**
-	 * Add timestamp resource to resource list
-	 * key	-	Key/Channel name of the resource
-	 */
+	# key	-	Key/Channel name of the resource
 	crlogicAddChannelResource "key"
 	```
 
