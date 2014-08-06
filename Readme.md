@@ -132,7 +132,7 @@ To configure CRLOGIC on your IOC continue as follows:
       * A detailed configuration example can be found [here](doc/EXAMPLE_startup.script)
 
 # Usage
-There are following channels 
+There are following channels to control and configure CRLOGIC:
 
   * __$(P):STATUS__ - Status of the readout logic (SETUP, INACTIVE, INITIALIZE, ACTIVE, STOP, FAULT, ERROR)
   * __$(P):MSG__ - Fault message given by the logic (if there is one)	 
