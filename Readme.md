@@ -16,7 +16,7 @@ Currently following hardware resources are supported:
   * Timestamp - IOC timestamp of readout
   * Channel - Epics channel on IOC 
 
-The ZMQ message send out for each readout is split in a header and body part. The header part contains JSON encoded data containing the `htype` and the number of (double) `elements`
+The ZMQ message send out for each readout is split in a header and body part. The header part contains JSON encoded data containing the __htype__ and the number of (double) __elements__
 contained in the body part. The body part contains, for each configured readout resource its double value (8 bytes) in BIG_ENDIAN format.
 
 The data stream is served in a ZMQ PUB/SUB delivery scheme.
@@ -25,8 +25,8 @@ The data stream is served in a ZMQ PUB/SUB delivery scheme.
 # Installation
 To configure CRLOGIC on your IOC continue as follows:
 
-  * Copy latest `crlogic.template` file from the CRLOGIC project to your IOC configuration folder
-  * Create substitution file `crlogic.subs` for crlogic.template ([Example](doc/EXAMPLE_crlogic.subs))
+  * Copy latest _crlogic.template_ file from the CRLOGIC project to your IOC configuration folder
+  * Create substitution file _crlogic.subs_ for crlogic.template ([Example](doc/EXAMPLE_crlogic.subs))
  
 	```
 	file crlogic.template {
@@ -39,7 +39,7 @@ To configure CRLOGIC on your IOC continue as follows:
   * Configure SNL startup script. The IOC SNL Startup Script which is located in the *snl* directory of the IOC project.It has to include following line:
 
 	```
-	# pvPrefix			-	Prefix of the CRLOGIC Epics records
+	# pvPrefix  -  Prefix of the CRLOGIC Epics records
 	crlogicInitializeCore "<pvPrefix>"
 	```
   
@@ -63,73 +63,81 @@ To configure CRLOGIC on your IOC continue as follows:
       * VME58
       
 	```
-	# resourceID            -       ID of the "resource" (used to configure and identify the readout)
-	# slot			-	Slot of the motor card (counting starts at 0)
-	# cardBaseAddress	-	Base address of the motor card
+	# resourceID       -  ID of the "resource" (used to configure and identify the readout)
+	# slot             -  Slot of the motor card (counting starts at 0)
+	# cardBaseAddress  -  Base address of the motor card
 	crlogicAddVME58MotorResource "<resourceID>", <cardBaseAddress>, <slot>
 	```
       
       * VME58E
       
 	```
-	# resourceID            -       ID of the "resource" (used to configure and identify the readout)
-	# slot			-	Slot of the motor card (counting starts at 0)
-	# cardBaseAddress	-	Base address of the motor card
+	# resourceID       -  ID of the "resource" (used to configure and identify the readout)
+	# slot             -  Slot of the motor card (counting starts at 0)
+	# cardBaseAddress  -  Base address of the motor card
 	crlogicAddVME58EMotorResource "<resourceID>", <cardBaseAddress>, <slot>
 	```
       
       * MaxV
       
 	```
-	# resourceID            -       ID of the "resource" (used to configure and identify the readout)
-	# slot			-	Slot of the motor card (counting starts at 0)
-	# cardBaseAddress	-	Base address of the motor card
+	# resourceID       -  ID of the "resource" (used to configure and identify the readout)
+	# slot             -  Slot of the motor card (counting starts at 0)
+	# cardBaseAddress  -  Base address of the motor card
 	crlogicAddVME58EMotorResource "<resourceID>", <cardBaseAddress>, <slot>
 	```
       * MaxV Internal Encoder
       
 	```
-	# resourceID            -       ID of the "resource" (used to configure and identify the readout)
-	# slot			-	Slot of the card (counting starts at 0)
-	# cardBaseAddress	-	Base address of the encoder card
+	# resourceID       -  ID of the "resource" (used to configure and identify the readout)
+	# slot             -  Slot of the card (counting starts at 0)
+	# cardBaseAddress  -  Base address of the encoder card
 	crlogicAddECM5xxEncoderResource "<resourceID>", <cardBaseAddress>, <slot>
 	```
 
       * VSC16
       
 	```
-	# resourceID            -       ID of the "resource" (used to configure and identify the readout)
-	# channel			-	Slot of the scaler card (counting starts at 0)
-	# cardBaseAddress	-	Base address of the scaler card
+	# resourceID       -  ID of the "resource" (used to configure and identify the readout)
+	# channel          -  Slot of the scaler card (counting starts at 0)
+	# cardBaseAddress  -  Base address of the scaler card
 	crlogicAddVSC16Resource "<resourceID>", <cardBaseAddress>, <channel>
 	```
 
       * Hy8001 - Trigger
       
 	```
-	# resourceID            -       ID of the "resource" (used to configure and identify the "readout"/trigger)
-	# cardNumber		-	Number of the card as configured in the Hy8001 driver setup
-	# signal	-	Signal of the card to send the trigger out [signal starts at 0]
+	# resourceID  -  ID of the "resource" (used to configure and identify the "readout"/trigger)
+	# cardNumber  -  Number of the card as configured in the Hy8001 driver setup
+	# signal      -  Signal of the card to send the trigger out [signal starts at 0]
 	crlogicAddHy8001TriggerResource "<resourceID>", <cardNumer>, <signal>
 	```
 
       * Hy8401 - Analog-In
       
 	```
-	# resourceID            -       ID of the "resource" (used to configure and identify the "readout"/trigger)
-	# cardNumber		-	Number of the card as configured in the Hy8001 driver setup
-	# signal	-	Signal of the card to send the trigger out [signal starts at 0]
+	# resourceID  -  ID of the "resource" (used to configure and identify the "readout"/trigger)
+	# cardNumber  -  Number of the card as configured in the Hy8001 driver setup
+	# signal      -  Signal of the card to send the trigger out [signal starts at 0]
 	crlogicAddHy8401Resource "<resourceID>", <cardNumer>, <signal>
 	```
       
       * Channel
       
 	```
-	# key	-	Key/Channel name of the resource
+	# key  -  Key/Channel name of the resource
 	crlogicAddChannelResource "key"
 	```
 
       * A detailed configuration example can be found [here](doc/EXAMPLE_startup.script)
+
+# Usage
+There are following channels 
+
+  * __$(P):STATUS__ - Status of the readout logic (SETUP, INACTIVE, INITIALIZE, ACTIVE, STOP, FAULT, ERROR)
+  * __$(P):MSG__ - Fault message given by the logic (if there is one)	 
+  * __$(P):TBINT__ - Number of ticks between two readout interrupts
+  * __$(P):RRES__ - Ids of the configured resources to be read out/triggered
 
 # Development
 
@@ -145,6 +153,8 @@ make
 ```
 make install
 ```
+
+__Note__: For spotting problems easier and quicker it is recommended to prepend the __dye__ command before the actual make statement.
 
 # Debugging
 Start medm panel:
