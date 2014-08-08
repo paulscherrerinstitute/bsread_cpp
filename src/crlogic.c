@@ -28,7 +28,7 @@
 
 /* Global constants */
 enum CRLOGIC_STATUS {LOGIC_SETUP, LOGIC_INACTIVE, LOGIC_INITIALIZE, LOGIC_ACTIVE, LOGIC_STOP, LOGIC_FAULT, LOGIC_ERROR};
-static char* crlogicPipeName = "/pipe/crlogic";
+static char* bsreadPipeName = "/pipe/crlogic";
 
 static int readTaskPriority = 59;
 static int writeTaskPriority = 148;
@@ -47,20 +47,15 @@ static pvaddress crlogicReadoutResources_pvAddr;
 static int readoutResourcesCount;
 static resource readoutResources[maxNumberResources];
 
+
 /* [BEGIN] Resource list (methods) */
 
-/**
- * List of configured resources
- */
+/* List of resources to be read out*/
 resourceListItem *resourceList = NULL;
+int items = 0;
 
-
-/**
- * Get device information for the given motor name
- * (Motor need to be configured via the otfAddMotor function before)
- * name	-	Name of the motor record
- */
-resourceListItem* crlogicGetResource(char* name){
+/* Get resource by name */
+resourceListItem* bsreadGetResource(char* name){
 
 	resourceListItem* currentNode;
 
@@ -82,7 +77,46 @@ resourceListItem* crlogicGetResource(char* name){
 	return NULL;
 }
 
-void crlogicPrintResources(){
+/* Add resource at the beginning of the list */
+resourceListItem* bsreadAddResource(char* key){
+	resourceListItem* newNode;
+	pvaddress channel_pvAddr;
+
+	newNode = calloc (1, sizeof(resourceListItem) );
+
+	/* Ensure that key does not cause an overflow */
+	sprintf(newNode->res.key,"%.63s", key);
+
+	/* Retrieve memory address of the channel and save pointer in list node */
+	dbNameToAddr(key, &channel_pvAddr);
+	newNode->res.pointer = (void *) &channel_pvAddr;
+
+	newNode->next = resourceList;
+	resourceList = newNode;
+	items++;
+
+	return(newNode);
+}
+
+/* Clear resources */
+void bsreadClearResources() {
+	resourceListItem* currentNode;
+	resourceListItem* nextNode;
+
+	if (resourceList == NULL) {
+	} else {
+		currentNode = resourceList;
+
+		do {
+			nextNode = currentNode->next;
+			free (currentNode);
+			currentNode = nextNode;
+		} while (currentNode->next != NULL);
+	}
+	items=0;
+}
+
+void bsreadPrintResources(){
 	resourceListItem* currentNode;
 
 		if(resourceList == NULL){
@@ -98,6 +132,7 @@ void crlogicPrintResources(){
 		}
 }
 /* [END] Resource list (methods) */
+
 
 
 /*
@@ -143,13 +178,14 @@ void crlogicWatchDogISR(uint noTicksUntilNextInvocation) {
 /**
  * Read task triggered by the watchdog interrupt to read out the configured resources
  */
-void crlogicReadTask() {
+void bsreadReadTask() {
 	int pipeId;
 	int c=0;
 	message m;
+	resourceListItem* currentNode;
 
 	/* Open data pipe*/
-	pipeId = open (crlogicPipeName, O_WRONLY, 0);
+	pipeId = open (bsreadPipeName, O_WRONLY, 0);
 	if(pipeId == ERROR){
 		printf("Open pipe (write) failed\n");
 		return;
@@ -160,17 +196,29 @@ void crlogicReadTask() {
 		/* Wait for semaphore */
 		semTake(crlogicWdTSyncSemaphore, WAIT_FOREVER);
 
-		/* [BEGIN] Readout modules*/
-		m.length = readoutResourcesCount;
-		for(c=0; c<readoutResourcesCount; c++){
-			(readoutResources[c].read)(&readoutResources[c], &m.values[c]);
+		/* [BEGIN] Readout resources*/
+		if (resourceList == NULL) {
+			printf("Nothing to read out");
+		} else {
+			m.length = items;
+			c=0;
+			currentNode = resourceList;
+
+			do {
+				dbGetField (((pvaddress *) currentNode->res.pointer), DBR_DOUBLE, &m.values[c], NULL, NULL, NULL);
+				currentNode = currentNode->next;
+				c++;
+			} while (currentNode != NULL);
+
+			/* Write data to pipe */
+			write (pipeId, (char*) &m, sizeof (message));
 		}
-		/* [END] Readout modules*/
+		/**
+		 * TODO The 'do' block has a time constraint of 1ms. We need to check the whether this was met. otherwise we
+		 * have to have some kind of drop count that is also served as a channel access channel.
+		 */
 
-
-		/* Write data to pipe */
-		write (pipeId, (char*) &m, sizeof (message));
-
+		/* [END] Readout resources*/
 	}
 	/* [END] Read main loop */
 
@@ -213,7 +261,7 @@ void crlogicMainTask(char* pvPrefix){
 	crlogicWdTSyncSemaphore = semBCreate (SEM_Q_FIFO, SEM_EMPTY);
 
 	/* Create data pipe */
-	retStatus = pipeDevCreate (crlogicPipeName, 2048, sizeof(message));
+	retStatus = pipeDevCreate (bsreadPipeName, 2048, sizeof(message));
 	if (retStatus != OK) {
 		printf ("Cannot create data pipe - Abort\n");
 		status = LOGIC_ERROR;
@@ -223,7 +271,7 @@ void crlogicMainTask(char* pvPrefix){
 
 	/* Spawn Read task */
 	printf("Start read task\n");
-	taskSpawn ("crlogicR", readTaskPriority, VX_FP_TASK, 20000, (FUNCPTR) crlogicReadTask, 0,0,0,0,0,0,0,0,0,0);
+	taskSpawn ("bsreadR", readTaskPriority, VX_FP_TASK, 20000, (FUNCPTR) bsreadReadTask, 0,0,0,0,0,0,0,0,0,0);
 
 	/* Create a WatchDog ID */
 	crlogicWdId = wdCreate ();
@@ -295,45 +343,14 @@ void crlogicMainTask(char* pvPrefix){
 		status = LOGIC_INITIALIZE;
 		dbPutField (&crlogicStatus_pvAddr, DBR_ENUM, &status, 1);
 
-		/* TODO [BEGIN] */
-		/*crlogicPrintResources();*/
 
-		/* Determine resource keys to be read out */
+		/* Get resource keys */
 		numr = maxNumberResources;
 		dbGetField (&crlogicReadoutResources_pvAddr, DBR_STRING, &buffer, NULL, &numr, NULL);
-		readoutResourcesCount = 0;
+
 		for(r=0;r<maxNumberResources; r++){
 			if(strcmp (buffer.value[r], "") != 0){
-				resourceListItem *rli;
-				/*printf("Value[%d]: %s\n", r, buffer.value[r]);*/
-
-				/*
-				 * Find resource and save reference to it.
-				 * If resource cannot be found stop and go into state FAULT
-				 */
-				rli = crlogicGetResource(buffer.value[r]);
-				if(rli != NULL){
-					resource res = rli->res;
-					printf("Resource '%s' retrieved from list\n", buffer.value[r]);
-
-					/* Save reference to resource in readout array */
-					readoutResources[readoutResourcesCount] = res;
-					readoutResourcesCount++;
-				}
-				else{
-					/* If resource cannot be found in the resource list, go into fault state */
-					printf("Resource '%s' not configured\n", buffer.value[r]);
-
-					/* Write error message */
-					sprintf(errormessage, "Resource '%s' not configured", buffer.value[r]);
-					dbPutField (&crlogicMessage_pvAddr, DBR_STRING, errormessage, 1);
-
-					/* Set fault status */
-					status=LOGIC_FAULT;
-					dbPutField (&crlogicStatus_pvAddr, DBR_ENUM, &status, 1);
-
-					break;
-				}
+				bsreadAddResource(buffer.value[r]);
 			}
 			else{
 				break;
@@ -344,11 +361,10 @@ void crlogicMainTask(char* pvPrefix){
 		if(status==LOGIC_FAULT){
 			continue;
 		}
-		/* TODO [END] */
 
 
 		/* Open data pipe for reading */
-		pipeId = open(crlogicPipeName, O_RDONLY, 0);
+		pipeId = open(bsreadPipeName, O_RDONLY, 0);
 		if(pipeId == ERROR){
 			printf("Open pipe (read) failed, error code: %d\n", errno);
 			/* Set error message */
@@ -363,20 +379,6 @@ void crlogicMainTask(char* pvPrefix){
 		/* Clear all (old) messages that are in the pipe*/
 		ioctl (pipeId, FIOFLUSH, 0);
 
-
-		/* Initialize resources */
-		printf("Initialize resources\n");
-		for(r=0;r<readoutResourcesCount; r++){
-			(readoutResources[r].initialize)(&readoutResources[r], retStatus, errormessage);
-			if (retStatus != OK) {
-				/* Set error message */
-				dbPutField (&crlogicMessage_pvAddr, DBR_STRING, errormessage, 1);
-				/* Set status to FAULT */
-				status = LOGIC_FAULT;
-				dbPutField (&crlogicStatus_pvAddr, DBR_ENUM, &status, 1);
-				break;
-			}
-		}
 		/* If status is fault continue to the beginning of the main loop */
 		if(status==LOGIC_FAULT){
 			printf("Initialization resources failed\n");
@@ -490,7 +492,7 @@ void crlogicMainTask(char* pvPrefix){
 rstatus crlogicInitializeCore(char* pvPrefix){
 
 	/* Spawn main task */
-	taskSpawn ("crlogicW", writeTaskPriority, VX_FP_TASK, 20000, (FUNCPTR) crlogicMainTask, (int) pvPrefix,0,0,0,0,0,0,0,0,0);
+	taskSpawn ("bsreadW", writeTaskPriority, VX_FP_TASK, 20000, (FUNCPTR) crlogicMainTask, (int) pvPrefix,0,0,0,0,0,0,0,0,0);
 
 	return(OK);
 }
