@@ -82,7 +82,6 @@ resourceListItem* bsreadAddResource(char* key){
 	resourceListItem* newNode;
 	pvaddress channel_pvAddr;
 	int rval;
-	char pvname[128];
 
 	newNode = calloc (1, sizeof(resourceListItem) );
 
@@ -90,9 +89,7 @@ resourceListItem* bsreadAddResource(char* key){
 	sprintf(newNode->res.key,"%.63s", key);
 
 	/* Retrieve memory address of the channel and save pointer in list node */
-	sprintf(pvname, "%s", key);
-	rval = dbNameToAddr(pvname, &channel_pvAddr);
-	printf("Add address %s, %d, %p", key, rval, channel_pvAddr);
+	rval = dbNameToAddr(key, &channel_pvAddr);
 	newNode->res.pointer = channel_pvAddr;
 
 	newNode->next = resourceList;
@@ -112,12 +109,14 @@ void bsreadClearResources() {
 		currentNode = resourceList;
 
 		do {
+			printf("Clear: %s\n", currentNode->res.key);
 			nextNode = currentNode->next;
-			free (currentNode);
+			free(currentNode);
 			currentNode = nextNode;
 		} while (currentNode->next != NULL);
 	}
 	items=0;
+	resourceList=NULL;
 }
 
 void bsreadPrintResources(){
@@ -197,11 +196,9 @@ void bsreadReadTask() {
 
 	/* [BEGIN] Read main loop */
 	while(1){
-		printf("Wait semaphore");
 		/* Wait for semaphore */
 		semTake(crlogicWdTSyncSemaphore, WAIT_FOREVER);
 
-		printf("Read resources");
 		/* [BEGIN] Readout resources*/
 		if (resourceList == NULL) {
 			printf("Nothing to read out");
@@ -211,9 +208,8 @@ void bsreadReadTask() {
 			currentNode = resourceList;
 
 			do {
-				printf("Read %s, %p", currentNode->res.key, currentNode->res.pointer);
 				dbGetField (&currentNode->res.pointer, DBR_DOUBLE, &m.values[c], NULL, NULL, NULL);
-				printf("Value: %f", m.values[c]);
+				printf("Value: %f ", m.values[c]);
 				currentNode = currentNode->next;
 				c++;
 			} while (currentNode != NULL);
@@ -387,12 +383,6 @@ void crlogicMainTask(char* pvPrefix){
 		/* Clear all (old) messages that are in the pipe*/
 		ioctl (pipeId, FIOFLUSH, 0);
 
-		/* If status is fault continue to the beginning of the main loop */
-		if(status==LOGIC_FAULT){
-			printf("Initialization resources failed\n");
-			continue;
-		}
-
 		/* Open DataWriter*/
 		printf("Open data writer\n");
 		retStatus = crlogicDataWriterOpen( pvPrefix, readoutResourcesCount, readoutResources, errormessage );
@@ -476,7 +466,7 @@ void crlogicMainTask(char* pvPrefix){
 			ioctl (pipeId, FIONMSGS, (int) &numMessagesRemaining);
 		}
 
-		printf("Close writer");
+		printf("Close writer\n");
 		/* Close DataWriter */
 		retStatus = crlogicDataWriterClose(errormessage);
 		if (retStatus != OK) {
@@ -491,9 +481,10 @@ void crlogicMainTask(char* pvPrefix){
 		/* Close data pipe */
 		close(pipeId);
 
-		printf("Clear resource list");
+		printf("Clear resource list\n");
 		/* Clear resource list */
 		bsreadClearResources();
+		printf("Resources cleared\n");
 	}
 	/* END main loop */
 }

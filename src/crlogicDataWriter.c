@@ -50,6 +50,7 @@ rstatus crlogicDataWriterOpen(char* pvPrefix, int resourceCount, resource* resou
  */
 void crlogicDataWriterWrite(message* message) {
 
+
 	char jsonFmt[] = "{\"htype\":\"crlogic-1.0\",\"elements\":\"%d\"}";
 	char buf[256];
 	int len, res, i;
@@ -57,6 +58,7 @@ void crlogicDataWriterWrite(message* message) {
 
 	char arr[sizeof(double) * message->length];
 
+	printf("Message... %d\n", message->length);
 	/* Send header */
 	len = sprintf(buf, jsonFmt, message->length);
 	res = zmq_send(zmqSock, buf, len, ZMQ_SNDMORE);
