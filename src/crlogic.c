@@ -206,6 +206,7 @@ void bsreadReadTask() {
 
 			do {
 				dbGetField (((pvaddress *) currentNode->res.pointer), DBR_DOUBLE, &m.values[c], NULL, NULL, NULL);
+				printf("Value: %f", m.values[c]);
 				currentNode = currentNode->next;
 				c++;
 			} while (currentNode != NULL);
@@ -481,6 +482,9 @@ void crlogicMainTask(char* pvPrefix){
 
 		/* Close data pipe */
 		close(pipeId);
+
+		/* Clear resource list */
+		bsreadClearResources();
 	}
 	/* END main loop */
 }
