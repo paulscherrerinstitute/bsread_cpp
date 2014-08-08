@@ -82,6 +82,7 @@ resourceListItem* bsreadAddResource(char* key){
 	resourceListItem* newNode;
 	pvaddress channel_pvAddr;
 	int rval;
+	char pvname[128];
 
 	newNode = calloc (1, sizeof(resourceListItem) );
 
@@ -89,7 +90,8 @@ resourceListItem* bsreadAddResource(char* key){
 	sprintf(newNode->res.key,"%.63s", key);
 
 	/* Retrieve memory address of the channel and save pointer in list node */
-	rval = dbNameToAddr(key, &channel_pvAddr);
+	sprintf(pvname, "%s", prefix);
+	rval = dbNameToAddr(pvname, &channel_pvAddr);
 	printf("Add address %s, %d", key, rval);
 	newNode->res.pointer = (void *) &channel_pvAddr;
 
@@ -209,6 +211,7 @@ void bsreadReadTask() {
 			currentNode = resourceList;
 
 			do {
+				printf("Read %s", currentNode=>res.key);
 				dbGetField (((pvaddress *) currentNode->res.pointer), DBR_DOUBLE, &m.values[c], NULL, NULL, NULL);
 				printf("Value: %f", m.values[c]);
 				currentNode = currentNode->next;
