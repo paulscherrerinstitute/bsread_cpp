@@ -37,7 +37,7 @@ typedef struct _resource {
     int baseAddress;
     int channel;
 
-    void * pointer;
+    pvaddress pointer;
 
 } resource;
 
