@@ -193,9 +193,11 @@ void bsreadReadTask() {
 
 	/* [BEGIN] Read main loop */
 	while(1){
+		printf("Wait semaphore");
 		/* Wait for semaphore */
 		semTake(crlogicWdTSyncSemaphore, WAIT_FOREVER);
 
+		printf("Read resources");
 		/* [BEGIN] Readout resources*/
 		if (resourceList == NULL) {
 			printf("Nothing to read out");
@@ -469,6 +471,7 @@ void crlogicMainTask(char* pvPrefix){
 			ioctl (pipeId, FIONMSGS, (int) &numMessagesRemaining);
 		}
 
+		printf("Close writer");
 		/* Close DataWriter */
 		retStatus = crlogicDataWriterClose(errormessage);
 		if (retStatus != OK) {
@@ -483,6 +486,7 @@ void crlogicMainTask(char* pvPrefix){
 		/* Close data pipe */
 		close(pipeId);
 
+		printf("Clear resource list");
 		/* Clear resource list */
 		bsreadClearResources();
 	}
