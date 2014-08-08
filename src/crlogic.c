@@ -113,7 +113,7 @@ void bsreadClearResources() {
 			nextNode = currentNode->next;
 			free(currentNode);
 			currentNode = nextNode;
-		} while (currentNode->next != NULL);
+		} while (currentNode != NULL);
 	}
 	items=0;
 	resourceList=NULL;
