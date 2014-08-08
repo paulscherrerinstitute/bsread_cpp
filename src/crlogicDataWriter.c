@@ -65,7 +65,7 @@ void crlogicDataWriterWrite(message* message) {
 		memcpy(arr + i * sizeof(double), val + i, sizeof(double));
 	}
 	res = zmq_send(zmqSock, arr, message->length * sizeof(double), 0);
-	printf("%s\n",buf);
+	/*printf("%s\n",buf);*/ /*just for extreme debugging*/
 }
 
 /**
