@@ -37,7 +37,7 @@ rstatus crlogicDataWriterOpen(char* pvPrefix, int resourceCount, resource* resou
 
 	printf("open writer");
 	zmqCtx = zmq_ctx_new();
-	zmqSock = zmq_socket(zmqCtx, ZMQ_PUB);
+	zmqSock = zmq_socket(zmqCtx, ZMQ_PUSH);
 	zmq_setsockopt(zmqSock, ZMQ_SNDHWM, &hwm, sizeof(hwm));
 	zmq_bind(zmqSock, addr);
 
@@ -49,8 +49,6 @@ rstatus crlogicDataWriterOpen(char* pvPrefix, int resourceCount, resource* resou
  * message	-	Data message to be written to file
  */
 void crlogicDataWriterWrite(message* message) {
-
-
 	char jsonFmt[] = "{\"htype\":\"crlogic-1.0\",\"elements\":\"%d\"}";
 	char buf[256];
 	int len, res, i;
@@ -58,7 +56,6 @@ void crlogicDataWriterWrite(message* message) {
 
 	char arr[sizeof(double) * message->length];
 
-	printf("Message... %d\n", message->length);
 	/* Send header */
 	len = sprintf(buf, jsonFmt, message->length);
 	res = zmq_send(zmqSock, buf, len, ZMQ_SNDMORE);
@@ -68,14 +65,13 @@ void crlogicDataWriterWrite(message* message) {
 		memcpy(arr + i * sizeof(double), val + i, sizeof(double));
 	}
 	res = zmq_send(zmqSock, arr, message->length * sizeof(double), 0);
+	printf("%s\n",buf);
 }
 
 /**
  * Close data file
  */
 rstatus crlogicDataWriterClose(char* emessage) {
-	printf("close writer");
-
 	zmq_close(zmqSock);
 	zmq_ctx_destroy(zmqCtx);
 	return (OK);

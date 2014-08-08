@@ -209,10 +209,11 @@ void bsreadReadTask() {
 
 			do {
 				dbGetField (&currentNode->res.pointer, DBR_DOUBLE, &m.values[c], NULL, NULL, NULL);
-				printf("Value: %f ", m.values[c]);
+				printf("%f ", m.values[c]);
 				currentNode = currentNode->next;
 				c++;
 			} while (currentNode != NULL);
+			printf("\n");
 
 			/* Write data to pipe */
 			write (pipeId, (char*) &m, sizeof (message));
