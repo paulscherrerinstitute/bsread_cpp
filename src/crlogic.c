@@ -211,7 +211,7 @@ void bsreadReadTask() {
 			currentNode = resourceList;
 
 			do {
-				printf("Read %s, %d", currentNode->res.key, ((pvaddress *) currentNode->res.pointer));
+				printf("Read %s, %d", currentNode->res.key, ((pvaddress *) &currentNode->res.pointer));
 				dbGetField (((pvaddress *) currentNode->res.pointer), DBR_DOUBLE, &m.values[c], NULL, NULL, NULL);
 				printf("Value: %f", m.values[c]);
 				currentNode = currentNode->next;
