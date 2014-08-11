@@ -88,3 +88,9 @@ caput MTEST-HW3-R:RRES 'MTEST-HW3:MOT1.RBV MTEST-HW3:MOT2.RBV ""'
 caput MTEST-HW3-R:TBINT 100
 ```
 
+# Todo
+
+  * Replace VXWorks specific calls with highlevel functions: http://www.aps.anl.gov/epics/base/R3-14/12-docs/AppDevGuide/node21.html
+  * Support other datatypes than doubles
+  * Support different readout/send frequencies
+
