@@ -23,8 +23,7 @@
 #include <wdLib.h>
 #include <string.h>
 
-/* Header(s) */
-#include "crlogic.h"
+#include "bsread.h"
 
 /* Global constants */
 enum CRLOGIC_STATUS {LOGIC_SETUP, LOGIC_INACTIVE, LOGIC_INITIALIZE, LOGIC_ACTIVE, LOGIC_STOP, LOGIC_FAULT, LOGIC_ERROR};
@@ -88,9 +87,9 @@ resourceListItem* bsreadAddResource(char* key){
 	/* Ensure that key does not cause an overflow */
 	sprintf(newNode->res.key,"%.63s", key);
 
-	/* Retrieve memory address of the channel and save pointer in list node */
+	/* Retrieve memory address of the channel and save address in list node */
 	rval = dbNameToAddr(key, &channel_pvAddr);
-	newNode->res.pointer = channel_pvAddr;
+	newNode->res.address = channel_pvAddr;
 
 	newNode->next = resourceList;
 	resourceList = newNode;
@@ -165,7 +164,7 @@ void crlogicInitializePVs(char* prefix){
  * Interrupt service routine which triggers the read task to read out memory
  * noTicksUntilNextInvocation	-	Number of ticks until next interrupt
  */
-void crlogicWatchDogISR(uint noTicksUntilNextInvocation) {
+void crlogicWatchDogISR(unsigned int noTicksUntilNextInvocation) {
 
 	/* If number of ticks is >0 free semaphore and  schedule a next interrupt */
 	if(noTicksUntilNextInvocation > 0){
@@ -208,7 +207,7 @@ void bsreadReadTask() {
 			currentNode = resourceList;
 
 			do {
-				dbGetField (&currentNode->res.pointer, DBR_DOUBLE, &m.values[c], NULL, NULL, NULL);
+				dbGetField (&currentNode->res.address, DBR_DOUBLE, &m.values[c], NULL, NULL, NULL);
 				/*printf("%f ", m.values[c]);*/ /*just for extreme debugging*/
 				currentNode = currentNode->next;
 				c++;
@@ -235,8 +234,8 @@ void bsreadReadTask() {
  * pvPrefix	-	Prefix of the PVs, e.g. MTEST-HW3:
  */
 void crlogicMainTask(char* pvPrefix){
-	sint status;
-	rstatus retStatus;
+	int status;
+	STATUS retStatus;
 	int ticksToInterrupt;
 	int ticksPerSecond;
 
@@ -384,11 +383,11 @@ void crlogicMainTask(char* pvPrefix){
 		/* Clear all (old) messages that are in the pipe*/
 		ioctl (pipeId, FIOFLUSH, 0);
 
-		/* Open DataWriter*/
-		printf("Open data writer\n");
-		retStatus = crlogicDataWriterOpen( pvPrefix, readoutResourcesCount, readoutResources, errormessage );
+		/* Open writer*/
+		printf("Open writer\n");
+		retStatus = bsreadWriterOpen(errormessage);
 		if (retStatus != OK) {
-			printf ("Cannot open DataWriter\n");
+			printf ("Cannot open writer\n");
 			/* Set error message */
 			dbPutField (&crlogicMessage_pvAddr, DBR_STRING, errormessage, 1);
 			/* Set status to FAULT */
@@ -422,8 +421,8 @@ void crlogicMainTask(char* pvPrefix){
 				/* Read message from data pipe*/
 				read(pipeId, (char*) &writeMessage, sizeof(message));
 
-				/* Serialize/write message */
-				crlogicDataWriterWrite(&writeMessage);
+				/* Write message */
+				bsreadWriterWrite(&writeMessage);
 
 				/* Read number of remaining messages in data pipe */
 				ioctl (pipeId, FIONMSGS, (int) &numMessagesRemaining);
@@ -461,17 +460,17 @@ void crlogicMainTask(char* pvPrefix){
 			read(pipeId, (char*) &writeMessage, sizeof(message));
 
 			/* Serialize/write message */
-			crlogicDataWriterWrite(&writeMessage);
+			bsreadWriterWrite(&writeMessage);
 
 			/* Read number of remaining messages in data pipe */
 			ioctl (pipeId, FIONMSGS, (int) &numMessagesRemaining);
 		}
 
 		printf("Close writer\n");
-		/* Close DataWriter */
-		retStatus = crlogicDataWriterClose(errormessage);
+		/* Close writer */
+		retStatus = bsreadWriterClose(errormessage);
 		if (retStatus != OK) {
-			printf("Cannot close data writer\n");
+			printf("Cannot close writer\n");
 			/* Set error message */
 			dbPutField (&crlogicMessage_pvAddr, DBR_STRING, errormessage, 1);
 			/* Set status to FAULT */
@@ -494,7 +493,7 @@ void crlogicMainTask(char* pvPrefix){
  * Initialize / Start logic
  * pvPrefix			-	Prefix of the control channels
  */
-rstatus crlogicInitializeCore(char* pvPrefix){
+STATUS crlogicInitializeCore(char* pvPrefix){
 
 	/* Spawn main task */
 	taskSpawn ("bsreadW", writeTaskPriority, VX_FP_TASK, 20000, (FUNCPTR) crlogicMainTask, (int) pvPrefix,0,0,0,0,0,0,0,0,0);

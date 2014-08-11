@@ -17,7 +17,7 @@
  *
  */
 
-#include "crlogic.h"
+#include "bsread.h"
 
 #include <string.h>
 #include <zmq.h>
@@ -25,12 +25,7 @@
 static void *zmqCtx;
 static void *zmqSock;
 
-/**
- * Initialize data writer
- * pvPrefix		-	Prefix of the OTF records
- * emessage		-	Error message if initialization fails (max 128 characters)
- */
-rstatus crlogicDataWriterOpen(char* pvPrefix, int resourceCount, resource* resourceArray, char* emessage) {
+STATUS bsreadWriterOpen(char* emessage) {
 
 	int hwm = 100;
 	char *addr = "tcp://*:8080";
@@ -44,11 +39,7 @@ rstatus crlogicDataWriterOpen(char* pvPrefix, int resourceCount, resource* resou
 	return (OK);
 }
 
-/**
- * Write data to file
- * message	-	Data message to be written to file
- */
-void crlogicDataWriterWrite(message* message) {
+void bsreadWriterWrite(message* message) {
 	char jsonFmt[] = "{\"htype\":\"crlogic-1.0\",\"elements\":\"%d\"}";
 	char buf[256];
 	int len, res, i;
@@ -68,10 +59,7 @@ void crlogicDataWriterWrite(message* message) {
 	/*printf("%s\n",buf);*/ /*just for extreme debugging*/
 }
 
-/**
- * Close data file
- */
-rstatus crlogicDataWriterClose(char* emessage) {
+STATUS bsreadWriterClose(char* emessage) {
 	zmq_close(zmqSock);
 	zmq_ctx_destroy(zmqCtx);
 	return (OK);
