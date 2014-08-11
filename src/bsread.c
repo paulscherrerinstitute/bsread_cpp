@@ -24,10 +24,6 @@ static pvaddress bsreadTicksBetweenInterrupts_pvAddr;
 static pvaddress bsreadMessage_pvAddr;
 static pvaddress bsreadReadoutResources_pvAddr;
 
-static int readoutResourcesCount;
-static resource readoutResources[maxNumberResources];
-
-
 /* [BEGIN] Resource list (methods) */
 
 /* List of resources to be read out*/
