@@ -211,7 +211,7 @@ void bsreadReadTask() {
  * pvPrefix	-	Prefix of the PVs, e.g. MTEST-HW3:
  */
 void bsreadMainTask(char* pvPrefix){
-	int status;
+	short int status;
 	STATUS retStatus;
 	int ticksToInterrupt;
 	int ticksPerSecond;
