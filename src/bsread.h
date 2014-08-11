@@ -1,12 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-
-#include <iosLib.h>
-
-#include <vxLib.h>
-#include <sysLib.h>
-#include <vme.h>
-
 #include <dbAccess.h>
 
 #define pvaddress struct dbAddr

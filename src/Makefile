@@ -1,5 +1,6 @@
 include /ioc/tools/driver.makefile
 
+#BUILDCLASSES += Linux
 EXCLUDE_VERSIONS += 3.13
 EXCLUDE_VERSIONS += 3.14.12
 USR_CFLAGS += -O0

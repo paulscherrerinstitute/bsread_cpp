@@ -1,7 +1,12 @@
-#include <pipeDrv.h>
-#include <semLib.h>
-#include <taskLib.h>
-#include <wdLib.h>
+#include <semLib.h> /* Semaphore */
+#include <taskLib.h> /* Tasks */
+#include <wdLib.h> /* Watchdog / Interrupt routine */
+
+#include <stdio.h> /* Declaration of functions: 'printf', 'sprintf' */
+#include <pipeDrv.h> /* Pipe */
+#include <iosLib.h> /* Pipe related functions: 'open', 'write', 'read', 'close' */
+#include <sysLib.h> /* Declaration of functions: 'sysClkRateGet' */
+
 #include <string.h>
 
 #include "bsread.h"
