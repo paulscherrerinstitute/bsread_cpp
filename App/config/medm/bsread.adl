@@ -1,6 +1,6 @@
 
 file {
-	name="/afs/psi.ch/user/e/ebner/Scratch/CRLOGIC/App/config/medm/G_CRLOGIC_expert.adl"
+	name="/afs/psi.ch/user/e/ebner/Code/crlogic/App/config/medm/bsread.adl"
 	version=030105
 }
 display {
@@ -8,7 +8,7 @@ display {
 		x=592
 		y=167
 		width=270
-		height=310
+		height=189
 	}
 	clr=14
 	bclr=4
@@ -102,7 +102,7 @@ text {
 text {
 	object {
 		x=10
-		y=30
+		y=36
 		width=100
 		height=10
 	}
@@ -114,7 +114,7 @@ text {
 "text update" {
 	object {
 		x=160
-		y=30
+		y=36
 		width=100
 		height=10
 	}
@@ -126,25 +126,10 @@ text {
 	limits {
 	}
 }
-"text update" {
-	object {
-		x=160
-		y=10
-		width=100
-		height=10
-	}
-	monitor {
-		chan="$(P):TBINT"
-		clr=14
-		bclr=3
-	}
-	limits {
-	}
-}
 polyline {
 	object {
 		x=10
-		y=50
+		y=56
 		width=250
 		height=0
 	}
@@ -152,14 +137,14 @@ polyline {
 		clr=14
 	}
 	points {
-		(10,50)
-		(260,50)
+		(10,56)
+		(260,56)
 	}
 }
 text {
 	object {
 		x=10
-		y=60
+		y=66
 		width=100
 		height=10
 	}
@@ -171,7 +156,7 @@ text {
 "text entry" {
 	object {
 		x=10
-		y=80
+		y=86
 		width=250
 		height=20
 	}
@@ -183,172 +168,25 @@ text {
 	limits {
 	}
 }
-text {
-	object {
-		x=10
-		y=180
-		width=100
-		height=10
-	}
-	"basic attribute" {
-		clr=14
-	}
-	textix="File Name"
-}
-"text entry" {
-	object {
-		x=110
-		y=180
-		width=150
-		height=20
-	}
-	control {
-		chan="$(P):DFNAM"
-		clr=14
-		bclr=4
-	}
-	limits {
-	}
-}
-"text entry" {
-	object {
-		x=110
-		y=150
-		width=150
-		height=20
-	}
-	control {
-		chan="$(P):NFSSH"
-		clr=14
-		bclr=4
-	}
-	limits {
-	}
-}
-"text entry" {
-	object {
-		x=110
-		y=120
-		width=150
-		height=20
-	}
-	control {
-		chan="$(P):NFSSE"
-		clr=14
-		bclr=4
-	}
-	limits {
-	}
-}
-text {
-	object {
-		x=10
-		y=150
-		width=100
-		height=10
-	}
-	"basic attribute" {
-		clr=14
-	}
-	textix="NFS Share"
-}
-text {
-	object {
-		x=10
-		y=120
-		width=100
-		height=10
-	}
-	"basic attribute" {
-		clr=14
-	}
-	textix="NFS Server"
-}
 polyline {
 	object {
 		x=10
-		y=110
-		width=250
+		y=113
+		width=249
 		height=0
 	}
 	"basic attribute" {
 		clr=14
 	}
 	points {
-		(10,110)
-		(260,110)
+		(10,113)
+		(259,113)
 	}
-}
-polyline {
-	object {
-		x=10
-		y=230
-		width=250
-		height=0
-	}
-	"basic attribute" {
-		clr=14
-	}
-	points {
-		(10,230)
-		(260,230)
-	}
-}
-"choice button" {
-	object {
-		x=175
-		y=210
-		width=20
-		height=10
-	}
-	control {
-		chan="$(P):FAPPE"
-		clr=14
-		bclr=4
-	}
-	stacking="column"
-}
-text {
-	object {
-		x=10
-		y=210
-		width=100
-		height=10
-	}
-	"basic attribute" {
-		clr=14
-	}
-	textix="Append File"
-}
-text {
-	object {
-		x=110
-		y=210
-		width=60
-		height=10
-	}
-	"basic attribute" {
-		clr=14
-	}
-	textix="No"
-	align="horiz. right"
-}
-text {
-	object {
-		x=200
-		y=210
-		width=60
-		height=10
-	}
-	"basic attribute" {
-		clr=14
-	}
-	textix="Yes"
 }
 "text update" {
 	object {
-		x=160
-		y=240
+		x=159
+		y=122
 		width=100
 		height=10
 	}
@@ -363,7 +201,7 @@ text {
 text {
 	object {
 		x=10
-		y=240
+		y=122
 		width=100
 		height=10
 	}
@@ -375,7 +213,7 @@ text {
 "message button" {
 	object {
 		x=10
-		y=280
+		y=162
 		width=60
 		height=20
 	}
@@ -390,7 +228,7 @@ text {
 "message button" {
 	object {
 		x=75
-		y=280
+		y=162
 		width=60
 		height=20
 	}
@@ -405,17 +243,17 @@ text {
 composite {
 	object {
 		x=10
-		y=260
-		width=250
-		height=40
+		y=142
+		width=249
+		height=39
 	}
 	"composite name"=""
 	children {
 		"text update" {
 			object {
 				x=10
-				y=260
-				width=250
+				y=142
+				width=249
 				height=10
 			}
 			monitor {
@@ -428,8 +266,8 @@ composite {
 		}
 		"message button" {
 			object {
-				x=140
-				y=280
+				x=139
+				y=162
 				width=60
 				height=20
 			}
@@ -446,5 +284,20 @@ composite {
 		vis="calc"
 		calc="A==5"
 		chan="$(P):STATUS"
+	}
+}
+"text entry" {
+	object {
+		x=160
+		y=10
+		width=100
+		height=20
+	}
+	control {
+		chan="$(P):TBINT"
+		clr=14
+		bclr=4
+	}
+	limits {
 	}
 }
