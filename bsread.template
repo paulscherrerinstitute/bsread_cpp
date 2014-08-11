@@ -1,6 +1,5 @@
 # Macros
-# ======
-#   P         - Record prefix, e.g. MTEST-HW3-R
+# P  -  Record prefix, e.g. MTEST-HW3-R
 
 # Ticks per seconds of the IOC
 # ATTENTION - This field must only be set by the IOC - ATTENTION

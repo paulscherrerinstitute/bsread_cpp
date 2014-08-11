@@ -1,6 +1,5 @@
-# $Header: /cvs/G/CRLOGIC/Makefile,v 1.4 2012/05/25 06:50:13 ebner Exp $
 
-LIBVERSION = 4.4.5
+LIBVERSION = 1.0.0
 
 build:
 	$(MAKE) build -C src LIBVERSION=$(LIBVERSION)
@@ -12,12 +11,12 @@ install: build
 	$(MAKE) install -C src LIBVERSION=$(LIBVERSION)
 
 uninstall:
-	rm /work/sls/config/medm/G_CRLOGIC_expert.adl
+	rm /work/sls/config/medm/bsread.adl
 
 	$(MAKE) uninstall -C src LIBVERSION=$(LIBVERSION)
 
 medm:
-	cp App/config/medm/G_CRLOGIC_expert.adl /work/sls/config/medm
+	cp App/config/medm/bsread.adl /work/sls/config/medm
 
 help:
 	@echo "The following targets are available with this Makefile:-"

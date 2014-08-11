@@ -1,22 +1,3 @@
-/*
- *
- * Copyright 2010 Paul Scherrer Institute. All rights reserved.
- *
- * This code is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This code is distributed in the hope that it will be useful,
- * but without any warranty; without even the implied warranty of
- * merchantability or fitness for a particular purpose. See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this code. If not, see <http://www.gnu.org/licenses/>.
- *
- */
-
 #include <pipeDrv.h>
 #include <semLib.h>
 #include <taskLib.h>
@@ -27,21 +8,21 @@
 
 /* Global constants */
 enum CRLOGIC_STATUS {LOGIC_SETUP, LOGIC_INACTIVE, LOGIC_INITIALIZE, LOGIC_ACTIVE, LOGIC_STOP, LOGIC_FAULT, LOGIC_ERROR};
-static char* bsreadPipeName = "/pipe/crlogic";
+static char* bsreadPipeName = "/pipe/bsread";
 
 static int readTaskPriority = 59;
 static int writeTaskPriority = 148;
 
 /* Global variables */
-static SEM_ID crlogicWdTSyncSemaphore; /* ID of sync semaphore */
-static WDOG_ID crlogicWdId; /* WatchDog ID */
+static SEM_ID bsreadWdTSyncSemaphore; /* ID of sync semaphore */
+static WDOG_ID bsreadWdId; /* WatchDog ID */
 
 /* PV addresses */
-static pvaddress crlogicTicksPerSecond_pvAddr;
-static pvaddress crlogicStatus_pvAddr;
-static pvaddress crlogicTicksBetweenInterrupts_pvAddr;
-static pvaddress crlogicMessage_pvAddr;
-static pvaddress crlogicReadoutResources_pvAddr;
+static pvaddress bsreadTicksPerSecond_pvAddr;
+static pvaddress bsreadStatus_pvAddr;
+static pvaddress bsreadTicksBetweenInterrupts_pvAddr;
+static pvaddress bsreadMessage_pvAddr;
+static pvaddress bsreadReadoutResources_pvAddr;
 
 static int readoutResourcesCount;
 static resource readoutResources[maxNumberResources];
@@ -141,39 +122,39 @@ void bsreadPrintResources(){
  * Resolve required PV names to memory addresses
  * prefix	-	Prefix of the PVs
  */
-void crlogicInitializePVs(char* prefix){
+void bsreadInitializePVs(char* prefix){
 	char pvname[128];
 
 	sprintf(pvname, "%s:TPS", prefix);
-	dbNameToAddr(pvname, &crlogicTicksPerSecond_pvAddr);
+	dbNameToAddr(pvname, &bsreadTicksPerSecond_pvAddr);
 
 	sprintf(pvname, "%s:STATUS", prefix);
-	dbNameToAddr(pvname, &crlogicStatus_pvAddr);
+	dbNameToAddr(pvname, &bsreadStatus_pvAddr);
 
 	sprintf(pvname, "%s:MSG", prefix);
-	dbNameToAddr(pvname, &crlogicMessage_pvAddr);
+	dbNameToAddr(pvname, &bsreadMessage_pvAddr);
 
 	sprintf(pvname, "%s:TBINT", prefix);
-	dbNameToAddr(pvname, &crlogicTicksBetweenInterrupts_pvAddr);
+	dbNameToAddr(pvname, &bsreadTicksBetweenInterrupts_pvAddr);
 
 	sprintf(pvname, "%s:RRES", prefix);
-	dbNameToAddr(pvname, &crlogicReadoutResources_pvAddr);
+	dbNameToAddr(pvname, &bsreadReadoutResources_pvAddr);
 }
 
 /**
  * Interrupt service routine which triggers the read task to read out memory
  * noTicksUntilNextInvocation	-	Number of ticks until next interrupt
  */
-void crlogicWatchDogISR(unsigned int noTicksUntilNextInvocation) {
+void bsreadWatchDogISR(unsigned int noTicksUntilNextInvocation) {
 
 	/* If number of ticks is >0 free semaphore and  schedule a next interrupt */
 	if(noTicksUntilNextInvocation > 0){
 
 		/* Free semaphore - i.e. let the Read task process */
-		semGive(crlogicWdTSyncSemaphore);
+		semGive(bsreadWdTSyncSemaphore);
 
 		/* Schedule next interrupt */
-		wdStart(crlogicWdId, noTicksUntilNextInvocation, (FUNCPTR) crlogicWatchDogISR, noTicksUntilNextInvocation);
+		wdStart(bsreadWdId, noTicksUntilNextInvocation, (FUNCPTR) bsreadWatchDogISR, noTicksUntilNextInvocation);
 	}
 }
 
@@ -196,7 +177,7 @@ void bsreadReadTask() {
 	/* [BEGIN] Read main loop */
 	while(1){
 		/* Wait for semaphore */
-		semTake(crlogicWdTSyncSemaphore, WAIT_FOREVER);
+		semTake(bsreadWdTSyncSemaphore, WAIT_FOREVER);
 
 		/* [BEGIN] Readout resources*/
 		if (resourceList == NULL) {
@@ -233,7 +214,7 @@ void bsreadReadTask() {
 /**
  * pvPrefix	-	Prefix of the PVs, e.g. MTEST-HW3:
  */
-void crlogicMainTask(char* pvPrefix){
+void bsreadMainTask(char* pvPrefix){
 	int status;
 	STATUS retStatus;
 	int ticksToInterrupt;
@@ -251,25 +232,25 @@ void crlogicMainTask(char* pvPrefix){
 
 	/* Initialize base PV variables */
 	printf("Initialize PVs\n");
-	crlogicInitializePVs(pvPrefix);
+	bsreadInitializePVs(pvPrefix);
 
 	/* Set status to SETUP */
 	status = LOGIC_SETUP;
-	dbPutField (&crlogicStatus_pvAddr, DBR_ENUM, &status, 1);
+	dbPutField (&bsreadStatus_pvAddr, DBR_ENUM, &status, 1);
 
 	/* Update ticks per second record with IOC clock rate*/
 	ticksPerSecond = sysClkRateGet();
-	dbPutField (&crlogicTicksPerSecond_pvAddr, DBR_LONG, &ticksPerSecond, 1);
+	dbPutField (&bsreadTicksPerSecond_pvAddr, DBR_LONG, &ticksPerSecond, 1);
 
 	/* Create semaphore to synchronize WatchDog ISR and Read Task */
-	crlogicWdTSyncSemaphore = semBCreate (SEM_Q_FIFO, SEM_EMPTY);
+	bsreadWdTSyncSemaphore = semBCreate (SEM_Q_FIFO, SEM_EMPTY);
 
 	/* Create data pipe */
 	retStatus = pipeDevCreate (bsreadPipeName, 2048, sizeof(message));
 	if (retStatus != OK) {
 		printf ("Cannot create data pipe - Abort\n");
 		status = LOGIC_ERROR;
-		dbPutField (&crlogicStatus_pvAddr, DBR_ENUM, &status, 1);
+		dbPutField (&bsreadStatus_pvAddr, DBR_ENUM, &status, 1);
 		return;
 	}
 
@@ -278,7 +259,7 @@ void crlogicMainTask(char* pvPrefix){
 	taskSpawn ("bsreadR", readTaskPriority, VX_FP_TASK, 20000, (FUNCPTR) bsreadReadTask, 0,0,0,0,0,0,0,0,0,0);
 
 	/* Create a WatchDog ID */
-	crlogicWdId = wdCreate ();
+	bsreadWdId = wdCreate ();
 
 	/* BEGIN main loop*/
 	while(1){
@@ -290,14 +271,14 @@ void crlogicMainTask(char* pvPrefix){
 		} buffer;
 
 		/* Update status */
-		dbGetField (&crlogicStatus_pvAddr, DBR_ENUM, &status, NULL, NULL, NULL);
+		dbGetField (&bsreadStatus_pvAddr, DBR_ENUM, &status, NULL, NULL, NULL);
 
 		/* Wait until fault cause is fixed */
 		while(status==LOGIC_FAULT){
 			taskDelay(100);
 
 			/* Update status */
-			dbGetField (&crlogicStatus_pvAddr, DBR_ENUM, &status, NULL, NULL, NULL);
+			dbGetField (&bsreadStatus_pvAddr, DBR_ENUM, &status, NULL, NULL, NULL);
 
 			/* Only exit this loop if status INACTIVE is set*/
 			if(status==LOGIC_INACTIVE){
@@ -306,17 +287,17 @@ void crlogicMainTask(char* pvPrefix){
 			else{
 				/* Restore fault status */
 				status=LOGIC_FAULT;
-				dbPutField (&crlogicStatus_pvAddr, DBR_ENUM, &status, 1);
+				dbPutField (&bsreadStatus_pvAddr, DBR_ENUM, &status, 1);
 			}
 		}
 
 		/* Status now is INACTIVE */
 		status = LOGIC_INACTIVE;
-		dbPutField (&crlogicStatus_pvAddr, DBR_ENUM, &status, 1);
+		dbPutField (&bsreadStatus_pvAddr, DBR_ENUM, &status, 1);
 
 		/* Clear message record */
 		sprintf(errormessage," ");
-		dbPutField (&crlogicMessage_pvAddr, DBR_STRING, errormessage, 1);
+		dbPutField (&bsreadMessage_pvAddr, DBR_STRING, errormessage, 1);
 
 
 		/* Wait until status changes to ACTIVE */
@@ -325,7 +306,7 @@ void crlogicMainTask(char* pvPrefix){
 			taskDelay(100);
 
 			/* Update status */
-			dbGetField (&crlogicStatus_pvAddr, DBR_ENUM, &status, NULL, NULL, NULL);
+			dbGetField (&bsreadStatus_pvAddr, DBR_ENUM, &status, NULL, NULL, NULL);
 
 			/* Only exit this loop if status INITIALIZE or FAULT is set*/
 			if(status==LOGIC_INITIALIZE || status==LOGIC_FAULT){
@@ -334,7 +315,7 @@ void crlogicMainTask(char* pvPrefix){
 			else{
 				/* Restore inactive status */
 				status=LOGIC_INACTIVE;
-				dbPutField (&crlogicStatus_pvAddr, DBR_ENUM, &status, 1);
+				dbPutField (&bsreadStatus_pvAddr, DBR_ENUM, &status, 1);
 			}
 		}
 
@@ -345,12 +326,12 @@ void crlogicMainTask(char* pvPrefix){
 
 		/* Status now is INITIALIZE */
 		status = LOGIC_INITIALIZE;
-		dbPutField (&crlogicStatus_pvAddr, DBR_ENUM, &status, 1);
+		dbPutField (&bsreadStatus_pvAddr, DBR_ENUM, &status, 1);
 
 
 		/* Get resource keys */
 		numr = maxNumberResources;
-		dbGetField (&crlogicReadoutResources_pvAddr, DBR_STRING, &buffer, NULL, &numr, NULL);
+		dbGetField (&bsreadReadoutResources_pvAddr, DBR_STRING, &buffer, NULL, &numr, NULL);
 
 		for(r=0;r<maxNumberResources; r++){
 			if(strcmp (buffer.value[r], "") != 0){
@@ -373,10 +354,10 @@ void crlogicMainTask(char* pvPrefix){
 			printf("Open pipe (read) failed, error code: %d\n", errno);
 			/* Set error message */
 			sprintf(errormessage,"Cannot open pipe");
-			dbPutField (&crlogicMessage_pvAddr, DBR_STRING, errormessage, 1);
+			dbPutField (&bsreadMessage_pvAddr, DBR_STRING, errormessage, 1);
 			/* Set status to FAULT */
 			status = LOGIC_FAULT;
-			dbPutField (&crlogicStatus_pvAddr, DBR_ENUM, &status, 1);
+			dbPutField (&bsreadStatus_pvAddr, DBR_ENUM, &status, 1);
 			continue;
 		}
 
@@ -389,23 +370,23 @@ void crlogicMainTask(char* pvPrefix){
 		if (retStatus != OK) {
 			printf ("Cannot open writer\n");
 			/* Set error message */
-			dbPutField (&crlogicMessage_pvAddr, DBR_STRING, errormessage, 1);
+			dbPutField (&bsreadMessage_pvAddr, DBR_STRING, errormessage, 1);
 			/* Set status to FAULT */
 			status = LOGIC_FAULT;
-			dbPutField (&crlogicStatus_pvAddr, DBR_ENUM, &status, 1);
+			dbPutField (&bsreadStatus_pvAddr, DBR_ENUM, &status, 1);
 			continue;
 		}
 
 
 		/* Get number of ticks between interrupts */
-		dbGetField (&crlogicTicksBetweenInterrupts_pvAddr, DBR_LONG, &ticksToInterrupt, NULL, NULL, NULL);
+		dbGetField (&bsreadTicksBetweenInterrupts_pvAddr, DBR_LONG, &ticksToInterrupt, NULL, NULL, NULL);
 
 		/* Start WatchDog (i.e. start data acquisition) */
-		wdStart(crlogicWdId, 1, (FUNCPTR) crlogicWatchDogISR, ticksToInterrupt);
+		wdStart(bsreadWdId, 1, (FUNCPTR) bsreadWatchDogISR, ticksToInterrupt);
 
 		/* Set status to ACTIVE */
 		status = LOGIC_ACTIVE;
-		dbPutField (&crlogicStatus_pvAddr, DBR_ENUM, &status, 1);
+		dbPutField (&bsreadStatus_pvAddr, DBR_ENUM, &status, 1);
 
 		printf("Active ...\n");
 
@@ -428,11 +409,11 @@ void crlogicMainTask(char* pvPrefix){
 				ioctl (pipeId, FIONMSGS, (int) &numMessagesRemaining);
 
 				/* Update status */
-				dbGetField (&crlogicStatus_pvAddr, DBR_ENUM, &status, NULL, NULL, NULL);
+				dbGetField (&bsreadStatus_pvAddr, DBR_ENUM, &status, NULL, NULL, NULL);
 			}
 
 			/* Update status */
-			dbGetField (&crlogicStatus_pvAddr, DBR_ENUM, &status, NULL, NULL, NULL);
+			dbGetField (&bsreadStatus_pvAddr, DBR_ENUM, &status, NULL, NULL, NULL);
 
 			/* Only exit this loop if status INITIALIZE or FAULT is set*/
 			if(status==LOGIC_STOP || status==LOGIC_FAULT){
@@ -441,7 +422,7 @@ void crlogicMainTask(char* pvPrefix){
 			else{
 				/* Restore fault status */
 				status=LOGIC_ACTIVE;
-				dbPutField (&crlogicStatus_pvAddr, DBR_ENUM, &status, 1);
+				dbPutField (&bsreadStatus_pvAddr, DBR_ENUM, &status, 1);
 			}
 		}
 
@@ -451,7 +432,7 @@ void crlogicMainTask(char* pvPrefix){
 		printf("Stopping ...\n");
 
 		/* Stop WatchDog */
-		wdStart(crlogicWdId, 1, (FUNCPTR) crlogicWatchDogISR, 0);
+		wdStart(bsreadWdId, 1, (FUNCPTR) bsreadWatchDogISR, 0);
 
 		/* Read remaining messages in data pipe */
 		ioctl (pipeId, FIONMSGS, (int) &numMessagesRemaining);
@@ -472,10 +453,10 @@ void crlogicMainTask(char* pvPrefix){
 		if (retStatus != OK) {
 			printf("Cannot close writer\n");
 			/* Set error message */
-			dbPutField (&crlogicMessage_pvAddr, DBR_STRING, errormessage, 1);
+			dbPutField (&bsreadMessage_pvAddr, DBR_STRING, errormessage, 1);
 			/* Set status to FAULT */
 			status = LOGIC_FAULT;
-			dbPutField (&crlogicStatus_pvAddr, DBR_ENUM, &status, 1);
+			dbPutField (&bsreadStatus_pvAddr, DBR_ENUM, &status, 1);
 		}
 
 		/* Close data pipe */
@@ -493,10 +474,10 @@ void crlogicMainTask(char* pvPrefix){
  * Initialize / Start logic
  * pvPrefix			-	Prefix of the control channels
  */
-STATUS crlogicInitializeCore(char* pvPrefix){
+STATUS bsreadInitializeCore(char* pvPrefix){
 
 	/* Spawn main task */
-	taskSpawn ("bsreadW", writeTaskPriority, VX_FP_TASK, 20000, (FUNCPTR) crlogicMainTask, (int) pvPrefix,0,0,0,0,0,0,0,0,0);
+	taskSpawn ("bsreadW", writeTaskPriority, VX_FP_TASK, 20000, (FUNCPTR) bsreadMainTask, (int) pvPrefix,0,0,0,0,0,0,0,0,0);
 
 	return(OK);
 }

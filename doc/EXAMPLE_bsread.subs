@@ -1,0 +1,8 @@
+# Macros: 
+# P  -  Record prefix, e.g. MTEST-HW3-R
+
+file bsread.template {
+	{
+		P = "MTEST-HW3-R"
+	} 
+}
