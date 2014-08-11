@@ -1,35 +1,24 @@
 # Overview
-CRLOGIC provides a fast IOC based continuous scan functionality. It reads configured hardware resources within a certain
-time interval and streams out the data via ZMQ. All hardware resources to be read out need to reside on the same IOC than the CRLOGIC code is running.
+__bsread__ provides a fast IOC based continuous readout functionality. It reads configured channels a configured 
+time interval and streams out the data via ZMQ. All channels to be read out need to reside on the same IOC than 
+the __bsread__ code is running.
 
+The ZMQ message send out for each readout is split in a header and body part. The header part contains JSON 
+encoded data containing the __htype__ and the number of (double) __elements__
+contained in the body part. The body part contains, for each configured channel its double value (8 bytes) 
+in BIG_ENDIAN format.
 
-Currently following hardware resources are supported:
-
-  * VME58 - OMS motor card
-  * VME58E - OMS motor card encoder field
-  * MaxV - MaxV motor card
-  * ECM5xx - ECM encoder card
-  * VSC16 - VSC16 Scaler
-  * DCR508 - DCR Scaler
-  * Hy8001Trigger - Hytec 8001 digital out trigger (generates a trigger and reads back the trigger number)
-  * Hy8401 - Hytec ADC
-  * Timestamp - IOC timestamp of readout
-  * Channel - Epics channel on IOC 
-
-The ZMQ message send out for each readout is split in a header and body part. The header part contains JSON encoded data containing the __htype__ and the number of (double) __elements__
-contained in the body part. The body part contains, for each configured readout resource its double value (8 bytes) in BIG_ENDIAN format.
-
-The data stream is served in a ZMQ PUB/SUB delivery scheme.
+The data stream is served in a ZMQ PUSH/PULL delivery scheme.
 
 
 # Installation
-To configure CRLOGIC on your IOC continue as follows:
+To configure __bsread__ on your IOC continue as follows:
 
-  * Copy latest _crlogic.template_ file from the CRLOGIC project to your IOC configuration folder
-  * Create substitution file _crlogic.subs_ for crlogic.template ([Example](doc/EXAMPLE_crlogic.subs))
+  * Copy latest _bsread.template_ file from the __bsread__ project to your IOC configuration folder
+  * Create substitution file _bsread.subs_ for bsread.template ([Example](doc/EXAMPLE_bsread.subs))
  
 	```
-	file crlogic.template {
+	file bsread.template {
 		{
 			P = "YOUR-IOC-CRLOGIC-PREFIX"
 		} 
@@ -39,8 +28,8 @@ To configure CRLOGIC on your IOC continue as follows:
   * Configure SNL startup script. The IOC SNL Startup Script which is located in the *snl* directory of the IOC project.It has to include following line:
 
 	```
-	# pvPrefix  -  Prefix of the CRLOGIC Epics records
-	crlogicInitializeCore "<pvPrefix>"
+	# pvPrefix  -  Prefix of the epics records
+	bsreadInitializeCore "<pvPrefix>"
 	```
   
     * A detailed [example](doc/EXAMPLE_snl_startup.script) can be found [here](doc/EXAMPLE_snl_startup.script) )
@@ -52,87 +41,17 @@ To configure CRLOGIC on your IOC continue as follows:
 	sysClkRateSet 1000
 	```
     
-    * Load ZMQ and CRLOGIC drivers
+    * Load ZMQ and BSREAD drivers
     
 	```
 	require "ZMQ", "<version>"
-	require "CRLOGIC", "<version>"
-	```
-    
-    * Configure potential resources to be read out by CRLOGIC
-      * VME58
-      
-	```
-	# resourceID       -  ID of the "resource" (used to configure and identify the readout)
-	# slot             -  Slot of the motor card (counting starts at 0)
-	# cardBaseAddress  -  Base address of the motor card
-	crlogicAddVME58MotorResource "<resourceID>", <cardBaseAddress>, <slot>
-	```
-      
-      * VME58E
-      
-	```
-	# resourceID       -  ID of the "resource" (used to configure and identify the readout)
-	# slot             -  Slot of the motor card (counting starts at 0)
-	# cardBaseAddress  -  Base address of the motor card
-	crlogicAddVME58EMotorResource "<resourceID>", <cardBaseAddress>, <slot>
-	```
-      
-      * MaxV
-      
-	```
-	# resourceID       -  ID of the "resource" (used to configure and identify the readout)
-	# slot             -  Slot of the motor card (counting starts at 0)
-	# cardBaseAddress  -  Base address of the motor card
-	crlogicAddVME58EMotorResource "<resourceID>", <cardBaseAddress>, <slot>
-	```
-      * MaxV Internal Encoder
-      
-	```
-	# resourceID       -  ID of the "resource" (used to configure and identify the readout)
-	# slot             -  Slot of the card (counting starts at 0)
-	# cardBaseAddress  -  Base address of the encoder card
-	crlogicAddECM5xxEncoderResource "<resourceID>", <cardBaseAddress>, <slot>
+	require "BSREAD", "<version>"
 	```
 
-      * VSC16
-      
-	```
-	# resourceID       -  ID of the "resource" (used to configure and identify the readout)
-	# channel          -  Slot of the scaler card (counting starts at 0)
-	# cardBaseAddress  -  Base address of the scaler card
-	crlogicAddVSC16Resource "<resourceID>", <cardBaseAddress>, <channel>
-	```
-
-      * Hy8001 - Trigger
-      
-	```
-	# resourceID  -  ID of the "resource" (used to configure and identify the "readout"/trigger)
-	# cardNumber  -  Number of the card as configured in the Hy8001 driver setup
-	# signal      -  Signal of the card to send the trigger out [signal starts at 0]
-	crlogicAddHy8001TriggerResource "<resourceID>", <cardNumer>, <signal>
-	```
-
-      * Hy8401 - Analog-In
-      
-	```
-	# resourceID  -  ID of the "resource" (used to configure and identify the "readout"/trigger)
-	# cardNumber  -  Number of the card as configured in the Hy8001 driver setup
-	# signal      -  Signal of the card to send the trigger out [signal starts at 0]
-	crlogicAddHy8401Resource "<resourceID>", <cardNumer>, <signal>
-	```
-      
-      * Channel
-      
-	```
-	# key  -  Key/Channel name of the resource
-	crlogicAddChannelResource "key"
-	```
-
-      * A detailed configuration example can be found [here](doc/EXAMPLE_startup.script)
+A detailed configuration example can be found [here](doc/EXAMPLE_startup.script)
 
 # Usage
-There are following channels to control and configure CRLOGIC:
+There are following channels to control and configure __bsread__:
 
   * __$(P):STATUS__ - Status of the readout logic (SETUP, INACTIVE, INITIALIZE, ACTIVE, STOP, FAULT, ERROR)
   * __$(P):MSG__ - Fault message given by the logic (if there is one)	 
@@ -159,7 +78,7 @@ __Note__: For spotting problems easier and quicker it is recommended to prepend 
 # Debugging
 Start medm panel:
 ```
-medm -x -macro "P=MTEST-HW3-CRL" /work/sls/config/medm/G_CRLOGIC_expert.adl
+medm -x -macro "P=MTEST-HW3-CRL" /work/sls/config/medm/bsread.adl
 ```
 
 Commands to set readout resources and intervall:
