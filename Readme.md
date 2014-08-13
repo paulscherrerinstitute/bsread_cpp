@@ -10,6 +10,17 @@ in BIG_ENDIAN format.
 
 The data stream is served in a ZMQ PUSH/PULL delivery scheme.
 
+```
++-----------------------------------------------------------------------------------------+           
+|                                                                                         |           
+|                                                                                         |           
+|  +--------------+                        +---------------+                  +--------+  |           
+|  | Watchdoc ISR | +----> Semaphore <---+ | Readout Logic +------> Pipe <--+ | Sender | +-------> ZMQ
+|  +--------------+                        +---------------+                  +--------+  |           
+|                                                                                         |           
+|                                                                                   IOC   |           
++-----------------------------------------------------------------------------------------+           
+```
 
 # Installation
 To configure __bsread__ on your IOC continue as follows:
