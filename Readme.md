@@ -104,4 +104,6 @@ caput MTEST-HW3-R:TBINT 100
   * Replace VXWorks specific calls with highlevel functions: http://www.aps.anl.gov/epics/base/R3-14/12-docs/AppDevGuide/node21.html
   * Support other datatypes than doubles
   * Support different readout/send frequencies
+  * Readout time limited to 1ms at the end of a cycle
+    * Check whether "semaphore" was incremented during readout - getting out of the 1ms readout boundary
 
