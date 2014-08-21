@@ -25,3 +25,5 @@ STATUS bsreadWriterOpen(char* emessage);
 void bsreadWriterWrite(message* message);
 /* emessage		-	Error message if initialization fails (max 128 characters) */
 STATUS bsreadWriterClose(char* emessage);
+
+resourceListItem *resourceList = NULL;
