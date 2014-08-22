@@ -9,7 +9,7 @@
 #include "bsread.h"
 
 /* List of resources to be read out*/
-extern resourceListItem *resourceList;
+resourceListItem *resourceList;
 
 resourceListItem* bsreadGetResource(char* name){
 

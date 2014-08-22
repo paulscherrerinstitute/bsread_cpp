@@ -27,8 +27,9 @@ void bsreadWriterWrite(message* message);
 /* emessage		-	Error message if initialization fails (max 128 characters) */
 int bsreadWriterClose(char* emessage);
 
-
+/*
 #ifndef RLISTBLA
 #define RLISTBLA
 extern resourceListItem *resourceList = NULL;
 #endif
+*/
