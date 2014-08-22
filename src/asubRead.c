@@ -52,3 +52,6 @@ static long bsreadRead(aSubRecord *prec) {
 
 	return 0;
 }
+
+epicsRegisterFunction(bsreadReadInit);
+epicsRegisterFunction(bsreadRead);
