@@ -36,7 +36,6 @@ resourceListItem* bsreadGetResource(char* name){
 resourceListItem* bsreadAddResource(char* key){
 	resourceListItem* newNode;
 	pvaddress channel_pvAddr;
-	int rval;
 
 	newNode = calloc (1, sizeof(resourceListItem) );
 
@@ -44,7 +43,7 @@ resourceListItem* bsreadAddResource(char* key){
 	sprintf(newNode->res.key,"%.63s", key);
 
 	/* Retrieve memory address of the channel and save address in list node */
-	rval = dbNameToAddr(key, &channel_pvAddr);
+	dbNameToAddr(key, &channel_pvAddr);
 	newNode->res.address = channel_pvAddr;
 
 	newNode->next = resourceList;
@@ -97,16 +96,15 @@ static long bsreadConfigure(aSubRecord *prec) {
 
 	int i;
 	char* wfStr;
-	struct buffer {
-		char  value[maxNumberResources][dbValueSize(DBR_STRING)];
-	} buffer;
+	char* kname;
 
 	/* Reading from a string waveform */
 	wfStr = (char*) prec->b;
 
 	for (i=0; i<prec->nob; i++) {
 	   	printf("Resource[%d] = %s\n", i, wfStr+40*i);
-	   	bsreadAddResource(sprintf("%s", wfStr+40*i));
+	   	sprintf(kname,"%s", wfStr+40*i);
+	   	bsreadAddResource(kname);
 	}
 	return 0;
 }
