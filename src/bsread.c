@@ -12,7 +12,7 @@ static void *zmqSock;
 
 int bsreadSend() {
 	int hwm = 100;
-	printf("open writer");
+	printf("Open writer\n");
 	zmqCtx = zmq_ctx_new();
 	zmqSock = zmq_socket(zmqCtx, ZMQ_SUB);
 	zmq_setsockopt(zmqSock, ZMQ_SNDHWM, &hwm, sizeof(hwm));

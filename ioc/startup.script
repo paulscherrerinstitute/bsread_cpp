@@ -1,2 +1,4 @@
 require "ZMQ" "0.0.1"
 require "BSREAD"
+
+bsreadSendInit()
