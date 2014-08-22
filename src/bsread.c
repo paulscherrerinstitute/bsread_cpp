@@ -36,7 +36,7 @@ int bsreadSend() {
 	return (0);
 }
 
-int bsreadSendInit(){
+static long bsreadSendInit(){
 	epicsThreadCreate(
 			"bsreadSend",
 			epicsThreadPriorityMedium,
