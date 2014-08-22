@@ -1,6 +1,8 @@
 #include <string.h>
 #include <zmq.h>
 #include <epicsThread.h>
+
+#include <registryFunction.h>
 #include <epicsExport.h>
 
 #include "bsread.h"
@@ -37,7 +39,7 @@ int bsreadSend() {
 int bsreadSendInit(){
 	epicsThreadCreate(
 			"bsreadSend",
-			epicsThreadStackSizeClass.epicsThreadPriorityMedium ,
+			epicsThreadPriorityMedium,
 			epicsThreadStackMedium,
 			(EPICSTHREADFUNC) bsreadSend,
 			NULL);
