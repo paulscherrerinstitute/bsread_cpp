@@ -40,7 +40,7 @@ static long bsreadRead(aSubRecord *prec) {
 		resourceListItem* currentNode = resourceList;
 
 		do {
-			dbGetField(&currentNode->res.address, DBR_DOUBLE, &m.values[c], NULL, NULL, NULL);
+			dbGetField(&currentNode->res.address, DBR_DOUBLE, &m.values[items], NULL, NULL, NULL);
 			currentNode = currentNode->next;
 			items++;
 		} while (currentNode != NULL);
