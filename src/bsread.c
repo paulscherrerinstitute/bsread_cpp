@@ -1,6 +1,7 @@
 #include <string.h>
 #include <zmq.h>
 #include <epicsThread.h>
+#include <epicsExport.h>
 
 #include "bsread.h"
 
@@ -33,12 +34,17 @@ int bsreadSend() {
 	return (0);
 }
 
-epicsThreadCreate(
-		"bsreadSend",
-		epicsThreadStackSizeClass.epicsThreadPriorityMedium ,
-		epicsThreadStackMedium,
-		(EPICSTHREADFUNC) bsreadSend,
-		NULL);
+int bsreadSendInit(){
+	epicsThreadCreate(
+			"bsreadSend",
+			epicsThreadStackSizeClass.epicsThreadPriorityMedium ,
+			epicsThreadStackMedium,
+			(EPICSTHREADFUNC) bsreadSend,
+			NULL);
+}
+
+epicsRegisterFunction(bsreadSendInit);
+
 /*
 void bsreadWriterWrite(message* message) {
 	char jsonFmt[] = "{\"htype\":\"bsread-1.0\",\"elements\":\"%d\"}";
