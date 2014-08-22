@@ -32,7 +32,7 @@ static pvaddress bsreadReadoutResources_pvAddr;
 /* [BEGIN] Resource list (methods) */
 
 /* List of resources to be read out*/
-resourceListItem *resourceList = NULL;
+extern resourceListItem *resourceList;
 int items = 0;
 
 /* Get resource by name */
