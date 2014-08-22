@@ -105,7 +105,7 @@ static long bsreadConfigure(aSubRecord *prec) {
 	for (i=0; i<prec->noa; i++) {
 	   	printf("Resource[%d] = %s\n", i, wfStr+40*i);
 	   	sprintf(kname,"%.63s", wfStr+40*i);
-	   	if(strcmp (buffer.value[r], "") != 0){
+	   	if(strcmp (kname, "") != 0){
 	   		bsreadAddResource(kname);
 	   	}
 	}
