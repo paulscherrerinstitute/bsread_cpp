@@ -14,10 +14,10 @@ int bsreadSend() {
 	int hwm = 100;
 	printf("Open writer\n");
 	zmqCtx = zmq_ctx_new();
-	zmqSock = zmq_socket(zmqCtx, ZMQ_SUB);
+	zmqSock = zmq_socket(zmqCtx, ZMQ_PULL);
 	zmq_setsockopt(zmqSock, ZMQ_SNDHWM, &hwm, sizeof(hwm));
 	zmq_connect (zmqSock, "inproc://bsread");
-	zmq_setsockopt (zmqSock, ZMQ_SUBSCRIBE, "", 0);
+	/*zmq_setsockopt (zmqSock, ZMQ_SUBSCRIBE, "", 0);*/
 
 	while(1){
 		zmq_msg_t msg;

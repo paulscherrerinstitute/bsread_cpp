@@ -21,7 +21,7 @@ static long bsreadReadInit(aSubRecord *prec) {
 
 	printf("Open internal queue\n");
 	zmqCtx = zmq_ctx_new();
-	zmqSock = zmq_socket(zmqCtx, ZMQ_PUB);
+	zmqSock = zmq_socket(zmqCtx, ZMQ_PUSH);
 	zmq_setsockopt(zmqSock, ZMQ_SNDHWM, &hwm, sizeof(hwm));
 	zmq_bind(zmqSock, addr);
 	return 0;
