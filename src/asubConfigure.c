@@ -100,7 +100,7 @@ static long bsreadConfigure(aSubRecord *prec) {
 	char kname[64];
 
 	/* Reading from a string waveform */
-	wfStr = (char*) prec->b;
+	wfStr = (char*) prec->a;
 
 	for (i=0; i<prec->nob; i++) {
 	   	printf("Resource[%d] = %s\n", i, wfStr+40*i);

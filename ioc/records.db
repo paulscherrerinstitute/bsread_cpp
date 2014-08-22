@@ -1,0 +1,18 @@
+record(waveform,"BSREAD_CHANNELS") {
+	field(FTVL, "STRING")
+	field(NELM, "10")
+	field(FLNK, "BSREAD_CONFIGURE")
+}
+
+record(aSub,"BSREAD_CONFIGURE") {
+	field(INAM,"bsreadConfigureInit")
+	field(SNAM,"bsreadConfigure")
+	field(FTA, "STRING")
+	field(NOA, "10")
+	field(INPA, "BSREAD_CHANNELS NPP NMS")
+}
+   
+record(aSub,"BSREAD_READ") {
+	field(INAM,"bsreadReadInit")
+	field(SNAM,"bsreadRead")
+}
