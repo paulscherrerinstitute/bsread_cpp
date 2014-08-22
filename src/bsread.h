@@ -20,10 +20,10 @@ typedef struct _resourceListItem {
 
 /* Declaration DataWriter functions */
 /* emessage		-	Error message if initialization fails (max 128 characters) */
-STATUS bsreadWriterOpen(char* emessage);
+int bsreadWriterOpen(char* emessage);
 /* message		-	Message to be send/written */
 void bsreadWriterWrite(message* message);
 /* emessage		-	Error message if initialization fails (max 128 characters) */
-STATUS bsreadWriterClose(char* emessage);
+int bsreadWriterClose(char* emessage);
 
 resourceListItem *resourceList = NULL;

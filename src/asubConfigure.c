@@ -49,7 +49,6 @@ resourceListItem* bsreadAddResource(char* key){
 
 	newNode->next = resourceList;
 	resourceList = newNode;
-	items++;
 
 	return(newNode);
 }

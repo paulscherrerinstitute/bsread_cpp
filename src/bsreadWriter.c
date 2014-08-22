@@ -6,7 +6,7 @@
 static void *zmqCtx;
 static void *zmqSock;
 
-STATUS bsreadWriterOpen(char* emessage) {
+int bsreadWriterOpen(char* emessage) {
 
 	int hwm = 100;
 	char *addr = "tcp://*:8080";
@@ -17,7 +17,7 @@ STATUS bsreadWriterOpen(char* emessage) {
 	zmq_setsockopt(zmqSock, ZMQ_SNDHWM, &hwm, sizeof(hwm));
 	zmq_bind(zmqSock, addr);
 
-	return (OK);
+	return (0);
 }
 
 void bsreadWriterWrite(message* message) {
@@ -40,9 +40,9 @@ void bsreadWriterWrite(message* message) {
 	/*printf("%s\n",buf);*/ /*just for extreme debugging*/
 }
 
-STATUS bsreadWriterClose(char* emessage) {
+int bsreadWriterClose(char* emessage) {
 	zmq_close(zmqSock);
 	zmq_ctx_destroy(zmqCtx);
-	return (OK);
+	return (0);
 }
 
