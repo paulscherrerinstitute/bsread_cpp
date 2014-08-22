@@ -36,17 +36,16 @@ int bsreadSend() {
 	return (0);
 }
 
-static long bsreadSendInit(){
+static void bsreadSendInit(){
 	epicsThreadCreate(
 			"bsreadSend",
 			epicsThreadPriorityMedium,
 			epicsThreadStackMedium,
 			(EPICSTHREADFUNC) bsreadSend,
 			NULL);
-	return 0;
 }
 
-epicsRegisterFunction(bsreadSendInit);
+epicsExportRegistrar(bsreadSendInit);
 
 /*
 void bsreadWriterWrite(message* message) {
