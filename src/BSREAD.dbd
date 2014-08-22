@@ -1,0 +1,4 @@
+function("bsreadConfigureInit")
+function("bsreadConfigure")
+function("bsreadReadInit")
+function("bsreadRead")
