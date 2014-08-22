@@ -43,6 +43,7 @@ int bsreadSendInit(){
 			epicsThreadStackMedium,
 			(EPICSTHREADFUNC) bsreadSend,
 			NULL);
+	return 0;
 }
 
 epicsRegisterFunction(bsreadSendInit);
