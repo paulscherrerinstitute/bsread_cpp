@@ -3,6 +3,8 @@
 #define pvaddress struct dbAddr
 #define maxNumberResources 40
 
+#ifndef RLIST
+#define RLIST
 typedef struct _message {
 	double values[maxNumberResources];
 	int length;
@@ -26,7 +28,7 @@ void bsreadWriterWrite(message* message);
 /* emessage		-	Error message if initialization fails (max 128 characters) */
 int bsreadWriterClose(char* emessage);
 
-#ifndef RLIST
-#define RLIST
+
+
 resourceListItem *resourceList = NULL;
 #endif
