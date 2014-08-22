@@ -1,2 +1,2 @@
-require "BSRead"
+require "BSREAD"
 require "ZMQ" "0.0.1"
