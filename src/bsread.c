@@ -25,6 +25,7 @@ int bsreadSend() {
 
 		/* Block until a message is available to be received from socket */
 		zmq_msg_recv (&msg, zmqSock, 0);
+		printf("Message received\n");
 
 		/* Release message */
 		zmq_msg_close (&msg);
