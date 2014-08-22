@@ -30,5 +30,5 @@ int bsreadWriterClose(char* emessage);
 
 #ifndef RLISTBLA
 #define RLISTBLA
-resourceListItem *resourceList = NULL;
+extern resourceListItem *resourceList = NULL;
 #endif
