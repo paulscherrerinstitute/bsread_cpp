@@ -14,14 +14,14 @@ int bsreadSend() {
 	zmqSock = zmq_socket(zmqCtx, ZMQ_SUB);
 	zmq_setsockopt(zmqSock, ZMQ_SNDHWM, &hwm, sizeof(hwm));
 	zmq_connect (zmqSock, "inproc://bsread");
-	zmq_setsockopt (subscriber, ZMQ_SUBSCRIBE, "", 0);
+	zmq_setsockopt (zmqSock, ZMQ_SUBSCRIBE, "", 0);
 
 	while(1){
 		zmq_msg_t msg;
 		zmq_msg_init (&msg);
 
 		/* Block until a message is available to be received from socket */
-		rc = zmq_msg_recv (&msg, zmqSock, 0);
+		zmq_msg_recv (&msg, zmqSock, 0);
 
 		/* Release message */
 		zmq_msg_close (&msg);
@@ -33,7 +33,12 @@ int bsreadSend() {
 	return (0);
 }
 
-epicsThreadCreate("bsreadSend", epicsThreadPriorityMedium , epicsThreadStackMedium, (EPICSTHREADFUNC) bsreadSend, NULL);
+epicsThreadCreate(
+		"bsreadSend",
+		epicsThreadStackSizeClass.epicsThreadPriorityMedium ,
+		epicsThreadStackMedium,
+		(EPICSTHREADFUNC) bsreadSend,
+		NULL);
 /*
 void bsreadWriterWrite(message* message) {
 	char jsonFmt[] = "{\"htype\":\"bsread-1.0\",\"elements\":\"%d\"}";
