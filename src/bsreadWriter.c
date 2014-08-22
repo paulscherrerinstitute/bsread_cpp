@@ -23,20 +23,20 @@ int bsreadWriterOpen(char* emessage) {
 void bsreadWriterWrite(message* message) {
 	char jsonFmt[] = "{\"htype\":\"bsread-1.0\",\"elements\":\"%d\"}";
 	char buf[256];
-	int len, res, i;
+	int len, i;
 	double* val = message->values;
 
 	char arr[sizeof(double) * message->length];
 
 	/* Send header */
 	len = sprintf(buf, jsonFmt, message->length);
-	res = zmq_send(zmqSock, buf, len, ZMQ_SNDMORE);
+	zmq_send(zmqSock, buf, len, ZMQ_SNDMORE);
 
 	/* Send data*/
 	for (i = 0; i < message->length; i++) {
 		memcpy(arr + i * sizeof(double), val + i, sizeof(double));
 	}
-	res = zmq_send(zmqSock, arr, message->length * sizeof(double), 0);
+	zmq_send(zmqSock, arr, message->length * sizeof(double), 0);
 	/*printf("%s\n",buf);*/ /*just for extreme debugging*/
 }
 
