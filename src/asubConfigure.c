@@ -96,14 +96,14 @@ static long bsreadConfigure(aSubRecord *prec) {
 
 	int i;
 	char* wfStr;
-	char* kname;
+	char kname[64];
 
 	/* Reading from a string waveform */
 	wfStr = (char*) prec->b;
 
 	for (i=0; i<prec->nob; i++) {
 	   	printf("Resource[%d] = %s\n", i, wfStr+40*i);
-	   	sprintf(kname,"%s", wfStr+40*i);
+	   	sprintf(kname,"%.63s", wfStr+40*i);
 	   	bsreadAddResource(kname);
 	}
 	return 0;

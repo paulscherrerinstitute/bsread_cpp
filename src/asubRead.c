@@ -11,7 +11,7 @@
 #include <zmq.h>
 
 static void *zmqCtx;
-static void *zmqSock
+static void *zmqSock;
 
 extern resourceListItem *resourceList;
 
