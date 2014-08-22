@@ -1,25 +1,40 @@
-#include "bsread.h"
-
 #include <string.h>
 #include <zmq.h>
+#include <epicsThread.h>
+
+#include "bsread.h"
 
 static void *zmqCtx;
 static void *zmqSock;
 
-int bsreadWriterOpen(char* emessage) {
-
+int bsreadSend() {
 	int hwm = 100;
-	char *addr = "tcp://*:8080";
-
 	printf("open writer");
 	zmqCtx = zmq_ctx_new();
-	zmqSock = zmq_socket(zmqCtx, ZMQ_PUSH);
+	zmqSock = zmq_socket(zmqCtx, ZMQ_SUB);
 	zmq_setsockopt(zmqSock, ZMQ_SNDHWM, &hwm, sizeof(hwm));
-	zmq_bind(zmqSock, addr);
+	zmq_connect (zmqSock, "inproc://bsread");
+	zmq_setsockopt (subscriber, ZMQ_SUBSCRIBE, "", 0);
+
+	while(1){
+		zmq_msg_t msg;
+		zmq_msg_init (&msg);
+
+		/* Block until a message is available to be received from socket */
+		rc = zmq_msg_recv (&msg, zmqSock, 0);
+
+		/* Release message */
+		zmq_msg_close (&msg);
+	}
+
+	zmq_close(zmqSock);
+	zmq_ctx_destroy(zmqCtx);
 
 	return (0);
 }
 
+epicsThreadCreate("bsreadSend", epicsThreadPriorityMedium , epicsThreadStackMedium, (EPICSTHREADFUNC) bsreadSend, NULL);
+/*
 void bsreadWriterWrite(message* message) {
 	char jsonFmt[] = "{\"htype\":\"bsread-1.0\",\"elements\":\"%d\"}";
 	char buf[256];
@@ -28,21 +43,13 @@ void bsreadWriterWrite(message* message) {
 
 	char arr[sizeof(double) * message->length];
 
-	/* Send header */
 	len = sprintf(buf, jsonFmt, message->length);
 	zmq_send(zmqSock, buf, len, ZMQ_SNDMORE);
 
-	/* Send data*/
 	for (i = 0; i < message->length; i++) {
 		memcpy(arr + i * sizeof(double), val + i, sizeof(double));
 	}
 	zmq_send(zmqSock, arr, message->length * sizeof(double), 0);
-	/*printf("%s\n",buf);*/ /*just for extreme debugging*/
 }
-
-int bsreadWriterClose(char* emessage) {
-	zmq_close(zmqSock);
-	zmq_ctx_destroy(zmqCtx);
-	return (0);
-}
+*/
 
