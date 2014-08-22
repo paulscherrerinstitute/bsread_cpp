@@ -37,10 +37,11 @@ int bsreadSend() {
 }
 
 static void bsreadSendInit(){
+	printf("Create send thread\n");
 	epicsThreadCreate(
 			"bsreadSend",
 			epicsThreadPriorityMedium,
-			epicsThreadStackMedium,
+			epicsThreadGetStackSize(epicsThreadStackSmall),
 			(EPICSTHREADFUNC) bsreadSend,
 			NULL);
 }
