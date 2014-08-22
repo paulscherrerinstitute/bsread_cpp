@@ -40,6 +40,7 @@ static long bsreadRead(aSubRecord *prec) {
 		resourceListItem* currentNode = resourceList;
 
 		do {
+			printf("Read > %s\n",m.key);
 			dbGetField(&currentNode->res.address, DBR_DOUBLE, &m.values[items], NULL, NULL, NULL);
 			currentNode = currentNode->next;
 			items++;
