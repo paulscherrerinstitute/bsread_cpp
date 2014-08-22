@@ -1,9 +1,2 @@
 require "BSRead"
 require "ZMQ" "0.0.1"
-require "herApp"
-# name given here must match to 
-#
-#configBSRead("simon")
-configBSRead("babak")
-
-
