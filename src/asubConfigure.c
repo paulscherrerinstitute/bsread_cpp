@@ -7,6 +7,7 @@
 #include <recSup.h>
 
 #include "bsread.h"
+#include <stdlib.h>
 
 /* List of resources to be read out*/
 resourceListItem *resourceList;
