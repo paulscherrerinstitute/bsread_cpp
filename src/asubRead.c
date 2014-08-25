@@ -11,8 +11,6 @@
 /*static void *zmqCtx;*/
 static void *zmqSock;
 
-extern resourceListItem *resourceList;
-
 static long bsreadReadInit(aSubRecord *prec) {
 	int hwm = 100;
 	char *addr = "inproc://bsread";
@@ -34,20 +32,18 @@ static long bsreadRead(aSubRecord *prec) {
 		printf("Nothing to read out");
 	} else {
 		int items = 0;
-		message m;
+		double m[resourceListSize];
 		resourceListItem* currentNode = resourceList;
 
 		do {
 			printf("Read > %d\n",items);
-			dbGetField(&currentNode->res.address, DBR_DOUBLE, &m.values[items], NULL, NULL, NULL);
+			dbGetField(&currentNode->res.address, DBR_DOUBLE, &m[items], NULL, NULL, NULL);
 			currentNode = currentNode->next;
 			items++;
 		} while (currentNode != NULL);
 
-		m.length = items;
-
 		printf("Send...\n");
-		zmq_send(zmqSock, (char*) &m, sizeof(message), 0);
+		zmq_send(zmqSock, (char*) &m, sizeof(m), 0);
 	}
 
 	return 0;

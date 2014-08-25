@@ -1,17 +1,8 @@
 #include <dbAccess.h>
 
-
-#define pvaddress struct dbAddr
-#define maxNumberResources 40
-
-typedef struct _message {
-	double values[maxNumberResources];
-	int length;
-} message;
-
 typedef struct _resource {
     char key[64];
-    pvaddress address;
+    dbAddr address;
 } resource;
 
 typedef struct _resourceListItem {
@@ -19,10 +10,16 @@ typedef struct _resourceListItem {
 	struct _resourceListItem* next;
 } resourceListItem;
 
-#ifndef Z_CONTEXT
-#define Z_CONTEXT
 
+#ifndef BSREAD_CONTEXT
+#define BSREAD_CONTEXT
+
+/* One context for interprocess communication */
 #include <zmq.h>
 void *zmqCtx;
+
+/* List of resources to be read out*/
+resourceListItem *resourceList;
+int resourceListSize;
 #endif
 

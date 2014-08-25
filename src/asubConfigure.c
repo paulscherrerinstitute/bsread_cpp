@@ -9,9 +9,6 @@
 #include "bsread.h"
 #include <stdlib.h>
 
-/* List of resources to be read out*/
-resourceListItem *resourceList;
-
 resourceListItem* bsreadGetResource(char* name){
 
 	resourceListItem* currentNode;
@@ -36,7 +33,7 @@ resourceListItem* bsreadGetResource(char* name){
 
 resourceListItem* bsreadAddResource(char* key){
 	resourceListItem* newNode;
-	pvaddress channel_pvAddr;
+	dbAddr channel_pvAddr;
 
 	newNode = calloc (1, sizeof(resourceListItem) );
 
@@ -49,6 +46,7 @@ resourceListItem* bsreadAddResource(char* key){
 
 	newNode->next = resourceList;
 	resourceList = newNode;
+	resourceListSize++;
 
 	return(newNode);
 }
@@ -69,6 +67,7 @@ void bsreadClearResources() {
 		} while (currentNode != NULL);
 	}
 	resourceList=NULL;
+	resourceListSize=0;
 }
 
 void bsreadPrintResources(){
@@ -90,6 +89,7 @@ void bsreadPrintResources(){
 
 static long bsreadConfigureInit(aSubRecord *prec) {
 	resourceList = NULL;
+	resourceListSize = 0;
 	return 0;
 }
 
