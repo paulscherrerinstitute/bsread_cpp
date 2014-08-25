@@ -15,9 +15,9 @@ static void *zmqSockExtern;
 int bsreadSend() {
 	int hwm = 100;
 	char *addr = "tcp://*:8080";
-	int length = 1;
+	/*int length = 1;
 	char arr[sizeof(double) * length];
-	/*int i;
+	int i;
 	double value =0.0;*/
 	
 	printf("Open writer\n");
