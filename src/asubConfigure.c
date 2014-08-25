@@ -94,10 +94,12 @@ static long bsreadConfigureInit(aSubRecord *prec) {
 }
 
 static long bsreadConfigure(aSubRecord *prec) {
-
+	
 	int i;
 	char* wfStr;
 	char kname[64];
+	
+	bsreadClearResources();
 
 	/* Reading from a string waveform */
 	wfStr = (char*) prec->a;

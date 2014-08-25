@@ -1,6 +1,5 @@
 
-#LIBVERSION = 1.0.0
-LIBVERSION = test
+LIBVERSION = 1.0.1
 
 build:
 	$(MAKE) build -C src LIBVERSION=$(LIBVERSION)
