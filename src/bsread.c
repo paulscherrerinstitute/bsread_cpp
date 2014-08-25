@@ -7,7 +7,7 @@
 
 #include "bsread.h"
 
-extern void *zmqCtx;
+/*static void *zmqCtx;*/
 static void *zmqSock;
 
 int bsreadSend() {

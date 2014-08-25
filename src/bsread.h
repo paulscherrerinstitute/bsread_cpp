@@ -18,4 +18,8 @@ typedef struct _resourceListItem {
 	struct _resourceListItem* next;
 } resourceListItem;
 
+#ifndef Z_CONTEXT
+#define Z_CONTEXT
+void *zmqCtx = zmq_ctx_new();
+#endif
 

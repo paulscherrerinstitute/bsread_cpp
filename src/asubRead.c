@@ -10,7 +10,7 @@
 
 #include <zmq.h>
 
-static void *zmqCtx = zmq_ctx_new();
+/*static void *zmqCtx;*/
 static void *zmqSock;
 
 extern resourceListItem *resourceList;
