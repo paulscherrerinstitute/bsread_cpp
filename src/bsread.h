@@ -21,6 +21,6 @@ typedef struct _resourceListItem {
 
 #ifndef Z_CONTEXT
 #define Z_CONTEXT
-void *zmqCtx = zmq_ctx_new();
+const void *zmqCtx = zmq_ctx_new();
 #endif
 
