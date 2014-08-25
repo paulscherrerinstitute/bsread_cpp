@@ -17,8 +17,8 @@ int bsreadSend() {
 	char *addr = "tcp://*:8080";
 	int length = 1;
 	char arr[sizeof(double) * length];
-	int i;
-	double value =0.0;
+	/*int i;
+	double value =0.0;*/
 	
 	printf("Open writer\n");
 	/*zmqCtx = zmq_ctx_new();*/
@@ -43,11 +43,14 @@ int bsreadSend() {
 		zmq_msg_recv (&msg, zmqSock, 0);
 		printf("Message received\n");
 		
+		/*
 		for (i = 0; i < length; i++) {
 			memcpy(arr + i * sizeof(double), &value, sizeof(double));
 			value=value+1;
 		}
-		zmq_send(zmqSockExtern, arr, length * sizeof(double), 0);
+		*/
+		/*zmq_send(zmqSockExtern, arr, length * sizeof(double), 0);*/
+		zmq_msg_send(zmqSockExtern, &msg,0);
 
 
 		/* Release message */
