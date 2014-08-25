@@ -7,13 +7,13 @@
 
 #include "bsread.h"
 
-static void *zmqCtx;
+extern void *zmqCtx;
 static void *zmqSock;
 
 int bsreadSend() {
 	int hwm = 100;
 	printf("Open writer\n");
-	zmqCtx = zmq_ctx_new();
+	/*zmqCtx = zmq_ctx_new();*/
 	zmqSock = zmq_socket(zmqCtx, ZMQ_PULL);
 	zmq_setsockopt(zmqSock, ZMQ_SNDHWM, &hwm, sizeof(hwm));
 	zmq_connect (zmqSock, "inproc://bsread");

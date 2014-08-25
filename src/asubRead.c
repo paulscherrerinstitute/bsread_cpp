@@ -10,7 +10,7 @@
 
 #include <zmq.h>
 
-static void *zmqCtx;
+void *zmqCtx = = zmq_ctx_new();
 static void *zmqSock;
 
 extern resourceListItem *resourceList;
@@ -20,7 +20,7 @@ static long bsreadReadInit(aSubRecord *prec) {
 	char *addr = "inproc://bsread";
 
 	printf("Open internal queue\n");
-	zmqCtx = zmq_ctx_new();
+	/*zmqCtx = zmq_ctx_new();*/
 	zmqSock = zmq_socket(zmqCtx, ZMQ_PUSH);
 	zmq_setsockopt(zmqSock, ZMQ_SNDHWM, &hwm, sizeof(hwm));
 	zmq_bind(zmqSock, addr);
