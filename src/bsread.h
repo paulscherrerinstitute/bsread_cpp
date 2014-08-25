@@ -1,5 +1,5 @@
 #include <dbAccess.h>
-#include <zmq.h>
+
 
 #define pvaddress struct dbAddr
 #define maxNumberResources 40
@@ -21,6 +21,8 @@ typedef struct _resourceListItem {
 
 #ifndef Z_CONTEXT
 #define Z_CONTEXT
-const void *zmqCtx = zmq_ctx_new();
+
+#include <zmq.h>
+void *zmqCtx;
 #endif
 

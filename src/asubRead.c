@@ -8,8 +8,6 @@
 
 #include "bsread.h"
 
-#include <zmq.h>
-
 /*static void *zmqCtx;*/
 static void *zmqSock;
 
@@ -48,6 +46,7 @@ static long bsreadRead(aSubRecord *prec) {
 
 		m.length = items;
 
+		printf("Send...\n");
 		zmq_send(zmqSock, (char*) &m, sizeof(message), 0);
 	}
 

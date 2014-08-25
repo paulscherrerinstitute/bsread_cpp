@@ -1,5 +1,4 @@
 #include <string.h>
-#include <zmq.h>
 #include <epicsThread.h>
 
 #include <registryFunction.h>
@@ -15,7 +14,7 @@ int bsreadSend() {
 	printf("Open writer\n");
 	/*zmqCtx = zmq_ctx_new();*/
 	zmqSock = zmq_socket(zmqCtx, ZMQ_PULL);
-	zmq_setsockopt(zmqSock, ZMQ_SNDHWM, &hwm, sizeof(hwm));
+	zmq_setsockopt(zmqSock, ZMQ_RCVHWM, &hwm, sizeof(hwm));
 	zmq_connect (zmqSock, "inproc://bsread");
 	/*zmq_setsockopt (zmqSock, ZMQ_SUBSCRIBE, "", 0);*/
 
@@ -38,6 +37,7 @@ int bsreadSend() {
 }
 
 static void bsreadSendInit(){
+	zmqCtx = zmq_ctx_new();
 	printf("Create send thread\n");
 	epicsThreadCreate(
 			"bsreadSend",
