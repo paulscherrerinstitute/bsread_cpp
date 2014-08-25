@@ -50,7 +50,7 @@ int bsreadSend() {
 		}
 		*/
 		/*zmq_send(zmqSockExtern, arr, length * sizeof(double), 0);*/
-		zmq_msg_send(zmqSockExtern, &msg,0);
+		zmq_msg_send(&msg, zmqSockExtern, 0);
 
 
 		/* Release message */
