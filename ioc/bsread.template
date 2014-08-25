@@ -1,18 +1,21 @@
-record(waveform,"BSREAD_CHANNELS") {
+# Macros
+# P  -  Record prefix, e.g. MTEST-BSREAD
+
+record(waveform,"$(P):CHANNELS") {
 	field(FTVL, "STRING")
 	field(NELM, "10")
-	field(FLNK, "BSREAD_CONFIGURE")
+	field(FLNK, "$(P):CONFIGURE")
 }
 
-record(aSub,"BSREAD_CONFIGURE") {
+record(aSub,"$(P):CONFIGURE") {
 	field(INAM,"bsreadConfigureInit")
 	field(SNAM,"bsreadConfigure")
 	field(FTA, "STRING")
 	field(NOA, "10")
-	field(INPA, "BSREAD_CHANNELS NPP NMS")
+	field(INPA, "$(P):CHANNELS NPP NMS")
 }
    
-record(aSub,"BSREAD_READ") {
+record(aSub,"$(P):READ") {
 	field(INAM,"bsreadReadInit")
 	field(SNAM,"bsreadRead")
 }

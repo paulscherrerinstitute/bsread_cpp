@@ -14,6 +14,10 @@ typedef struct _resourceListItem {
 #ifndef BSREAD_CONTEXT
 #define BSREAD_CONTEXT
 
+#ifdef vxWorks
+#define ZMQ_HAVE_OPENVMS
+#endif
+
 /* One context for interprocess communication */
 #include <zmq.h>
 void *zmqCtx;
