@@ -1,4 +1,5 @@
 #include <dbAccess.h>
+#include <zmq.h>
 
 #define pvaddress struct dbAddr
 #define maxNumberResources 40
