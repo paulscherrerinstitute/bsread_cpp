@@ -64,6 +64,26 @@ caput TEST-BSREAD:READ.PROC 1
 There is a test ioc inside the git repository inside the `ioc` folder. To use the IOC for testing, compile the __BSREAD__ sources inside 
 the `src` folder (use the Makefile inside the folder!), switch to the ioc directory, execut the `makeioc.sh` script and start the ioc via `iocsh startup.script`.
 
+The testioc comes with 4 counters incrementing at different speeds. You can configure the counters to be read out as follows:
+
+```
+caput BSREAD:CHANNELS "BSREAD:TEST_1 BSREAD:TEST_2 BSREAD:TEST_3 BSREAD:TEST_4"
+```
+
+You can now manually trigger a readout by triggering a processing of the read record:
+
+```
+caput BSREAD:READ.PROC 1
+```
+
+The testioc also comes with a 100Hz counter that can be used for triggering readouts. You can use this counter to trigger the readout by settings
+its __FLNK__ field to the read record.
+
+```
+caput BSREAD:TEST_TRIGGER.FLNK BSREAD:READ
+``` 
+
+To stop the readout unset the __FLNK__ field of the test trigger.
 
 # Todo
 
