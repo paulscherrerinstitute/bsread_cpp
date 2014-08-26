@@ -54,8 +54,6 @@ resourceListItem* bsreadAddResource(char* key){
 		resourceListLast = newNode;	
 	}
 	
-	/*newNode->next = resourceList;
-	resourceList = newNode;*/
 	resourceListSize++;
 
 	return(newNode);
@@ -70,7 +68,11 @@ void bsreadClearResources() {
 		currentNode = resourceList;
 
 		do {
-			printf("Clear: %s\n", currentNode->res.key);
+
+#ifdef DEBUG
+			printf("[Configure] Clear: %s\n", currentNode->res.key);
+#endif
+
 			nextNode = currentNode->next;
 			free(currentNode);
 			currentNode = nextNode;
@@ -81,6 +83,7 @@ void bsreadClearResources() {
 	resourceListSize=0;
 }
 
+#ifdef DEBUG
 void bsreadPrintResources(){
 	resourceListItem* currentNode;
 
@@ -88,14 +91,15 @@ void bsreadPrintResources(){
 		}
 		else{
 			currentNode = resourceList;
-			printf("Resource: %s\n", (currentNode->res.key));
+			printf("[Configure] Resource: %s\n", (currentNode->res.key));
 
 			while (currentNode->next != NULL ){
 				currentNode=currentNode->next;
-				printf("Resource: %s\n", (currentNode->res.key));
+				printf("[Configure] Resource: %s\n", (currentNode->res.key));
 			}
 		}
 }
+#endif
 
 
 static long bsreadConfigureInit(aSubRecord *prec) {
@@ -117,10 +121,17 @@ static long bsreadConfigure(aSubRecord *prec) {
 	wfStr = (char*) prec->a;
 
 	for (i=0; i<prec->noa; i++) {
-	   	printf("Resource[%d] = %s\n", i, wfStr+40*i);
-	   	sprintf(kname,"%.63s", wfStr+40*i);
+
+#ifdef DEBUG
+		printf("[Configure] Resource[%d] = %s\n", i, wfStr+40*i);
+#endif
+
+		sprintf(kname,"%.63s", wfStr+40*i);
 	   	if(strcmp (kname, "") != 0){
 	   		bsreadAddResource(kname);
+	   	}
+	   	else{
+	   		break;
 	   	}
 	}
 	return 0;
