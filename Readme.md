@@ -60,6 +60,11 @@ caput TEST-BSREAD:CHANNELS "ACHANNEL B.CHANNEL"
 caput TEST-BSREAD:READ.PROC 1
 ```
 
+# Test IOC
+There is a test ioc inside the git repository inside the `ioc` folder. To use the IOC for testing, compile the __BSREAD__ sources inside 
+the `src` folder (use the Makefile inside the folder!), switch to the ioc directory, execut the `makeioc.sh` script and start the ioc via `iocsh startup.script`.
+
+
 # Todo
 
   * Support other datatypes than doubles
