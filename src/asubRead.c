@@ -36,7 +36,7 @@ static long bsreadRead(aSubRecord *prec) {
 		resourceListItem* currentNode = resourceList;
 
 		do {
-			printf("Read > %d\n",items);
+			printf("Read %s > %d\n", currentNode->res.key, items);
 			dbGetField(&currentNode->res.address, DBR_DOUBLE, &m[items], NULL, NULL, NULL);
 			currentNode = currentNode->next;
 			printf("Value > %f\n", m[items]);
