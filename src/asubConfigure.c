@@ -36,6 +36,7 @@ resourceListItem* bsreadAddResource(char* key){
 	dbAddr channel_pvAddr;
 
 	newNode = calloc (1, sizeof(resourceListItem) );
+	newNode->next = NULL;
 
 	/* Ensure that key does not cause an overflow */
 	sprintf(newNode->res.key,"%.63s", key);
@@ -44,8 +45,17 @@ resourceListItem* bsreadAddResource(char* key){
 	dbNameToAddr(key, &channel_pvAddr);
 	newNode->res.address = channel_pvAddr;
 
-	newNode->next = resourceList;
-	resourceList = newNode;
+	if(resourceList == NULL){
+		resourceList = newNode;
+		resourceListLast = newNode;	
+	}
+	else{
+		resourceListLast->next = newNode;
+		resourceListLast = newNode;	
+	}
+	
+	/*newNode->next = resourceList;
+	resourceList = newNode;*/
 	resourceListSize++;
 
 	return(newNode);
@@ -67,6 +77,7 @@ void bsreadClearResources() {
 		} while (currentNode != NULL);
 	}
 	resourceList=NULL;
+	resourceListLast=NULL;
 	resourceListSize=0;
 }
 
@@ -89,6 +100,7 @@ void bsreadPrintResources(){
 
 static long bsreadConfigureInit(aSubRecord *prec) {
 	resourceList = NULL;
+	resourceListLast = NULL;
 	resourceListSize = 0;
 	return 0;
 }

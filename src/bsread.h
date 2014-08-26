@@ -24,6 +24,7 @@ void *zmqCtx;
 
 /* List of resources to be read out*/
 resourceListItem *resourceList;
+resourceListItem *resourceListLast;
 int resourceListSize;
 #endif
 
