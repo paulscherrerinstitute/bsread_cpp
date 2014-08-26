@@ -39,6 +39,7 @@ static long bsreadRead(aSubRecord *prec) {
 			printf("Read > %d\n",items);
 			dbGetField(&currentNode->res.address, DBR_DOUBLE, &m[items], NULL, NULL, NULL);
 			currentNode = currentNode->next;
+			printf("Value > %f\n", m[items]);
 			items++;
 		} while (currentNode != NULL);
 
