@@ -2,7 +2,9 @@
 __bsread__ provides a fast IOC based readout functionality. It reads configured channels and streams out the data via ZMQ. 
 All channels to be read out need to reside on the same IOC than the __bsread__ code is running.
 
-The ZMQ data stream is served in a ZMQ PUSH/PULL delivery scheme.
+The ZMQ data stream is served in a ZMQ PUSH/PULL delivery scheme. The default port is 8080.
+The stream solely consists of messages with consists of an array of double either encoded in LITTLE_ENDIAN if 
+the IOC runs on a Linux machine or BIG_ENDIAN if the IOC runs on vxWorks.
 
 
 # Installation
@@ -51,7 +53,7 @@ make install
 
 __Note__: For spotting problems easier and quicker it is recommended to prepend the __dye__ command before the actual make statement.
 
-# Debugging
+# Testing
 
 Configure readout channels and read out the channels:
 
@@ -85,10 +87,29 @@ caput BSREAD:TEST_TRIGGER.FLNK BSREAD:READ
 
 To stop the readout unset the __FLNK__ field of the test trigger.
 
+## Python Client
+
+For receiving data you an use a simple Python client. The only requirement is to have the `pyzmq` package installed.
+
+```python
+import zmq
+import array
+
+context = zmq.Context.instance()
+
+sock = context.socket(zmq.PULL)
+sock.connect('tcp://slslc:8080')
+
+while True:
+    message = sock.recv()
+    value = array.array('d',message)
+    print value
+```
+
+
 # Todo
 
   * Support other datatypes than doubles
   * Support different readout/send frequencies
   * Readout time limited to 1ms at the end of a cycle
-    * Check whether "semaphore" was incremented during readout - getting out of the 1ms readout boundary
 
