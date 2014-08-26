@@ -42,12 +42,12 @@ static long bsreadRead(aSubRecord *prec) {
 
 		do {
 			dbGetField(&currentNode->res.address, DBR_DOUBLE, &m[items], NULL, NULL, NULL);
-			currentNode = currentNode->next;
 
 #ifdef DEBUG
 			printf("[Read] Read %s > Value > %f\n", currentNode->res.key, m[items]);
 #endif
 
+			currentNode = currentNode->next;
 			items++;
 		} while (currentNode != NULL);
 
