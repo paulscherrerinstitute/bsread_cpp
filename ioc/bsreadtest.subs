@@ -1,0 +1,5 @@
+file bsreadtest.template {
+    {
+        P="BSREAD"
+    }
+}

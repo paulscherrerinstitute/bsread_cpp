@@ -1,5 +1,7 @@
 require "ZMQ" "0.0.1"
 require "BSREAD"
 
+addScan 0.01
+
 dbLoadTemplate "bsread.subs"
 dbLoadTemplate "bsreadtest.subs"
