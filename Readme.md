@@ -103,6 +103,7 @@ sock.connect('tcp://slslc:8080')
 while True:
     message = sock.recv()
     value = array.array('d',message)
+    # value.byteswap() # if different endianness
     print value
 ```
 
@@ -112,4 +113,5 @@ while True:
   * Support other datatypes than doubles
   * Support different readout/send frequencies
   * Readout time limited to 1ms at the end of a cycle
+  * data transfer structure - consider sub messages to enable clients to skip certain sub-messages ...
 
