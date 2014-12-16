@@ -1,0 +1,5 @@
+require "ZMQ"
+require "BSDAQ"
+
+dbLoadTemplate "bsdaq.substitutions"
+dbLoadTemplate "bsreadtest.substitutions"

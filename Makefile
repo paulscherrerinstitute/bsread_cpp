@@ -1,28 +1,18 @@
 
-LIBVERSION = 1.0.1
+include /ioc/tools/driver.makefile
 
-build:
-	$(MAKE) build -C src LIBVERSION=$(LIBVERSION)
+BUILDCLASSES=Linux
+EXCLUDE_VERSIONS=3.13 3.14.8
+EXCLUDE_ARCHS=T2 V67 ppc603 ppc405 embeddedlinux-xscale_be 
 
-clean:
-	$(MAKE) clean -C src LIBVERSION=$(LIBVERSION)
+USR_CXXFLAGS += -fno-operator-names
+USR_LDFLAGS += -lprotobuf
+#USR_LDFLAGS += -static -lprotobuf -L/psi/ioc/BSDAQ/PROTOBUF/src/.libs/ -dynami
 
-install: build
-	$(MAKE) install -C src LIBVERSION=$(LIBVERSION)
+SOURCES += src/asubBsdaq.cc
+SOURCES += src/bsdaq.cpp
+SOURCES += src/bunchData.pb.cc
+SOURCES += src/jsoncpp.cpp
 
-uninstall:
-	rm /work/sls/config/medm/bsread.adl
 
-	$(MAKE) uninstall -C src LIBVERSION=$(LIBVERSION)
-
-medm:
-	cp App/config/medm/bsread.adl /work/sls/config/medm
-
-help:
-	@echo "The following targets are available with this Makefile:-"
-	@echo "make (calls default target)"
-	@echo "make build (default)"
-	@echo "make clean"
-	@echo "make install"
-	@echo "make uninstall"
-	@echo "make help"
+DBD += src/bsread.dbd

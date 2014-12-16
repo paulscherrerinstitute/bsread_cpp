@@ -1,0 +1,67 @@
+# Macros
+# P  -  Record prefix, e.g. MTEST-BSREAD
+record(calc, "$(P):PULSE")
+{
+	field(DESC, "Pulse id counter")
+    field(SCAN,".1 second")
+	field(FLNK, "$(P):READ")
+	field(CALC, "A+VAL+1")
+	field(INPA, "0")
+	field(EGU, "Counts")
+}
+
+## When this record is processed a all of the
+## records that are currrently monitored are snapshotted and
+## sent out to the BSDAQ server
+## FIELDS:
+##  - INPA [LONG]: BunchID, in normal use the link should point to
+##                  to BunchID record provided by timing system
+##
+##  - VALA [LONG]: Time in [nsec] spent in serialziation and buffer copy to zmq.
+##                  This is used as a performance measurment, this should never be greater
+##                  than 1ms.
+##
+record(aSub, "$(P):READ")
+{
+    field(INAM,"bsdaqTriggerInit")
+    field(SNAM,"bsdaqTrigger")
+	field(SCAN, "Passive")
+	field(FTA, "LONG")
+	field(INPA, "$(P):PULSE.VAL NPP")
+    field(FTVA, "LONG")
+}
+
+
+## Record is used to configure BSDAQ system
+## INPA should point to character waveform record containing
+## JSON configuration for BSDAQ. Record state will go into MAJOR
+## alarm (specified by BRSV field) if configuration is invalid.
+## Example JSON configuration:
+## {"records":
+##    [
+##        {"name":   "BSREAD-TEST:TEST_1",
+##        "offset":1,
+##        "freq":100 },
+##        {"name":"BSREAD-TEST:TEST_2",
+##        "offset":1,
+##        "freq":10}
+##    ]}
+
+record(aSub, "$(P):CONFIGURE")
+{
+        field(INAM,"bsdaqConfigureInit")
+        field(SNAM,"bsdaqConfigure")
+	field(SCAN, "Passive")
+	field(NOA, "10000")	
+	field(FTA, "CHAR")
+	field(INPA, "$(P):CHANNELS.VAL NPP")
+	field(BRSV, "MAJOR")
+}
+
+record(waveform, "$(P):CHANNELS")
+{
+	field(SCAN, "Passive")
+	field(NELM, "10000")	
+	field(FTVL, "CHAR")
+	field(FLNK, "$(P):CONFIGURE")
+}

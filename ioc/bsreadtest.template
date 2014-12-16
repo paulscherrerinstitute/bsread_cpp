@@ -1,12 +1,7 @@
 # Macros
 # P  -  Record prefix, e.g. TEST-BSREAD
 
-record(calc, "$(P):TEST_TRIGGER") {
-	field(VAL,"0")
-	field(INPA,"$(P):TEST_1")
-	field(CALC,"A+1")
-	field(SCAN,".01 second")
-}
+
 record(calc, "$(P):TEST_1") {
 	field(VAL,"0")
 	field(INPA,"$(P):TEST_1")
@@ -31,3 +26,7 @@ record(calc, "$(P):TEST_4") {
 	field(CALC,"A+10")
 	field(SCAN,".1 second")
 }
+
+record(stringin, "$(P):TEST_STRING") {
+        field(VAL,"Hello world")
+ }
