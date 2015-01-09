@@ -66,113 +66,112 @@ void BSRead::configure(const string & json_string)
         configuration_.clear();
 
         // Parsing success, iterate over per-record configuration
-        for (Json::Value::const_iterator it = channels.begin(); it != channels.end(); ++it)  {
+        for (Json::Value::const_iterator iterator = channels.begin(); iterator != channels.end(); ++iterator)  {
 
-            BSDAQRecordConfig config;
-            const Json::Value currentRecord = *it;
-            config.name = currentRecord["name"].asString(); //TODO: Add grep support.
+            BSReadChannelConfig config;
+            const Json::Value current_channel = *iterator;
+            config.name = current_channel["name"].asString(); //TODO: Add grep support.
 
-            if (currentRecord["offset"] != Json::Value::null) {
-              int offset = 0;
-              if (!(istringstream(currentRecord["offset"].asString()) >> offset)) {
-                errlogPrintf("offset is invalid for a record name: %s . Should be an int \n", config.name.c_str());
-              }
-              else {
-                config.offset = offset;
-              }
-            }
-
-            if (currentRecord["freq"] != Json::Value::null) {
-              int freq = 0;
-              if (!(istringstream(currentRecord["freq"].asString()) >> freq)) {
-                 errlogPrintf("freq is invalid for a record name: %s . Should be an unsigned int \n", config.name.c_str());
-              }
-              else {
-                if (freq > 0) {
-                  config.frequency = freq;
+            if (current_channel["offset"] != Json::Value::null) {
+                int offset = 0;
+                if (!(istringstream(current_channel["offset"].asString()) >> offset)) {
+                    errlogPrintf("Invalid offset for channel: %s\n", config.name.c_str());
                 }
                 else {
-                  errlogPrintf("freq is invalid for a record name: %s . Should be greater then 0 \n", config.name.c_str());
+                    config.offset = offset;
                 }
-              }
+            }
+
+            if (current_channel["frequency"] != Json::Value::null) {
+                int frequency = 0;
+                if (!(istringstream(current_channel["frequency"].asString()) >> frequency)) {
+                    errlogPrintf("Invalid frequency for channel: %s\n", config.channel_name.c_str());
+                }
+                else {
+                    if (frequency > 0) {
+                        config.frequency = frequency;
+                    }
+                    else {
+                        errlogPrintf("Invalid frequency for channel: %s . [frequency<=0] \n", config.name.c_str()); // TODO Need to throw exception
+                    }
+                }
             }
 
             //Find address
-            if(dbNameToAddr(config.name.c_str(),&(config.addr))){
+            if(dbNameToAddr(config.channel_name.c_str(), &(config.address))) {
                 //Could not find desired record
-                errlogPrintf("Record %s does not exist!", config.name.c_str());
+                errlogPrintf("Channel %s does not exist!", config.channel_name.c_str()); // TODO Need to throw exception
                 continue;
             }
 
             configuration_.push_back(config);
-            cout << "Added record " << config.name << " offset:" << config.offset << " freq:" << config.frequency << endl;
+            Debug("Added channel %s offset: %d  frequency: %d\n", config.channel_name, config.offset, config.frequency);
 
-        }//end of configuration iteration
+        }
     }
 }
 
 
 void BSRead::read(long pulse_id)
 {
-    epicsGuard < epicsMutex > guard(_mutex);
+    epicsGuard < epicsMutex > guard(mutex_); // TODO Need to be revised
 
     if (configuration_.empty()) {
       return;
     }
 
-    bsdaqPB::BunchData bunchData;
+    bsdaqPB::BunchData pb_data_message;
 
-    bunchData.set_pulse_id(bunchId);
+    // Set global values
+    pb_data_message.set_pulse_id(pulse_id);
 
-    //Iterate over all records in configuration
-    for(vector<BSDAQRecordConfig>::iterator it = configuration_.begin(); it != configuration_.end(); ++it){
+    for(vector<BSReadChannelConfig>::iterator iterator = configuration_.begin(); iterator != configuration_.end(); ++iterator){
 
-        BSDAQRecordConfig *recordConfig = &(*it);
+        BSReadChannelConfig *channel_config = &(*iterator);
 
-        unsigned freq = recordConfig->frequency;
-        int offset = recordConfig->offset;
+        // Check whether channel needs to be read out for this pulse
+        unsigned frequency = channel_config->frequency;
+        int offset = channel_config->offset;
 
-        //Check if record should be snapshoted.
-        if (freq > 0) {
-            freq = 100/freq;
-            if ( ((bunchId-offset) % freq ) != 0) {
+        if (frequency > 0) {
+            frequency = 100/frequency;
+            if ( ((pulse_id-offset) % frequency ) != 0) {
               continue;
             }
         }
 
-        //Preapre protoBuf entry
-        bsdaqPB::BunchData_Record* recordData = bunchData.add_record();
-        recordData->set_record_name(recordConfig->name);
+        // Read channel value
+        bsdaqPB::BunchData_Record* channel_data = pb_data_message.add_record();
+        channel_data->set_record_name(channel_config->channel_name);
 
-        //Fill protoBuf
-        if(recordConfig->addr.dbr_field_type == DBR_DOUBLE){
+        if(channel_config->address.dbr_field_type == DBR_DOUBLE){
             epicsFloat64 val;
-            dbGetField(&(recordConfig->addr), DBR_DOUBLE, &val, NULL, NULL, NULL);
-            recordData->add_double_val(val);
+            dbGetField(&(channel_config->address), DBR_DOUBLE, &val, NULL, NULL, NULL);
+            channel_data->add_double_val(val);
         }
-        else if(recordConfig->addr.dbr_field_type == DBR_STRING){
+        else if(channel_config->address.dbr_field_type == DBR_STRING){
             char c_val[255];
-            dbGetField(&(recordConfig->addr), DBR_STRING, &c_val, NULL, NULL, NULL);
-            recordData->add_string_val()->append(c_val);
+            dbGetField(&(channel_config->address), DBR_STRING, &c_val, NULL, NULL, NULL);
+            channel_data->add_string_val()->append(c_val);
         }
     }
 
 
     // Serialize to protocol buffer
     string serialized_data;
-    bunchData.SerializeToString(&serialized_data);
+    pb_data_message.SerializeToString(&serialized_data);
 
-    //Deserialize the data back to human readble format, this is used for diagnostic purposes only
-//    google::protobuf::TextFormat::PrintToString(bunchData, &output); //Comment out this line if you would like to have an actual PB on as output
+    // Deserialize the data back to human readable format, this is used for diagnostic purposes only
+//    google::protobuf::TextFormat::PrintToString(pb_data_message, &output); //Comment out this line if you would like to have an actual PB on as output
 
     try {
         size_t bytes_sent =zmq_socket->send(serialized_data.c_str(), serialized_data.size(), ZMQ_NOBLOCK);
 
         if (bytes_sent == 0) {
-            Debug("zmq socket queue full. Message NOT send.\n");
+            Debug("ZMQ socket full. Message NOT send.\n");
         }
     } catch(zmq::error_t &e ){
-        Debug("zmq send failed: %s  \n", e.what());
+        Debug("ZMQ send failed: %s  \n", e.what());
     }
 }
 

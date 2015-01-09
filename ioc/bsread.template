@@ -46,10 +46,10 @@ record(aSub, "$(P):READ")
 ##    [
 ##        {"name":   "BSREAD-TEST:TEST_1",
 ##        "offset":1,
-##        "freq":100 },
+##        "frequency":100 },
 ##        {"name":"BSREAD-TEST:TEST_2",
 ##        "offset":1,
-##        "freq":10}
+##        "frequency":10}
 ##    ]}
 
 record(aSub, "$(P):CONFIGURE")
