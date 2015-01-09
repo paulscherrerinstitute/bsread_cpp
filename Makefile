@@ -10,7 +10,7 @@ USR_LDFLAGS += -lprotobuf
 #USR_LDFLAGS += -static -lprotobuf -L/psi/ioc/BSDAQ/PROTOBUF/src/.libs/ -dynami
 
 SOURCES += src/asub_routines.cc
-SOURCES += src/bsdaq.cpp
+SOURCES += src/bsread.cc
 SOURCES += src/bunchData.pb.cc
 SOURCES += src/json.cc
 
