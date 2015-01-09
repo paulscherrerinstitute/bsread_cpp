@@ -11,7 +11,7 @@
 #include <errlog.h>
 #include <recSup.h>
 
-#include "bsdaq.h"
+#include "bsread.h"
 #include <stdlib.h>
 
 #include <epicsExport.h>
