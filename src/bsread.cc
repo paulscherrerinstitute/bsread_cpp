@@ -24,14 +24,14 @@ using namespace zmq;
  * Create a zmq context, create and connect a zmq push socket
  * If a zmq context or zmq socket creation failed, an zmq exception will be thrown
  */
-BSRead::BSRead(): zmq_context_(new zmq::context_t(1)), zmq_socket_(new socket_t(*_zmqCtx, ZMQ_PUSH)), mutex_(), configuration_()
+BSRead::BSRead(): zmq_context_(new zmq::context_t(1)), zmq_socket_(new socket_t(*zmq_context_, ZMQ_PUSH)), mutex_(), configuration_()
 {
     // TODO Need to be started as server
     //TODO should be part of the configuration
     const char * const address = "tcp://10.5.1.215:9999";
     int high_water_mark = 100;
-    zmq_socket_->setsockopt(ZMQ_SNDHWM, &high_water_mark, sizeof(high_water_mark));
-    zmq_socket_->connect(address);
+    zmq_socket_.setsockopt(ZMQ_SNDHWM, &high_water_mark, sizeof(high_water_mark));
+    zmq_socket_.connect(address);
 }
 
 
@@ -61,7 +61,7 @@ void BSRead::configure(const string & json_string)
     } else {
         //Parsing was successful so we can drop existing configuration
 
-        epicsGuard < epicsMutex > guard(_mutex); // TODO Wrong place ... - must not affect reading of values !!!!
+        epicsGuard < epicsMutex > guard(mutex_); // TODO Wrong place ... - must not affect reading of values !!!!
 
         configuration_.clear();
 
@@ -70,12 +70,12 @@ void BSRead::configure(const string & json_string)
 
             BSReadChannelConfig config;
             const Json::Value current_channel = *iterator;
-            config.name = current_channel["name"].asString(); //TODO: Add grep support.
+            config.channel_name = current_channel["name"].asString(); //TODO: Add grep support.
 
             if (current_channel["offset"] != Json::Value::null) {
                 int offset = 0;
                 if (!(istringstream(current_channel["offset"].asString()) >> offset)) {
-                    errlogPrintf("Invalid offset for channel: %s\n", config.name.c_str());
+                    errlogPrintf("Invalid offset for channel: %s\n", config.channel_name.c_str());
                 }
                 else {
                     config.offset = offset;
@@ -92,7 +92,7 @@ void BSRead::configure(const string & json_string)
                         config.frequency = frequency;
                     }
                     else {
-                        errlogPrintf("Invalid frequency for channel: %s . [frequency<=0] \n", config.name.c_str()); // TODO Need to throw exception
+                        errlogPrintf("Invalid frequency for channel: %s . [frequency<=0] \n", config.channel_name.c_str()); // TODO Need to throw exception
                     }
                 }
             }
@@ -165,7 +165,7 @@ void BSRead::read(long pulse_id)
 //    google::protobuf::TextFormat::PrintToString(pb_data_message, &output); //Comment out this line if you would like to have an actual PB on as output
 
     try {
-        size_t bytes_sent =zmq_socket->send(serialized_data.c_str(), serialized_data.size(), ZMQ_NOBLOCK);
+        size_t bytes_sent =zmq_socket.send(serialized_data.c_str(), serialized_data.size(), ZMQ_NOBLOCK);
 
         if (bytes_sent == 0) {
             Debug("ZMQ socket full. Message NOT send.\n");
@@ -179,7 +179,7 @@ void BSRead::read(long pulse_id)
 /**
  * Get singleton instance of this class
  */
-BSRead& BSRead::get_instance()
+BSRead* BSRead::get_instance()
 {
     static BSRead instance_;
 
@@ -187,5 +187,5 @@ BSRead& BSRead::get_instance()
 //      instance_ = new BSRead();
 //    }
 
-    return instance_;
+    return &instance_;
 }

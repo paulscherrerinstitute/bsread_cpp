@@ -42,7 +42,7 @@ long bsread_configure(aSubRecord* prec){
     /* Reading from a string waveform */
     char* configuration = (char*) prec->a;
     try{
-        BSRead::get_instance().configure(string(configuration));
+        BSRead::get_instance()->configure(string(configuration));
     }
     catch(runtime_error & e){
         errlogPrintf("Problem parsing BSDAQ configuration: %s\n", e.what());
@@ -68,7 +68,7 @@ long bsread_read(aSubRecord* prec){
     struct timespec t0, t1;
     clock_gettime(CLOCK_MONOTONIC, &t0);
 
-    BSRead::get_instance().read(pulse_id);
+    BSRead::get_instance()->read(pulse_id);
 
     clock_gettime(CLOCK_MONOTONIC, &t1);
     long int timeSpan = (t1.tv_sec*1e9+t1.tv_nsec)-(t0.tv_sec*1e9+t0.tv_nsec);

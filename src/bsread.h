@@ -4,7 +4,6 @@
 //std
 #include <string>
 #include <vector>
-#include <tr1/memory>
 
 //EPICS includes
 #include <dbAccess.h>
@@ -47,14 +46,14 @@ public:
     void read(long pulse_id);
 
     // Get singleton instance of this class
-    static BSRead& get_instance();
+    static BSRead* get_instance();
 
 private:
 
     BSRead();
 
-    std::tr1::shared_ptr<zmq::context_t> zmq_context_;
-    std::tr1::shared_ptr<zmq::socket_t>  zmq_socket_;
+    zmq::context_t zmq_context_;
+    zmq::socket_t  zmq_socket_;
     epicsMutex mutex_;
     std::vector<BSReadChannelConfig> configuration_;
 };
