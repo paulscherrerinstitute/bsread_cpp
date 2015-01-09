@@ -179,7 +179,7 @@ void BSRead::read(long pulse_id)
 /**
  * Get singleton instance of this class
  */
-BSRead BSRead& ::get_instance()
+BSRead& BSRead::get_instance()
 {
     static BSRead instance_;
 
