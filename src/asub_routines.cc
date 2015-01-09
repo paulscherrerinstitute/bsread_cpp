@@ -18,32 +18,31 @@
 #include <time.h>
 
 
-long bsdaqConfigureInit(aSubRecord*);
-long bsdaqConfigure(aSubRecord*);
-long bsdaqTriggerInit(aSubRecord*);
-long bsdaqTrigger(aSubRecord*);
+long bsread_configure_init(aSubRecord*);
+long bsread_configure(aSubRecord*);
+long bsread_read_init(aSubRecord*);
+long bsread_read(aSubRecord*);
 
 
 using namespace std;
 
 
-long bsdaqConfigureInit(aSubRecord* prec){
-
-  if (prec->fta != DBF_CHAR) {
-    errlogPrintf("FTA has invalid type. Must be a CHAR");
-    prec->brsv=-1;
-    return -1;
-  }
+long bsread_configure_init(aSubRecord* record){
+    if (record->fta != DBF_CHAR) {
+        errlogPrintf("FTA has invalid type. Must be a CHAR");
+        record->brsv=-1;
+        return -1;
+    }
 
   return 0;
 }
 
 
-long bsdaqConfigure(aSubRecord* prec){
+long bsread_configure(aSubRecord* prec){
     /* Reading from a string waveform */
-    char* config = (char*) prec->a;
+    char* configuration = (char*) prec->a;
     try{
-        BSDAQ::get()->configureBSDAQ(string(config));
+        BSRead::get_instance().configure(string(configuration));
     }
     catch(runtime_error & e){
         errlogPrintf("Problem parsing BSDAQ configuration: %s\n", e.what());
@@ -55,21 +54,21 @@ long bsdaqConfigure(aSubRecord* prec){
 }
 
 
-long bsdaqTriggerInit(aSubRecord* prec){
+long bsread_read_init(aSubRecord* prec){
     return 0;
 }
 
 
-long bsdaqTrigger(aSubRecord* prec){
+long bsread_read(aSubRecord* prec){
 
     long* a = (long*)(prec->a);
-    long bunchId = a[0];
+    long pulse_id = a[0];
 
     //Serialization performance measurment
     struct timespec t0, t1;
     clock_gettime(CLOCK_MONOTONIC, &t0);
 
-    BSDAQ::get()->snapshot(bunchId);
+    BSRead::get_instance().read(pulse_id);
 
     clock_gettime(CLOCK_MONOTONIC, &t1);
     long int timeSpan = (t1.tv_sec*1e9+t1.tv_nsec)-(t0.tv_sec*1e9+t0.tv_nsec);
@@ -81,9 +80,10 @@ long bsdaqTrigger(aSubRecord* prec){
     return 0;
 }
 
+
 extern "C"{
-epicsRegisterFunction(bsdaqTriggerInit);
-epicsRegisterFunction(bsdaqTrigger);
-epicsRegisterFunction(bsdaqConfigureInit);
-epicsRegisterFunction(bsdaqConfigure);
+    epicsRegisterFunction(bsread_configure_init);
+    epicsRegisterFunction(bsread_configure);
+    epicsRegisterFunction(bsread_read_init);
+    epicsRegisterFunction(bsread_read);
 }

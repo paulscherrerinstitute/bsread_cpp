@@ -1,5 +1,6 @@
 # Macros
 # P  -  Record prefix, e.g. MTEST-BSREAD
+
 record(calc, "$(P):PULSE")
 {
 	field(DESC, "Pulse id counter")
@@ -10,21 +11,24 @@ record(calc, "$(P):PULSE")
 	field(EGU, "Counts")
 }
 
+
 ## When this record is processed a all of the
-## records that are currrently monitored are snapshotted and
-## sent out to the BSDAQ server
+## channels that are currently configured are read out and
+## sent out
+##
 ## FIELDS:
-##  - INPA [LONG]: BunchID, in normal use the link should point to
-##                  to BunchID record provided by timing system
+##  - INPA [LONG]: pulse-id, in normal use the link should point to
+##                 to pulse-id record provided by timing system
 ##
-##  - VALA [LONG]: Time in [nsec] spent in serialziation and buffer copy to zmq.
-##                  This is used as a performance measurment, this should never be greater
-##                  than 1ms.
+##  - VALA [LONG]: Time in [nsec] spent in reading, encode and buffer copy to zmq.
+##                 This is used as a performance measurement, this should never be greater
+##                 than 1ms.
 ##
+
 record(aSub, "$(P):READ")
 {
-    field(INAM,"bsdaqTriggerInit")
-    field(SNAM,"bsdaqTrigger")
+    field(INAM,"bsread_read_init")
+    field(SNAM,"bsread_read")
 	field(SCAN, "Passive")
 	field(FTA, "LONG")
 	field(INPA, "$(P):PULSE.VAL NPP")
@@ -32,12 +36,13 @@ record(aSub, "$(P):READ")
 }
 
 
-## Record is used to configure BSDAQ system
+## Record is used to configure the bsread system
 ## INPA should point to character waveform record containing
-## JSON configuration for BSDAQ. Record state will go into MAJOR
+## JSON configuration. Record state will go into MAJOR
 ## alarm (specified by BRSV field) if configuration is invalid.
+##
 ## Example JSON configuration:
-## {"records":
+## {"channels":
 ##    [
 ##        {"name":   "BSREAD-TEST:TEST_1",
 ##        "offset":1,
@@ -49,8 +54,8 @@ record(aSub, "$(P):READ")
 
 record(aSub, "$(P):CONFIGURE")
 {
-        field(INAM,"bsdaqConfigureInit")
-        field(SNAM,"bsdaqConfigure")
+	field(INAM,"bsread_configure_init")
+	field(SNAM,"bsread_configure")
 	field(SCAN, "Passive")
 	field(NOA, "10000")	
 	field(FTA, "CHAR")
@@ -58,7 +63,10 @@ record(aSub, "$(P):CONFIGURE")
 	field(BRSV, "MAJOR")
 }
 
-record(waveform, "$(P):CHANNELS")
+
+## Waveform holding the configuration of the bsread
+
+record(waveform, "$(P):CONFIGURATION")
 {
 	field(SCAN, "Passive")
 	field(NELM, "10000")	

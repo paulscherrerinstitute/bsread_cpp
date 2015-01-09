@@ -1,4 +1,4 @@
-function("bsdaqConfigureInit")
-function("bsdaqConfigure")
-function("bsdaqTriggerInit")
-function("bsdaqTrigger")
+function("bsread_configure_init")
+function("bsread_configure")
+function("bsread_read_init")
+function("bsread_read")

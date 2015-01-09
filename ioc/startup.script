@@ -1,5 +1,5 @@
 require "ZMQ"
-require "BSDAQ"
+require "BSREAD"
 
-dbLoadTemplate "bsdaq.substitutions"
-dbLoadTemplate "bsreadtest.substitutions"
+dbLoadTemplate "bsread.subs"
+dbLoadTemplate "bsread_test.subs"

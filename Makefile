@@ -9,10 +9,10 @@ USR_CXXFLAGS += -fno-operator-names
 USR_LDFLAGS += -lprotobuf
 #USR_LDFLAGS += -static -lprotobuf -L/psi/ioc/BSDAQ/PROTOBUF/src/.libs/ -dynami
 
-SOURCES += src/asubBsdaq.cc
+SOURCES += src/asub_routines.cc
 SOURCES += src/bsdaq.cpp
 SOURCES += src/bunchData.pb.cc
-SOURCES += src/jsoncpp.cpp
+SOURCES += src/json.cc
 
 
 DBD += src/bsread.dbd

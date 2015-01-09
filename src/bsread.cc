@@ -1,13 +1,4 @@
-/* ---------------------------------------------------------------------------
-** This software is in the public domain, furnished "as is", without technical
-** support, and with no warranty, express or implied, as to its usefulness for
-** any purpose.
-**
-** bsdaq.h
-** Beam synchronous data acquisition, originally developed for PSI SwissFEL project
-**
-** -------------------------------------------------------------------------*/
-#include "bsdaq.h"
+#include "bsread.h"
 
 #include <stdexcept>
 #include <iostream>
@@ -20,11 +11,9 @@
 #include <epicsGuard.h>
 #include <errlog.h>
 #include <recSup.h>
-//#include <google/protobuf/text_format.h>
 
-
-#include "contrib/json/json.h"  //jsoncpp, external dep.
-#include "bunchData.pb.h"       //protocol buffer serialization.
+#include "json.h"  // jsoncpp
+#include "bunchData.pb.h" // protocol buffer serialization
 
 
 using namespace std;
@@ -35,49 +24,49 @@ using namespace zmq;
  * Create a zmq context, create and connect a zmq push socket
  * If a zmq context or zmq socket creation failed, an zmq exception will be thrown
  */
-BSDAQ::BSDAQ():_zmqCtx(new zmq::context_t(1)),_zmqSockExtern(new socket_t(*_zmqCtx, ZMQ_PUSH)), _mutex(), _configuration()
+BSRead::BSRead(): zmq_context_(new zmq::context_t(1)), zmq_socket_(new socket_t(*_zmqCtx, ZMQ_PUSH)), mutex_(), configuration_()
 {
+    // TODO Need to be started as server
     //TODO should be part of the configuration
-    const char * const addr = "tcp://10.5.1.215:9999";
-    int hwm = 100;
-    _zmqSockExtern->setsockopt(ZMQ_SNDHWM, &hwm, sizeof(hwm));
-    _zmqSockExtern->connect(addr);
+    const char * const address = "tcp://10.5.1.215:9999";
+    int high_water_mark = 100;
+    zmq_socket_->setsockopt(ZMQ_SNDHWM, &high_water_mark, sizeof(high_water_mark));
+    zmq_socket_->connect(address);
 }
 
 
 /**
- * @brief configureBSDAQ passing it json string. Function will throw runtime error in case json is invalid.
- * Parsed json is divided into per record configuration that is contained in a vector of BSDAQRecordConfig structs.
- * This per-record configurations are later used this->snapshot() method that records appropriate values.
+ * Configure bsread. Accepts a json string. Function will throw runtime error in case json is invalid.
+ * Parsed json is divided into per record configuration that is contained in a vector of BSReadChannelConfig.
+ * This per-record configurations are later used this->read() method that records appropriate values.
  */
-void BSDAQ::configureBSDAQ(const string & json)
+void BSRead::configure(const string & json_string)
 {
-
     Json::Value root;
     Json::Reader reader;
 
-    // Try to parse the incoming json
-    bool parsingSuccessful = reader.parse( json, root );
+    // Try to parse the incoming json string
+    bool parsingSuccessful = reader.parse( json_string, root );
     if ( !parsingSuccessful ){
        string msg = "Could not parse JSON:" + reader.getFormatedErrorMessages();
        errlogPrintf(msg.c_str());
        throw runtime_error(msg);
     }
 
-    const Json::Value records = root["records"];
-    if (records.empty()) {
-        string msg = "Configuration is missing the mandatory records array";
+    const Json::Value channels = root["channels"];
+    if (channels.empty()) {
+        string msg = "Invalid configuration - missing mandatory channels attribute";
         errlogPrintf(msg.c_str());
         throw runtime_error(msg);
     } else {
         //Parsing was successful so we can drop existing configuration
 
-        epicsGuard < epicsMutex > guard(_mutex);
+        epicsGuard < epicsMutex > guard(_mutex); // TODO Wrong place ... - must not affect reading of values !!!!
 
-        _configuration.clear();
+        configuration_.clear();
 
         // Parsing success, iterate over per-record configuration
-        for (Json::Value::const_iterator it = records.begin(); it != records.end(); ++it)  {
+        for (Json::Value::const_iterator it = channels.begin(); it != channels.end(); ++it)  {
 
             BSDAQRecordConfig config;
             const Json::Value currentRecord = *it;
@@ -115,7 +104,7 @@ void BSDAQ::configureBSDAQ(const string & json)
                 continue;
             }
 
-            _configuration.push_back(config);
+            configuration_.push_back(config);
             cout << "Added record " << config.name << " offset:" << config.offset << " freq:" << config.frequency << endl;
 
         }//end of configuration iteration
@@ -123,11 +112,11 @@ void BSDAQ::configureBSDAQ(const string & json)
 }
 
 
-void BSDAQ::snapshot(long bunchId)
+void BSRead::read(long pulse_id)
 {
     epicsGuard < epicsMutex > guard(_mutex);
 
-    if (_configuration.empty()) {
+    if (configuration_.empty()) {
       return;
     }
 
@@ -136,7 +125,7 @@ void BSDAQ::snapshot(long bunchId)
     bunchData.set_pulse_id(bunchId);
 
     //Iterate over all records in configuration
-    for(vector<BSDAQRecordConfig>::iterator it = _configuration.begin(); it != _configuration.end(); ++it){
+    for(vector<BSDAQRecordConfig>::iterator it = configuration_.begin(); it != configuration_.end(); ++it){
 
         BSDAQRecordConfig *recordConfig = &(*it);
 
@@ -168,40 +157,36 @@ void BSDAQ::snapshot(long bunchId)
         }
     }
 
-    string output;
 
-    bunchData.SerializeToString(&output);
+    // Serialize to protocol buffer
+    string serialized_data;
+    bunchData.SerializeToString(&serialized_data);
 
     //Deserialize the data back to human readble format, this is used for diagnostic purposes only
 //    google::protobuf::TextFormat::PrintToString(bunchData, &output); //Comment out this line if you would like to have an actual PB on as output
 
     try {
+        size_t bytes_sent =zmq_socket->send(serialized_data.c_str(), serialized_data.size(), ZMQ_NOBLOCK);
 
-      size_t sendBytes =_zmqSockExtern->send(output.c_str(), output.size(), ZMQ_NOBLOCK);
-
-      if (sendBytes == 0) {
-        printf("zmq socket queue full. Message NOT send.\n");
-      }
-    }catch(zmq::error_t &e ){
-      printf("zmq send failed: %s  \n", e.what());
+        if (bytes_sent == 0) {
+            Debug("zmq socket queue full. Message NOT send.\n");
+        }
+    } catch(zmq::error_t &e ){
+        Debug("zmq send failed: %s  \n", e.what());
     }
 }
 
 
 /**
- * @brief BSDAQ::get singleton interface. ensures that there is exactly one instance of BSDAQ class in a proccess
- * Not thread safe at the moment! TODO: Add scoped lock!
- * @return pointer to BSDAQ instance...
+ * Get singleton instance of this class
  */
-BSDAQ *BSDAQ::get()
+BSRead BSRead& ::get_instance()
 {
-    static BSDAQ* instance;
+    static BSRead instance_;
 
-    if(!instance){
-      instance = new BSDAQ();
-    } 
+//    if(!instance_){
+//      instance_ = new BSRead();
+//    }
 
-    return instance;
+    return instance_;
 }
-
-int bsdaqDebug=1;

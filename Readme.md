@@ -138,3 +138,6 @@ while True:
   * Readout time limited to 1ms at the end of a cycle
   * data transfer structure - consider sub messages to enable clients to skip certain sub-messages ...
 
+
+# Coding Style
+http://google-styleguide.googlecode.com/svn/trunk/cppguide.html
