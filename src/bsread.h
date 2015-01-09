@@ -11,7 +11,7 @@
 #include <epicsThread.h>
 
 //External includes
-#include "contrib/zmq.hpp"
+#include "zmq.hpp"
 
 
 #ifdef DEBUG
