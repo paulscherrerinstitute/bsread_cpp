@@ -57,10 +57,10 @@ record(aSub, "$(P):CONFIGURE")
 	field(INAM,"bsread_configure_init")
 	field(SNAM,"bsread_configure")
 	field(SCAN, "Passive")
-	field(NOA, "10000")	
-	field(FTA, "CHAR")
+##	field(NOA, "10000")
+##	field(FTA, "CHAR")
 	field(INPA, "$(P):CHANNELS.VAL NPP")
-	field(BRSV, "MAJOR")
+##	field(BRSV, "MAJOR")
 }
 
 
