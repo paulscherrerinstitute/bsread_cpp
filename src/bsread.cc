@@ -140,7 +140,7 @@ void BSRead::read(long pulse_id)
         }
 
         // Send data header
-        size_t bytes_sent =zmq_socket_->send(data_header_.c_str(), data_header_.size(), ZMQ_NOBLOCK);
+        bytes_sent =zmq_socket_->send(data_header_.c_str(), data_header_.size(), ZMQ_NOBLOCK);
         if (bytes_sent == 0) {
             Debug("ZMQ message [data header] NOT send.\n");
         }
