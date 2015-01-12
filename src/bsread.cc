@@ -13,7 +13,7 @@
 #include <recSup.h>
 
 #include "json.h"  // jsoncpp
-#include "bunchData.pb.h" // protocol buffer serialization
+// #include "bunchData.pb.h" // protocol buffer serialization
 
 
 using namespace std;
@@ -120,10 +120,10 @@ void BSRead::read(long pulse_id)
       return;
     }
 
-    bsdaqPB::BunchData pb_data_message;
+//    bsdaqPB::BunchData pb_data_message;
 
     // Set global values
-    pb_data_message.set_pulse_id(pulse_id);
+//    pb_data_message.set_pulse_id(pulse_id);
 
     for(vector<BSReadChannelConfig>::iterator iterator = configuration_.begin(); iterator != configuration_.end(); ++iterator){
 
@@ -141,18 +141,20 @@ void BSRead::read(long pulse_id)
         }
 
         // Read channel value
-        bsdaqPB::BunchData_Record* channel_data = pb_data_message.add_record();
+//        bsdaqPB::BunchData_Record* channel_data = pb_data_message.add_record();
         channel_data->set_record_name(channel_config->channel_name);
 
         if(channel_config->address.dbr_field_type == DBR_DOUBLE){
             epicsFloat64 val;
             dbGetField(&(channel_config->address), DBR_DOUBLE, &val, NULL, NULL, NULL);
-            channel_data->add_double_val(val);
+            printf("%f\n",val);
+//            channel_data->add_double_val(val);
         }
         else if(channel_config->address.dbr_field_type == DBR_STRING){
             char c_val[255];
             dbGetField(&(channel_config->address), DBR_STRING, &c_val, NULL, NULL, NULL);
-            channel_data->add_string_val()->append(c_val);
+//            channel_data->add_string_val()->append(c_val);
+            printf("%%s\n",c_val);
         }
     }
 
