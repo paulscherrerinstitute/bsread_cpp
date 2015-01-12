@@ -105,7 +105,7 @@ void BSRead::configure(const string & json_string)
             }
 
             configuration_.push_back(config);
-            Debug("Added channel %s offset: %d  frequency: %d\n", config.channel_name, config.offset, config.frequency);
+            Debug("Added channel %s offset: %d  frequency: %d\n", config.channel_name.c_str(), config.offset, config.frequency);
 
         }
     }
