@@ -16,6 +16,7 @@ SOURCES += src/json.cc
 
 DBD += src/bsread.dbd
 
+USR_CXXFLAGS += -DDEBUG
 USR_CFLAGS += -DDEBUG
 LIBVERSION = 2.0.1
 PROJECT = BSREAD
