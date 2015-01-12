@@ -41,16 +41,16 @@ long bsread_configure_init(aSubRecord* record){
 
 long bsread_configure(aSubRecord* prec){
     Debug("configure\n");
-    /* Reading from a string waveform */
-    char* configuration = (char*) prec->a;
-    try{
-        BSRead::get_instance()->configure(string(configuration));
-    }
-    catch(runtime_error & e){
-        Debug("Problem parsing BSDAQ configuration: %s\n", e.what());
-        prec->brsv=-1;
-        return -1;
-    }
+//    /* Reading from a string waveform */
+//    char* configuration = (char*) prec->a;
+//    try{
+//        BSRead::get_instance()->configure(string(configuration));
+//    }
+//    catch(runtime_error & e){
+//        Debug("Problem parsing BSDAQ configuration: %s\n", e.what());
+//        prec->brsv=-1;
+//        return -1;
+//    }
 
     return 0;
 }
