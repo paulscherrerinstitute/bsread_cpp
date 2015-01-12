@@ -1,3 +1,8 @@
+LIBVERSION = 2.0.1
+PROJECT = BSREAD
+
+USR_CFLAGS += -DDEBUG
+
 
 include /ioc/tools/driver.makefile
 
