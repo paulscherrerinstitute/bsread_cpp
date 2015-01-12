@@ -1,9 +1,3 @@
-LIBVERSION = 2.0.1
-PROJECT = BSREAD
-
-USR_CFLAGS += -DDEBUG
-
-
 include /ioc/tools/driver.makefile
 
 BUILDCLASSES=Linux
@@ -21,3 +15,7 @@ SOURCES += src/json.cc
 
 
 DBD += src/bsread.dbd
+
+USR_CFLAGS += -DDEBUG
+LIBVERSION = 2.0.1
+PROJECT = BSREAD
