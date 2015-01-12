@@ -59,8 +59,8 @@ record(aSub, "$(P):CONFIGURE")
 	field(SCAN, "Passive")
 	field(NOA, "10000")
 	field(FTA, "CHAR")
-	field(INPA, "$(P):CHANNELS.VAL NPP")
-##	field(BRSV, "MAJOR")
+	field(INPA, "$(P):CONFIGURATION.VAL NPP")
+	field(BRSV, "MAJOR")
 }
 
 
