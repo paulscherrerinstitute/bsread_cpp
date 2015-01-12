@@ -29,11 +29,11 @@ using namespace std;
 
 long bsread_configure_init(aSubRecord* record){
     Debug("configure init\n");
-    if (record->fta != DBF_CHAR) {
-        Debug("FTA has invalid type. Must be a CHAR");
-        record->brsv=-1;
-        return -1;
-    }
+//    if (record->fta != DBF_CHAR) {
+//        Debug("FTA has invalid type. Must be a CHAR");
+//        record->brsv=-1;
+//        return -1;
+//    }
 
   return 0;
 }
