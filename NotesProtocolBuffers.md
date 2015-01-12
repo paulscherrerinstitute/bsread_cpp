@@ -60,8 +60,25 @@ note, observing the makefile output you will notice that the eldk52 toolchain is
 
 This error occurs because the atomic operations for PPC are missing. If eldk would provide a gcc > 4.7.4 we could potentially use the builtin generic atomic operations. 
 
+# Notes
 
+Cross Compile Protocol Buffers for IFC board:
 
+```
+./configure \
+--host=powerpc-linux \
+--prefix=/opt/eldk-5.2/powerpc-e500v2/sysroots/i686-eldk-linux \
+CFLAGS='-fPIC -g -O0' CXXFLAGS='-fPIC -g -O0' \
+CC=/opt/eldk-5.2/powerpc-e500v2/sysroots/i686-eldk-linux/usr/bin/ppce500v2-linux-gnuspe/powerpc-e500v2-gcc \
+CXX=/opt/eldk-5.2/powerpc-e500v2/sysroots/i686-eldk-linux/usr/bin/ppce500v2-linux-gnuspe/powerpc-e500v2-g++  \
+LDFLAGS='-L/opt/eldk-5.2/powerpc-e500v2/sysroots/ppce500v2-linux-gnuspe/lib'
+```
+
+Comment: [Tom] It configures fine, but as mentioned can not be compiled due to missing atomic_ops. Furthermore there is
+an issue [1] opened on protobuffers to add support for PPC that was marked by developers as 'wont fix'. So I guess even
+if we spend some time and fix the current release we will not have any support down the line. I suggest against it...
+[1] https://code.google.com/p/protobuf/issues/detail?id=512
+[2] https://code.google.com/p/protobuf/issues/detail?id=488
 
 
 

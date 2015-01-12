@@ -1,21 +1,10 @@
 
-Cross Compile Protocol Buffers for IFC board:
+Create Configuration (need to use the caput form EPICS base instead of PSI):
 
-'''
-./configure \
---host=powerpc-linux \
---prefix=/opt/eldk-5.2/powerpc-e500v2/sysroots/i686-eldk-linux \
-CFLAGS='-fPIC -g -O0' CXXFLAGS='-fPIC -g -O0' \
-CC=/opt/eldk-5.2/powerpc-e500v2/sysroots/i686-eldk-linux/usr/bin/ppce500v2-linux-gnuspe/powerpc-e500v2-gcc \
-CXX=/opt/eldk-5.2/powerpc-e500v2/sysroots/i686-eldk-linux/usr/bin/ppce500v2-linux-gnuspe/powerpc-e500v2-g++  \
-LDFLAGS='-L/opt/eldk-5.2/powerpc-e500v2/sysroots/ppce500v2-linux-gnuspe/lib'
-'''
+```
+/usr/local/epics/base/bin/SL6-x86_64/caput -S  BSREAD:CONFIGURATION '{"channels": [{"name":   "BSREAD-TEST:TEST_1", "offset":1, "frequency":100 }, {"name":"BSREAD-TEST:TEST_2", "offset":1, "frequency":10} ]}'
+```
 
-Comment: [Tom] It configures fine, but as mentioned can not be compiled due to missing atomic_ops. Furthermore there is
-an issue [1] opened on protobuffers to add support for PPC that was marked by developers as 'wont fix'. So I guess even
-if we spend some time and fix the current release we will not have any support down the line. I suggest against it...
-[1] https://code.google.com/p/protobuf/issues/detail?id=512
-[2] https://code.google.com/p/protobuf/issues/detail?id=488 
 
 
 

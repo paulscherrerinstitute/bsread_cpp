@@ -123,58 +123,61 @@ void BSRead::read(long pulse_id)
     // Set global values
 //    pb_data_message.set_pulse_id(pulse_id);
 
-    for(vector<BSReadChannelConfig>::iterator iterator = configuration_.begin(); iterator != configuration_.end(); ++iterator){
+    try {
+        std::ostringstream main_header;
+        main_header << "{ \"pulse-id\":" << pulse_id << "}";
 
-        BSReadChannelConfig *channel_config = &(*iterator);
+        string main_header_serialized = main_header.str();
+        size_t bytes_sent =zmq_socket_->send(main_header_serialized.c_str(), main_header_serialized.size(), ZMQ_NOBLOCK);
+        if (bytes_sent == 0) {
+            Debug("ZMQ message [main header] NOT send.\n");
+        }
 
-        // Check whether channel needs to be read out for this pulse
-        unsigned frequency = channel_config->frequency;
-        int offset = channel_config->offset;
+        for(vector<BSReadChannelConfig>::iterator iterator = configuration_.begin(); iterator != configuration_.end(); ++iterator){
 
-        if (frequency > 0) {
-            frequency = 100/frequency;
-            if ( ((pulse_id-offset) % frequency ) != 0) {
-              continue;
+            BSReadChannelConfig *channel_config = &(*iterator);
+
+            // Check whether channel needs to be read out for this pulse
+            unsigned frequency = channel_config->frequency;
+            int offset = channel_config->offset;
+
+            if (frequency > 0) {
+                frequency = 100/frequency;
+                if ( ((pulse_id-offset) % frequency ) != 0) {
+                  continue;
+                }
+            }
+
+            // Read channel value
+    //        bsdaqPB::BunchData_Record* channel_data = pb_data_message.add_record();
+    //        channel_data->set_record_name(channel_config->channel_name);
+
+            if(channel_config->address.dbr_field_type == DBR_DOUBLE){
+                epicsFloat64 val;
+                dbGetField(&(channel_config->address), DBR_DOUBLE, &val, NULL, NULL, NULL);
+                printf("%f\n",val);
+    //            channel_data->add_double_val(val);
+            }
+            else if(channel_config->address.dbr_field_type == DBR_STRING){
+                char c_val[255];
+                dbGetField(&(channel_config->address), DBR_STRING, &c_val, NULL, NULL, NULL);
+    //            channel_data->add_string_val()->append(c_val);
+                printf("%s\n",c_val);
             }
         }
 
-        // Read channel value
-//        bsdaqPB::BunchData_Record* channel_data = pb_data_message.add_record();
-//        channel_data->set_record_name(channel_config->channel_name);
 
-        if(channel_config->address.dbr_field_type == DBR_DOUBLE){
-            epicsFloat64 val;
-            dbGetField(&(channel_config->address), DBR_DOUBLE, &val, NULL, NULL, NULL);
-            printf("%f\n",val);
-//            channel_data->add_double_val(val);
-        }
-        else if(channel_config->address.dbr_field_type == DBR_STRING){
-            char c_val[255];
-            dbGetField(&(channel_config->address), DBR_STRING, &c_val, NULL, NULL, NULL);
-//            channel_data->add_string_val()->append(c_val);
-            printf("%s\n",c_val);
-        }
-    }
+        // Serialize to protocol buffer
+    //    string serialized_data;
+    //    pb_data_message.SerializeToString(&serialized_data);
+
+        // Deserialize the data back to human readable format, this is used for diagnostic purposes only
+    //    google::protobuf::TextFormat::PrintToString(pb_data_message, &output); //Comment out this line if you would like to have an actual PB on as output
 
 
-    // Serialize to protocol buffer
-//    string serialized_data;
-//    pb_data_message.SerializeToString(&serialized_data);
 
-    // Deserialize the data back to human readable format, this is used for diagnostic purposes only
-//    google::protobuf::TextFormat::PrintToString(pb_data_message, &output); //Comment out this line if you would like to have an actual PB on as output
 
-    std::ostringstream stream;
-    stream << "HELLO: " << pulse_id;
 
-    string serialized_data = stream.str();
-
-    try {
-        size_t bytes_sent =zmq_socket_->send(serialized_data.c_str(), serialized_data.size(), ZMQ_NOBLOCK);
-
-        if (bytes_sent == 0) {
-            Debug("ZMQ message NOT send.\n");
-        }
     } catch(zmq::error_t &e ){
         Debug("ZMQ send failed: %s  \n", e.what());
     }
