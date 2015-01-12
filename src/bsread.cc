@@ -26,8 +26,6 @@ using namespace zmq;
  */
 BSRead::BSRead(): zmq_context_(new zmq::context_t(1)), zmq_socket_(new socket_t(*zmq_context_, ZMQ_PUSH)), mutex_(), configuration_()
 {
-    // TODO Need to be started as server
-    //TODO should be part of the configuration
     const char * const address = "tcp://*:9999";
     int high_water_mark = 100;
     zmq_socket_->setsockopt(ZMQ_SNDHWM, &high_water_mark, sizeof(high_water_mark));
@@ -166,13 +164,13 @@ void BSRead::read(long pulse_id)
     // Deserialize the data back to human readable format, this is used for diagnostic purposes only
 //    google::protobuf::TextFormat::PrintToString(pb_data_message, &output); //Comment out this line if you would like to have an actual PB on as output
 
-    string serialized_data = "hello";
+    string serialized_data = sprintf("hello %d",pulse_id);
 
     try {
         size_t bytes_sent =zmq_socket_->send(serialized_data.c_str(), serialized_data.size(), ZMQ_NOBLOCK);
 
         if (bytes_sent == 0) {
-            Debug("ZMQ socket full. Message NOT send.\n");
+            Debug("ZMQ message NOT send.\n");
         }
     } catch(zmq::error_t &e ){
         Debug("ZMQ send failed: %s  \n", e.what());
@@ -186,10 +184,5 @@ void BSRead::read(long pulse_id)
 BSRead* BSRead::get_instance()
 {
     static BSRead instance_;
-
-//    if(!instance_){
-//      instance_ = new BSRead();
-//    }
-
     return &instance_;
 }
