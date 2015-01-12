@@ -56,7 +56,7 @@ private:
     zmq::socket_t*  zmq_socket_;
     epicsMutex mutex_;
     std::vector<BSReadChannelConfig> configuration_;
-    string data_header_;
+    std::string data_header_;
 };
 
 #endif // BSREAD_H
