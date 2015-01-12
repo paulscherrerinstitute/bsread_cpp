@@ -28,10 +28,10 @@ BSRead::BSRead(): zmq_context_(new zmq::context_t(1)), zmq_socket_(new socket_t(
 {
     // TODO Need to be started as server
     //TODO should be part of the configuration
-    const char * const address = "tcp://10.5.1.215:9999";
+    const char * const address = "tcp://*:9999";
     int high_water_mark = 100;
     zmq_socket_->setsockopt(ZMQ_SNDHWM, &high_water_mark, sizeof(high_water_mark));
-    zmq_socket_->connect(address);
+    zmq_socket_->bind(address);
 }
 
 
