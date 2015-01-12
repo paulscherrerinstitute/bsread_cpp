@@ -29,7 +29,7 @@ using namespace std;
 
 long bsread_configure_init(aSubRecord* record){
     if (record->fta != DBF_CHAR) {
-        errlogPrintf("FTA has invalid type. Must be a CHAR");
+        Debug("FTA has invalid type. Must be a CHAR");
         record->brsv=-1;
         return -1;
     }
@@ -45,7 +45,7 @@ long bsread_configure(aSubRecord* prec){
         BSRead::get_instance()->configure(string(configuration));
     }
     catch(runtime_error & e){
-        errlogPrintf("Problem parsing BSDAQ configuration: %s\n", e.what());
+        Debug("Problem parsing BSDAQ configuration: %s\n", e.what());
         prec->brsv=-1;
         return -1;
     }

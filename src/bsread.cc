@@ -49,14 +49,14 @@ void BSRead::configure(const string & json_string)
     bool parsingSuccessful = reader.parse( json_string, root );
     if ( !parsingSuccessful ){
        string msg = "Could not parse JSON:" + reader.getFormatedErrorMessages();
-       errlogPrintf(msg.c_str());
+       Debug(msg.c_str());
        throw runtime_error(msg);
     }
 
     const Json::Value channels = root["channels"];
     if (channels.empty()) {
         string msg = "Invalid configuration - missing mandatory channels attribute";
-        errlogPrintf(msg.c_str());
+        Debug(msg.c_str());
         throw runtime_error(msg);
     } else {
         //Parsing was successful so we can drop existing configuration
@@ -75,7 +75,7 @@ void BSRead::configure(const string & json_string)
             if (current_channel["offset"] != Json::Value::null) {
                 int offset = 0;
                 if (!(istringstream(current_channel["offset"].asString()) >> offset)) {
-                    errlogPrintf("Invalid offset for channel: %s\n", config.channel_name.c_str());
+                    Debug("Invalid offset for channel: %s\n", config.channel_name.c_str());
                 }
                 else {
                     config.offset = offset;
@@ -85,14 +85,14 @@ void BSRead::configure(const string & json_string)
             if (current_channel["frequency"] != Json::Value::null) {
                 int frequency = 0;
                 if (!(istringstream(current_channel["frequency"].asString()) >> frequency)) {
-                    errlogPrintf("Invalid frequency for channel: %s\n", config.channel_name.c_str());
+                    Debug("Invalid frequency for channel: %s\n", config.channel_name.c_str());
                 }
                 else {
                     if (frequency > 0) {
                         config.frequency = frequency;
                     }
                     else {
-                        errlogPrintf("Invalid frequency for channel: %s . [frequency<=0] \n", config.channel_name.c_str()); // TODO Need to throw exception
+                        Debug("Invalid frequency for channel: %s . [frequency<=0] \n", config.channel_name.c_str()); // TODO Need to throw exception
                     }
                 }
             }
@@ -100,7 +100,7 @@ void BSRead::configure(const string & json_string)
             //Find address
             if(dbNameToAddr(config.channel_name.c_str(), &(config.address))) {
                 //Could not find desired record
-                errlogPrintf("Channel %s does not exist!", config.channel_name.c_str()); // TODO Need to throw exception
+                Debug("Channel %s does not exist!", config.channel_name.c_str()); // TODO Need to throw exception
                 continue;
             }
 
