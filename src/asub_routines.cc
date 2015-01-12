@@ -28,7 +28,7 @@ using namespace std;
 
 
 long bsread_configure_init(aSubRecord* record){
-    Debug("configure init");
+    Debug("configure init\n");
     if (record->fta != DBF_CHAR) {
         Debug("FTA has invalid type. Must be a CHAR");
         record->brsv=-1;
@@ -40,7 +40,7 @@ long bsread_configure_init(aSubRecord* record){
 
 
 long bsread_configure(aSubRecord* prec){
-    Debug("configure");
+    Debug("configure\n");
     /* Reading from a string waveform */
     char* configuration = (char*) prec->a;
     try{
@@ -57,12 +57,13 @@ long bsread_configure(aSubRecord* prec){
 
 
 long bsread_read_init(aSubRecord* prec){
+    Debug("read init\n");
     return 0;
 }
 
 
 long bsread_read(aSubRecord* prec){
-
+    Debug("read\n");
     long* a = (long*)(prec->a);
     long pulse_id = a[0];
 
