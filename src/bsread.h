@@ -52,8 +52,8 @@ private:
 
     BSRead();
 
-    zmq::context_t zmq_context_;
-    zmq::socket_t  zmq_socket_;
+    zmq::context_t* zmq_context_;
+    zmq::socket_t*  zmq_socket_;
     epicsMutex mutex_;
     std::vector<BSReadChannelConfig> configuration_;
 };

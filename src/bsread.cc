@@ -142,7 +142,7 @@ void BSRead::read(long pulse_id)
 
         // Read channel value
 //        bsdaqPB::BunchData_Record* channel_data = pb_data_message.add_record();
-        channel_data->set_record_name(channel_config->channel_name);
+//        channel_data->set_record_name(channel_config->channel_name);
 
         if(channel_config->address.dbr_field_type == DBR_DOUBLE){
             epicsFloat64 val;
@@ -154,17 +154,19 @@ void BSRead::read(long pulse_id)
             char c_val[255];
             dbGetField(&(channel_config->address), DBR_STRING, &c_val, NULL, NULL, NULL);
 //            channel_data->add_string_val()->append(c_val);
-            printf("%%s\n",c_val);
+            printf("%s\n",c_val);
         }
     }
 
 
     // Serialize to protocol buffer
-    string serialized_data;
-    pb_data_message.SerializeToString(&serialized_data);
+//    string serialized_data;
+//    pb_data_message.SerializeToString(&serialized_data);
 
     // Deserialize the data back to human readable format, this is used for diagnostic purposes only
 //    google::protobuf::TextFormat::PrintToString(pb_data_message, &output); //Comment out this line if you would like to have an actual PB on as output
+
+    string serialized_data = "hello";
 
     try {
         size_t bytes_sent =zmq_socket.send(serialized_data.c_str(), serialized_data.size(), ZMQ_NOBLOCK);
