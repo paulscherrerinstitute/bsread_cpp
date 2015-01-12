@@ -169,7 +169,7 @@ void BSRead::read(long pulse_id)
     string serialized_data = "hello";
 
     try {
-        size_t bytes_sent =zmq_socket->send(serialized_data.c_str(), serialized_data.size(), ZMQ_NOBLOCK);
+        size_t bytes_sent =zmq_socket_->send(serialized_data.c_str(), serialized_data.size(), ZMQ_NOBLOCK);
 
         if (bytes_sent == 0) {
             Debug("ZMQ socket full. Message NOT send.\n");
