@@ -164,7 +164,7 @@ void BSRead::read(long pulse_id)
     // Deserialize the data back to human readable format, this is used for diagnostic purposes only
 //    google::protobuf::TextFormat::PrintToString(pb_data_message, &output); //Comment out this line if you would like to have an actual PB on as output
 
-    string serialized_data = sprintf("hello %d",pulse_id);
+    string serialized_data = "hello" + std::to_string(pulse_id);
 
     try {
         size_t bytes_sent =zmq_socket_->send(serialized_data.c_str(), serialized_data.size(), ZMQ_NOBLOCK);
