@@ -107,6 +107,7 @@ void BSRead::configure(const string & json_string)
 
         }
     }
+    data_header_ = "{\"configured\":true}";
 }
 
 
@@ -124,15 +125,27 @@ void BSRead::read(long pulse_id)
 //    pb_data_message.set_pulse_id(pulse_id);
 
     try {
+        // Construct main header
         std::ostringstream main_header;
-        main_header << "{ \"pulse-id\":" << pulse_id << "}";
+        main_header << "{ \"pulse-id\":" << pulse_id << " }";
 
+        // Check https://bobobobo.wordpress.com/2010/10/17/md5-c-implementation/ for MD5 Hash ...
+
+
+        // Send main header
         string main_header_serialized = main_header.str();
-        size_t bytes_sent =zmq_socket_->send(main_header_serialized.c_str(), main_header_serialized.size(), ZMQ_NOBLOCK);
+        size_t bytes_sent =zmq_socket_->send(main_header_serialized.c_str(), main_header_serialized.size(), ZMQ_NOBLOCK)|ZMQ_SNDMORE;
         if (bytes_sent == 0) {
             Debug("ZMQ message [main header] NOT send.\n");
         }
 
+        // Send data header
+        size_t bytes_sent =zmq_socket_->send(data_header_.c_str(), data_header_.size(), ZMQ_NOBLOCK);
+        if (bytes_sent == 0) {
+            Debug("ZMQ message [data header] NOT send.\n");
+        }
+
+        // Read channels and send sub-messages
         for(vector<BSReadChannelConfig>::iterator iterator = configuration_.begin(); iterator != configuration_.end(); ++iterator){
 
             BSReadChannelConfig *channel_config = &(*iterator);
