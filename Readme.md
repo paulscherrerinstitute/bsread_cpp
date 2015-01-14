@@ -2,10 +2,28 @@
 Create Configuration (need to use the caput form EPICS base instead of PSI):
 
 ```
+export EPICS_CA_ADDR_LIST=gfalc6064
 /usr/local/epics/base/bin/SL6-x86_64/caput -S  BSREAD:CONFIGURATION '{"channels": [{"name":   "BSREAD-TEST:TEST_1", "offset":1, "frequency":100 }, {"name":"BSREAD-TEST:TEST_2", "offset":1, "frequency":10} ]}'
 ```
 
+Test receiver
 
+```
+import zmq
+import array
+
+context = zmq.Context.instance()
+
+sock = context.socket(zmq.PULL)
+sock.connect('tcp://gfalc6064:9999')
+
+while True:
+    message = sock.recv()
+    print message
+    ## value = array.array('d',message)
+    # value.byteswap() # if different endianness
+    ## print value
+```
 
 
 # TO BE REVIEWED

@@ -11,6 +11,7 @@
 #include <epicsGuard.h>
 #include <errlog.h>
 #include <recSup.h>
+#include <md5.h>
 
 #include "json.h"  // jsoncpp
 // #include "bunchData.pb.h" // protocol buffer serialization
@@ -107,7 +108,7 @@ void BSRead::configure(const string & json_string)
             configuration_.push_back(config);
             Debug("Added channel %s offset: %d  frequency: %d\n", config.channel_name.c_str(), config.offset, config.frequency);
 
-            data_header_stream << "{ \"name\":\"" <<"\", \"type\":\"";
+            data_header_stream << "{ \"name\":\"" << config.channel_name << "\", \"type\":\"";
             if(config.address.dbr_field_type == DBR_DOUBLE){
                 data_header_stream << "Double";
             }
