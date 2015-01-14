@@ -116,11 +116,10 @@ void BSRead::configure(const string & json_string)
             }
             data_header_stream << "\"}";
 
+            data_header_stream << "]}";
+            data_header_ = data_header_stream.str();
         }
     }
-
-    data_header_stream << "]}";
-    data_header_ = data_header_stream.str();
 }
 
 
