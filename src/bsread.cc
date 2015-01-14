@@ -185,7 +185,7 @@ void BSRead::read(long pulse_id)
                 printf("%f\n",val);
     //            channel_data->add_double_val(val);
 
-                bytes_sent =zmq_socket_->send(val, sizeof(epicsFloat64), ZMQ_NOBLOCK);
+                bytes_sent =zmq_socket_->send(&val, sizeof(epicsFloat64), ZMQ_NOBLOCK);
                 if (bytes_sent == 0) {
                     Debug("ZMQ message [data header] NOT send.\n");
                 }
