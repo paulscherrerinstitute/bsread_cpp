@@ -62,6 +62,8 @@ void BSRead::configure(const string & json_string)
         epicsGuard < epicsMutex > guard(mutex_); // TODO Wrong place ... - must not affect reading of values !!!!
 
         configuration_.clear();
+        std::ostringstream data_header_stream;
+        data_header_stream << "{\"channels\":[";
 
         // Parsing success, iterate over per-record configuration
         for (Json::Value::const_iterator iterator = channels.begin(); iterator != channels.end(); ++iterator)  {
@@ -105,9 +107,20 @@ void BSRead::configure(const string & json_string)
             configuration_.push_back(config);
             Debug("Added channel %s offset: %d  frequency: %d\n", config.channel_name.c_str(), config.offset, config.frequency);
 
+            data_header_stream << "{ \"name\":\"" <<"\", \"type\":\"";
+            if(config.address.dbr_field_type == DBR_DOUBLE){
+                data_header_stream << "Double";
+            }
+            else if(config.address.dbr_field_type == DBR_STRING){
+                data_header_stream << "String";
+            }
+            data_header_stream << "\"}";
+
         }
     }
-    data_header_ = "{\"configured\":true}";
+
+    data_header_stream << "]}";
+    data_header_ = data_header_stream.str();
 }
 
 
