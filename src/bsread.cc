@@ -184,6 +184,11 @@ void BSRead::read(long pulse_id)
                 dbGetField(&(channel_config->address), DBR_DOUBLE, &val, NULL, NULL, NULL);
                 printf("%f\n",val);
     //            channel_data->add_double_val(val);
+
+                bytes_sent =zmq_socket_->send(val, sizeof(epicsFloat64), ZMQ_NOBLOCK);
+                if (bytes_sent == 0) {
+                    Debug("ZMQ message [data header] NOT send.\n");
+                }
             }
             else if(channel_config->address.dbr_field_type == DBR_STRING){
                 char c_val[255];
