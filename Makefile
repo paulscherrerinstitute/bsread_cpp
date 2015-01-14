@@ -12,6 +12,7 @@ SOURCES += src/asub_routines.cc
 SOURCES += src/bsread.cc
 #SOURCES += src/bunchData.pb.cc
 SOURCES += src/json.cc
+SOURCES += src/md5.cc
 
 
 DBD += src/bsread.dbd
