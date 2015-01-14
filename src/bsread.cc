@@ -12,6 +12,8 @@
 #include <errlog.h>
 #include <recSup.h>
 
+
+#include "md5.h"
 #include "json.h"  // jsoncpp
 // #include "bunchData.pb.h" // protocol buffer serialization
 
@@ -139,7 +141,7 @@ void BSRead::read(long pulse_id)
     try {
         // Construct main header
         std::ostringstream main_header;
-        main_header << "{ \"pulse-id\":" << pulse_id << " }";
+        main_header << "{ \"pulse-id\":" << pulse_id << " \"hash\":\"" << md5(data_header_) << "\"" << " }";
 
         // Check https://bobobobo.wordpress.com/2010/10/17/md5-c-implementation/ for MD5 Hash ...
 
