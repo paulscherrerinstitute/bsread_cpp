@@ -11,7 +11,7 @@
 #include <epicsGuard.h>
 #include <errlog.h>
 #include <recSup.h>
-#include <md5.h>
+#include <openssl/md5.h>
 
 #include "json.h"  // jsoncpp
 // #include "bunchData.pb.h" // protocol buffer serialization
