@@ -74,7 +74,8 @@ long bsread_read(aSubRecord* prec){
     BSRead::get_instance()->read(pulse_id);
 
     clock_gettime(CLOCK_MONOTONIC, &t1);
-    long int timeSpan = (t1.tv_sec*1e9+t1.tv_nsec)-(t0.tv_sec*1e9+t0.tv_nsec);
+    //long int timeSpan = (t1.tv_sec*1e9+t1.tv_nsec)-(t0.tv_sec*1e9+t0.tv_nsec);
+    long int timeSpan = (t1.tv_sec*1000000000+t1.tv_nsec)-(t0.tv_sec*1000000000+t0.tv_nsec);
 
 
     //Put serialization time into VALA
