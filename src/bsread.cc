@@ -185,6 +185,7 @@ void BSRead::read(long pulse_id)
                 printf("%f\n",val);
     //            channel_data->add_double_val(val);
 
+                // Todo: Enable Waveforms
                 bytes_sent =zmq_socket_->send(&val, sizeof(epicsFloat64), ZMQ_NOBLOCK);
                 if (bytes_sent == 0) {
                     Debug("ZMQ message [data header] NOT send.\n");
@@ -195,6 +196,7 @@ void BSRead::read(long pulse_id)
                 dbGetField(&(channel_config->address), DBR_STRING, &c_val, NULL, NULL, NULL);
     //            channel_data->add_string_val()->append(c_val);
                 printf("%s\n",c_val);
+                // Todo: Implement String + Waveform sending
             }
         }
 
