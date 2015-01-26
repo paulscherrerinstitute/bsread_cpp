@@ -1,43 +1,32 @@
-
-Create Configuration (need to use the caput form EPICS base instead of PSI):
-
-```
-export EPICS_CA_ADDR_LIST=gfalc6064
-/usr/local/epics/base/bin/SL6-x86_64/caput -S  BSREAD:CONFIGURATION '{"channels": [{"name":   "BSREAD-TEST:TEST_1", "offset":1, "frequency":100 }, {"name":"BSREAD-TEST:TEST_2", "offset":1, "frequency":10} ]}'
-```
-
-Test receiver
-
-```
-import zmq
-import array
-
-context = zmq.Context.instance()
-
-sock = context.socket(zmq.PULL)
-sock.connect('tcp://gfalc6064:9999')
-
-while True:
-    message = sock.recv()
-    print message
-    ## value = array.array('d',message)
-    # value.byteswap() # if different endianness
-    ## print value
-```
-
-# Development
-The json.cc and json.h files where generated from the json-cpp project. Following steps are required to do so
-... 
-
-
-# TO BE REVIEWED
-
 # Overview
-__bsread__ provides a fast IOC based readout functionality. It reads configured channels and streams out the data via ZMQ. 
-All channels to be read out need to reside on the same IOC than the __bsread__ code is running.
+__bsread__ provides a fast IOC based readout functionality. It reads configured channels and streams out the data
+via ZMQ. All channels to be read out need to reside on the same IOC than the __bsread__ code is running.
 
-The ZMQ data stream is served in a ZMQ PUSH/PULL delivery scheme. The default port is 8080.
-The stream solely consists of messages with consists of an array of double either encoded in LITTLE_ENDIAN if 
+The ZMQ data stream is served in a ZMQ PUSH/PULL delivery scheme. The default port is 9999.
+The stream consists of messages consisting of several sub-messages.
+
+```
++-------------------------+
+|  Main Header            |
+|                         |
++-------------------------+
+|  Data Header            |
+|                         |
++-------------------------+
+|  Value                  |
++-------------------------+
+|  Timestamp              |
++-------------------------+
+           ...
++-------------------------+
+|  Value                  |
++-------------------------+
+|  Timestamp              |
++-------------------------+
+
+```
+
+Values are  either encoded in LITTLE_ENDIAN if
 the IOC runs on a Linux machine or BIG_ENDIAN if the IOC runs on vxWorks.
 
 
@@ -67,9 +56,10 @@ To configure __bsread__ on your IOC continue as follows:
 # Usage
 There are following channels to control and configure __bsread__:
 
-  * __$(P):CHANNELS__ - Channels to be read out
-  * __$(P):READ__ - Readout record - whenever processed a readout will be triggered	 
+  * __$(P):CONFIGURATION__ - Configuration - i.e. channels to be read out
   * __$(P):CONFIGURE__ - For internal use only
+  * __$(P):READ__ - Readout record - whenever processed a readout will be triggered	 
+
 
 # Development
 
@@ -85,28 +75,33 @@ make
 make install
 ```
 
-__Note__: For spotting problems easier and quicker it is recommended to prepend the __dye__ command before the actual make statement.
+__Note__: For spotting problems easier and quicker it is recommended to prepend the __dye__ command before the
+actual make statement.
+
+## JSON
+The json.cc and json.h files where generated from the json-cpp project. Following steps are required to do so
+... 
+
+## Coding Style
+The code follows the following coding style: http://google-styleguide.googlecode.com/svn/trunk/cppguide.html
 
 # Testing
 
 Configure readout channels and read out the channels:
 
 ```
-caput TEST-BSREAD:CHANNELS "ACHANNEL B.CHANNEL"
-caput TEST-BSREAD:READ.PROC 1
+export EPICS_CA_ADDR_LIST=gfalc6064
+/usr/local/epics/base/bin/SL6-x86_64/caput -S  BSREAD:CONFIGURATION '{"channels": [{"name":   "BSREAD-TEST:TEST_1","offset":1, "frequency":100 }, {"name":"BSREAD-TEST:TEST_2", "offset":1, "frequency":10} ]}'
 ```
 
 # Test IOC
-There is a test ioc inside the git repository inside the `ioc` folder. To use the IOC for testing, compile the __BSREAD__ sources inside 
-the `src` folder (use the Makefile inside the folder!), switch to the ioc directory, execut the `makeioc.sh` script and start the ioc via `iocsh startup.script`.
+There is a test ioc inside the git repository inside the `ioc` folder. To use the IOC for testing, compile the
+__BSREAD__ sources inside the `src` folder (use the Makefile inside the folder!), switch to the ioc directory,
+execut the `makeioc.sh` script and start the ioc via `iocsh startup.script`.
 
-The testioc comes with 4 counters incrementing at different speeds. You can configure the counters to be read out as follows:
+The testioc comes with 4 counters incrementing at different speeds.
 
-```
-caput BSREAD:CHANNELS "BSREAD:TEST_1 BSREAD:TEST_2 BSREAD:TEST_3 BSREAD:TEST_4"
-```
-
-You can now manually trigger a readout by triggering a processing of the read record:
+The readout can be trigger manually by triggering the processing of the read record:
 
 ```
 caput BSREAD:READ.PROC 1
@@ -132,23 +127,12 @@ import array
 context = zmq.Context.instance()
 
 sock = context.socket(zmq.PULL)
-sock.connect('tcp://slslc:8080')
+sock.connect('tcp://gfalc6064:9999')
 
 while True:
     message = sock.recv()
-    value = array.array('d',message)
+    print message
+    ## value = array.array('d',message)
     # value.byteswap() # if different endianness
-    print value
+    ## print value
 ```
-
-
-# Todo
-
-  * Support other datatypes than doubles
-  * Support different readout/send frequencies
-  * Readout time limited to 1ms at the end of a cycle
-  * data transfer structure - consider sub messages to enable clients to skip certain sub-messages ...
-
-
-# Coding Style
-http://google-styleguide.googlecode.com/svn/trunk/cppguide.html
