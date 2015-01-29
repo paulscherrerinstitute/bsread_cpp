@@ -66,7 +66,7 @@ void BSRead::configure(const string & json_string)
         configuration_.clear();
         configuration_incoming_.clear();
         std::ostringstream data_header_stream;
-        data_header_stream << "{  \"htype\":\"bsr_d-1.0\" \"channels\":[";
+        data_header_stream << "{  \"htype\":\"bsr_d-1.0\", \"channels\":[";
 
         // Parsing success, iterate over per-record configuration
         for (Json::Value::const_iterator iterator = channels.begin(); iterator != channels.end(); ++iterator)  {
@@ -143,7 +143,7 @@ void BSRead::read(long pulse_id)
     try {
         // Construct main header
         std::ostringstream main_header;
-        main_header << "{ \"htype\":\"bsr_m-1.0\" \"pulse-id\":" << pulse_id << " \"hash\":\"" << md5(data_header_) << "\"" << " }";
+        main_header << "{ \"htype\":\"bsr_m-1.0\", \"pulse-id\":" << pulse_id << " \"hash\":\"" << md5(data_header_) << "\"" << " }";
 
         // Check https://bobobobo.wordpress.com/2010/10/17/md5-c-implementation/ for MD5 Hash ...
 
