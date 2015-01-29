@@ -64,6 +64,7 @@ void BSRead::configure(const string & json_string)
         epicsGuard < epicsMutex > guard(mutex_); // TODO Wrong place ... - must not affect reading of values !!!!
 
         configuration_.clear();
+        configuration_incoming_.clear();
         std::ostringstream data_header_stream;
         data_header_stream << "{\"channels\":[";
 
@@ -106,7 +107,7 @@ void BSRead::configure(const string & json_string)
                 continue;
             }
 
-            configuration_.push_back(config);
+            configuration_incoming_.push_back(config);
             Debug("Added channel %s offset: %d  frequency: %d\n", config.channel_name.c_str(), config.offset, config.frequency);
 
             data_header_stream << "{ \"name\":\"" << config.channel_name << "\", \"type\":\"";
@@ -200,21 +201,20 @@ void BSRead::read(long pulse_id)
             }
         }
 
-
-        // Serialize to protocol buffer
-    //    string serialized_data;
-    //    pb_data_message.SerializeToString(&serialized_data);
-
-        // Deserialize the data back to human readable format, this is used for diagnostic purposes only
-    //    google::protobuf::TextFormat::PrintToString(pb_data_message, &output); //Comment out this line if you would like to have an actual PB on as output
-
-
-
-
-
     } catch(zmq::error_t &e ){
         Debug("ZMQ send failed: %s  \n", e.what());
     }
+
+    // Apply new configuration if available. This is done at the end of the
+    // Read routine as
+    // Todo Actually this belongs outside timing
+    if(configuration_incoming_.size()){
+        Debug("Apply new configuration\n");
+        // Todo Could be more efficient
+        configuration_ = configuration_incoming_;
+        configuration_incoming_.clear();
+    }
+
 }
 
 

@@ -30,9 +30,11 @@ record(aSub, "$(P):READ")
     field(INAM,"bsread_read_init")
     field(SNAM,"bsread_read")
 	field(SCAN, "Passive")
-	field(FTA, "LONG")
+	field(FTA, "ULONG")
 	field(INPA, "$(P):PULSE.VAL NPP")
-    field(FTVA, "LONG")
+    field(FTVA, "DOUBLE")					# Time in seconds required to take the last snapshot
+    field(FTVB, "ULONG")					# Number of snapshot time overruns (FTVA > 1ms)
+    field(PREC,6)
 }
 
 

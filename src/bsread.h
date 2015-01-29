@@ -55,8 +55,13 @@ private:
     zmq::context_t* zmq_context_;
     zmq::socket_t*  zmq_socket_;
     epicsMutex mutex_;
-    std::vector<BSReadChannelConfig> configuration_;
     std::string data_header_;
+    std::vector<BSReadChannelConfig> configuration_;
+    // Contains next configuration. Incoming configuration is stored
+    // here and than copied into configuration_ within BSRead::read method.
+    // This prevents blocking of read method.
+    std::vector<BSReadChannelConfig> configuration_incoming_;
+
 };
 
 #endif // BSREAD_H
