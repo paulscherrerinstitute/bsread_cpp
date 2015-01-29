@@ -202,7 +202,7 @@ void BSRead::read(long pulse_id)
             }
 
             // Send closing message
-            char empty_char[1]
+            char empty_char[1];
             zmq_socket_->send(empty_char, 0, ZMQ_NOBLOCK);
         }
 
