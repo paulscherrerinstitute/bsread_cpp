@@ -156,7 +156,7 @@ void BSRead::read(long pulse_id)
         }
 
         // Send data header
-        bytes_sent =zmq_socket_->send(data_header_.c_str(), data_header_.size(), ZMQ_NOBLOCK);
+        bytes_sent =zmq_socket_->send(data_header_.c_str(), data_header_.size(), ZMQ_NOBLOCK|ZMQ_SNDMORE);
         if (bytes_sent == 0) {
             Debug("ZMQ message [data header] NOT send.\n");
         }
@@ -188,7 +188,7 @@ void BSRead::read(long pulse_id)
     //            channel_data->add_double_val(val);
 
                 // Todo: Enable Waveforms
-                bytes_sent =zmq_socket_->send(&val, sizeof(epicsFloat64), ZMQ_NOBLOCK);
+                bytes_sent = zmq_socket_->send(&val, sizeof(epicsFloat64), ZMQ_NOBLOCK|ZMQ_SNDMORE);
                 if (bytes_sent == 0) {
                     Debug("ZMQ message [data header] NOT send.\n");
                 }
@@ -200,6 +200,9 @@ void BSRead::read(long pulse_id)
                 printf("%s\n",c_val);
                 // Todo: Implement String + Waveform sending
             }
+
+            // Send closing message
+            zmq_socket_->send('', 0, ZMQ_NOBLOCK);
         }
 
     } catch(zmq::error_t &e ){
