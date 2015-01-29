@@ -56,7 +56,7 @@ long bsread_configure_init(aSubRecord* record){
 long bsread_configure(aSubRecord* prec){
     Debug("configure\n");
     /* Reading from a string waveform */
-    char const *config = (char const *) prec->a;
+    char const *configuration = (char const *) prec->a;
         if (strnlen(config, prec->noa) == prec->noa) {
             Debug("Config is not null terminated!\n");
             return fail_process(prec);
@@ -76,7 +76,7 @@ long bsread_configure(aSubRecord* prec){
 long bsread_read_init(aSubRecord* prec){
     Debug("read init\n");
     // INPA = bunch ID
-    if (prec->fta != menuFtypeULONG) {
+    if (prec->fta != DBF_ULONG) {
         Debug("FTA must be ULONG.\n");
         return fail_init(prec);
     }
@@ -86,7 +86,7 @@ long bsread_read_init(aSubRecord* prec){
     }
 
     // VALA = snapshot duration
-    if (prec->ftva != menuFtypeDOUBLE) {
+    if (prec->ftva != DBF_DOUBLE) {
         Debug("FTVA must be DOUBLE.\n");
         return fail_init(prec);
     }
@@ -96,7 +96,7 @@ long bsread_read_init(aSubRecord* prec){
     }
 
     // VALB = number of timeouts
-    if (prec->ftvb != menuFtypeULONG) {
+    if (prec->ftvb != DBF_ULONG) {
         Debug("FTVB must be ULONG\n");
         return fail_init(prec);
     }
