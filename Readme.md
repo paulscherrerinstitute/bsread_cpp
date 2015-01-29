@@ -111,7 +111,7 @@ The testioc also comes with a 100Hz counter that can be used for triggering read
 its __FLNK__ field to the read record.
 
 ```
-caput BSREAD:TEST_TRIGGER.FLNK BSREAD:READ
+caput BSREAD:PULSE.FLNK BSREAD:READ
 ``` 
 
 To stop the readout unset the __FLNK__ field of the test trigger.
