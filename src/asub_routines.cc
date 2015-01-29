@@ -29,7 +29,6 @@ using namespace std;
 // Setting PACT ensures that the record is not processed if init failed.
 static long fail_init(aSubRecord *prec)
 {
-    prec->brsv = -1;
     prec->brsv = 1;
     prec->pact = 1;
     return -1;
@@ -37,7 +36,6 @@ static long fail_init(aSubRecord *prec)
 
 static long fail_process(aSubRecord *prec)
 {
-    prec->brsv = -1;
     prec->brsv = 1;
     return -1;
 }
@@ -57,7 +55,7 @@ long bsread_configure(aSubRecord* prec){
     Debug("configure\n");
     /* Reading from a string waveform */
     char const *configuration = (char const *) prec->a;
-        if (strnlen(config, prec->noa) == prec->noa) {
+        if (strnlen(configuration, prec->noa) == prec->noa) {
             Debug("Config is not null terminated!\n");
             return fail_process(prec);
         }
