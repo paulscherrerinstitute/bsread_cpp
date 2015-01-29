@@ -107,7 +107,8 @@ void BSRead::configure(const string & json_string)
                 continue;
             }
 
-            configuration_incoming_.push_back(config);
+//            configuration_incoming_.push_back(config);
+            configuration_.push_back(config);
             Debug("Added channel %s offset: %d  frequency: %d\n", config.channel_name.c_str(), config.offset, config.frequency);
 
             data_header_stream << "{ \"name\":\"" << config.channel_name << "\", \"type\":\"";
@@ -208,12 +209,12 @@ void BSRead::read(long pulse_id)
     // Apply new configuration if available. This is done at the end of the
     // Read routine as
     // Todo Actually this belongs outside timing
-    if(configuration_incoming_.size()){
-        Debug("Apply new configuration\n");
-        // Todo Could be more efficient
-        configuration_ = configuration_incoming_;
-        configuration_incoming_.clear();
-    }
+//    if(configuration_incoming_.size()){
+//        Debug("Apply new configuration\n");
+//        // Todo Could be more efficient
+//        configuration_ = configuration_incoming_;
+//        configuration_incoming_.clear();
+//    }
 
 }
 
