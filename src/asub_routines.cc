@@ -130,6 +130,9 @@ long bsread_read(aSubRecord* prec){
         (*(unsigned long*)prec->valb)++; //increase number of "timeouts"
         return -1; //Throw record into an alarm state
     }
+
+    //Check if new configuration is available
+    BSRead::get_instance()->applyConfiguration();
     return 0;
 }
 

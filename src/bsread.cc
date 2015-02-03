@@ -61,9 +61,12 @@ void BSRead::configure(const string & json_string)
     } else {
         //Parsing was successful so we can drop existing configuration
 
-        epicsGuard < epicsMutex > guard(mutex_); // TODO Wrong place ... - must not affect reading of values !!!!
+        //This mutex is only protecting configuration_incoming, not actuall configuration_ 
+        //configuration_incoming_ is only a placeholder for configuration that is waiting to be applied
+        //Thread that samples the data will have to acquire this mutex before accessing configuration_incoming_ 
+        //In order to avoid locking the sampling thread a non-blocking try_lock is used.
+        epicsGuard < epicsMutex > guard(mutex_);
 
-        configuration_.clear();
         configuration_incoming_.clear();
         std::ostringstream data_header_stream;
         data_header_stream << "{  \"htype\":\"bsr_d-1.0\", \"channels\":[";
@@ -129,8 +132,7 @@ void BSRead::configure(const string & json_string)
 
 void BSRead::read(long pulse_id)
 {
-    epicsGuard < epicsMutex > guard(mutex_); // TODO Need to be revised
-
+    //Skip read if configuration is not available yet...
     if (configuration_.empty()) {
       return;
     }
@@ -210,18 +212,29 @@ void BSRead::read(long pulse_id)
         Debug("ZMQ send failed: %s  \n", e.what());
     }
 
-    // Apply new configuration if available. This is done at the end of the
-    // Read routine as
-    // Todo Actually this belongs outside timing
-//    if(configuration_incoming_.size()){
-//        Debug("Apply new configuration\n");
-//        // Todo Could be more efficient
-//        configuration_ = configuration_incoming_;
-//        configuration_incoming_.clear();
-//    }
-
 }
 
+bool BSRead::applyConfiguration(){
+    bool newConfig = false;
+    
+    //Never block! 
+    if(mutex_.tryLock()){
+       if(configuration_incoming_.size()){
+           Debug("Apply new configuration\n");
+           
+           // Todo Could be more efficient
+           // could be, should be? Regardless of implementation we will always need
+           // to iterate over vector at least once. Since configuarition is small 
+           // it will be difficult to be faster than a direct copy.
+           configuration_ = configuration_incoming_;
+           configuration_incoming_.clear();
+           newConfig = true;
+       }
+       mutex_.unlock();
+    }
+
+    return newConfig;
+}
 
 /**
  * Get singleton instance of this class

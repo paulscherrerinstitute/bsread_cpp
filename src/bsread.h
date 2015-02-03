@@ -45,6 +45,9 @@ public:
     // Read all currently configured channels and send values out via ZMQ;
     void read(long pulse_id);
 
+    //This function has to be called from the same thread as read(). It will check wether new configuration is 
+    //available and apply it. Returns true if new configuration was applied.
+    bool applyConfiguration();
     // Get singleton instance of this class
     static BSRead* get_instance();
 
