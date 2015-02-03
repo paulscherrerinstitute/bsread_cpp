@@ -110,8 +110,8 @@ void BSRead::configure(const string & json_string)
                 continue;
             }
 
-//            configuration_incoming_.push_back(config);
-            configuration_.push_back(config);
+           configuration_incoming_.push_back(config);
+            
             Debug("Added channel %s offset: %d  frequency: %d\n", config.channel_name.c_str(), config.offset, config.frequency);
 
             data_header_stream << "{ \"name\":\"" << config.channel_name << "\", \"type\":\"";
