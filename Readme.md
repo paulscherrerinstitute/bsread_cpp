@@ -80,7 +80,13 @@ actual make statement.
 
 ## JSON
 The json.cc and json.h files where generated from the json-cpp project. Following steps are required to do so
-... 
+
+Enter the json-cpp folder and run:
+
+    python amalgamate.py
+
+This will generate json.cc and json.h files in ./dist. See README in json-cpp sources for more details.
+ 
 
 ## Coding Style
 The code follows the following coding style: http://google-styleguide.googlecode.com/svn/trunk/cppguide.html
