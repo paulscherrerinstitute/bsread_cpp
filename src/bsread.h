@@ -11,6 +11,7 @@
 
 //External includes
 #include "zmq.hpp"
+#include "json.h"
 
 
 #ifdef DEBUG
@@ -58,6 +59,7 @@ private:
     zmq::context_t* zmq_context_;
     zmq::socket_t*  zmq_socket_;
     epicsMutex mutex_;
+    Json::FastWriter writer_;   //Json writer instance used for generating data headers
     std::string data_header_;
     std::vector<BSReadChannelConfig> configuration_;
     // Contains next configuration. Incoming configuration is stored
@@ -65,6 +67,7 @@ private:
     // This prevents blocking of read method.
     std::vector<BSReadChannelConfig> configuration_incoming_;
 
+    std::string generateDataHeader();
 };
 
 #endif // BSREAD_H
