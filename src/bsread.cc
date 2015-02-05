@@ -114,17 +114,7 @@ void BSRead::configure(const string & json_string)
             
             Debug("Added channel %s offset: %d  frequency: %d\n", config.channel_name.c_str(), config.offset, config.frequency);
 
-            data_header_stream << "{ \"name\":\"" << config.channel_name << "\", \"type\":\"";
-            if(config.address.dbr_field_type == DBR_DOUBLE){
-                data_header_stream << "Double";
-            }
-            else if(config.address.dbr_field_type == DBR_STRING){
-                data_header_stream << "String";
-            }
-            data_header_stream << "\"}";
 
-            data_header_stream << "]}";
-            data_header_ = data_header_stream.str();
         }
     }
 }
@@ -203,14 +193,43 @@ void BSRead::read(long pulse_id)
                 // Todo: Implement String + Waveform sending
             }
 
-            // Send closing message
-            char empty_char[1];
-            zmq_socket_->send(empty_char, 0, ZMQ_NOBLOCK);
         }
+
+        // Send closing message
+//        char empty_char[1];
+        zmq_socket_->send(0, 0, ZMQ_NOBLOCK);
+
 
     } catch(zmq::error_t &e ){
         Debug("ZMQ send failed: %s  \n", e.what());
     }
+
+}
+
+std::string BSRead::generateDataHeader(){
+    Json::Value root,channels,channel;
+    root["htype"] = "bsr_d-1.0";
+
+    //Iterate over channels and create data header channel entires
+    for(vector<BSReadChannelConfig>::iterator iterator = configuration_.begin(); iterator != configuration_.end(); ++iterator){
+        BSReadChannelConfig *channel_config = &(*iterator);
+
+        channel["name"]=channel_config->channel_name;
+
+        if(channel_config->address.dbr_field_type == DBR_DOUBLE){
+            channel["type"]="Double";
+        }
+        else if(channel_config->address.dbr_field_type == DBR_STRING){
+            channel["type"]="String";
+        }
+
+        channels.append(channel);
+    }
+
+    root["channels"] = channels;
+
+    //Serialize to string
+    return writer_.write(root);
 
 }
 
@@ -229,6 +248,9 @@ bool BSRead::applyConfiguration(){
            configuration_ = configuration_incoming_;
            configuration_incoming_.clear();
            newConfig = true;
+
+           // New configuration! Data needs to be updated...
+           data_header_ = generateDataHeader();
        }
        mutex_.unlock();
     }
