@@ -179,30 +179,17 @@ void BSRead::read(long pulse_id)
                 }
             }
 
-            // Read channel value
-    //        bsdaqPB::BunchData_Record* channel_data = pb_data_message.add_record();
-    //        channel_data->set_record_name(channel_config->channel_name);
+            //All values are treated in the same way, data header contains information about
+            // their types, packing and endianess
 
-            if(channel_config->address.dbr_field_type == DBR_DOUBLE){
-                epicsFloat64 val;
-                dbGetField(&(channel_config->address), DBR_DOUBLE, &val, NULL, NULL, NULL);
-                printf("%f\n",val);
-    //            channel_data->add_double_val(val);
+            void* val = channel_config->address.pfield; //Data pointer
+            long no_elements = channel_config->address.no_elements; 
+            long element_size = channel_config->address.field_size;
 
-                // Todo: Enable Waveforms
-                bytes_sent = zmq_socket_->send(&val, sizeof(epicsFloat64), ZMQ_NOBLOCK|ZMQ_SNDMORE);
-                if (bytes_sent == 0) {
+            bytes_sent = zmq_socket_->send(val, element_size*no_elements, ZMQ_NOBLOCK|ZMQ_SNDMORE);
+            if (bytes_sent == 0) {
                     Debug("ZMQ message [data header] NOT send.\n");
-                }
             }
-            else if(channel_config->address.dbr_field_type == DBR_STRING){
-                char c_val[255];
-                dbGetField(&(channel_config->address), DBR_STRING, &c_val, NULL, NULL, NULL);
-    //            channel_data->add_string_val()->append(c_val);
-                printf("%s\n",c_val);
-                // Todo: Implement String + Waveform sending
-            }
-
         }
 
         // Send closing message
