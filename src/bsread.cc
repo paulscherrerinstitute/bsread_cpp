@@ -175,6 +175,10 @@ void BSRead::read(long pulse_id)
             if (frequency > 0) {
                 frequency = 100/frequency;
                 if ( ((pulse_id-offset) % frequency ) != 0) {
+                  bytes_sent = zmq_socket_->send(0, 0, ZMQ_NOBLOCK|ZMQ_SNDMORE);
+                  if (bytes_sent == 0) {
+                    Debug("ZMQ message [data header] NOT send.\n");
+                  }
                   continue;
                 }
             }
