@@ -152,7 +152,7 @@ void BSRead::read(long pulse_id)
 
         // Send main header
         string main_header_serialized = main_header.str();
-        size_t bytes_sent =zmq_socket_->send(main_header_serialized.c_str(), main_header_serialized.size(), ZMQ_NOBLOCK)|ZMQ_SNDMORE;
+        size_t bytes_sent =zmq_socket_->send(main_header_serialized.c_str(), main_header_serialized.size(), ZMQ_NOBLOCK|ZMQ_SNDMORE);
         if (bytes_sent == 0) {
             Debug("ZMQ message [main header] NOT send.\n");
         }
