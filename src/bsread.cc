@@ -11,6 +11,8 @@
 #include <epicsGuard.h>
 #include <errlog.h>
 #include <recSup.h>
+#include <epicsTime.h>
+#include <epicsTypes.h>
 
 
 #include "md5.h"
@@ -191,6 +193,21 @@ void BSRead::read(long pulse_id)
             long element_size = channel_config->address.field_size;
 
             bytes_sent = zmq_socket_->send(val, element_size*no_elements, ZMQ_NOBLOCK|ZMQ_SNDMORE);
+            if (bytes_sent == 0) {
+                    Debug("ZMQ message [data header] NOT send.\n");
+            }
+
+            //Add timestamp binary blob
+            //Current timestamp is packed into a single 64bit unsigned integer where:
+            // [63:32] = seconds past EPICS epoch (00:00 1/1/1990)
+            // [31:0] = nanoseconds
+            //Note: structure is packed into 64bit int to avoid any problems with structure bit packing 
+            //      and to avoid potential alingment issues
+            uint64_t rtimestamp = (channel_config->address.precord->time.secPastEpoch);
+            rtimestamp = rtimestamp << 32;
+            rtimestamp |= channel_config->address.precord->time.nsec;
+            
+            bytes_sent = zmq_socket_->send(&rtimestamp, sizeof(rtimestamp), ZMQ_NOBLOCK|ZMQ_SNDMORE);
             if (bytes_sent == 0) {
                     Debug("ZMQ message [data header] NOT send.\n");
             }
