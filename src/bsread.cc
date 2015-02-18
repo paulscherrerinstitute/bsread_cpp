@@ -13,6 +13,7 @@
 #include <recSup.h>
 #include <epicsTime.h>
 #include <epicsTypes.h>
+#include <epicsEndian.h>
 
 
 #include "md5.h"
@@ -146,14 +147,17 @@ void BSRead::read(long pulse_id)
 
     try {
         // Construct main header
-        std::ostringstream main_header;
-        main_header << "{ \"htype\":\"bsr_m-1.0\", \"pulse_id\":" << pulse_id << ", \"hash\":\"" << md5(data_header_) << "\"" << " }";
+        // std::ostringstream main_header;
+        Json::Value main_header;
+        main_header["htype"] = "bsr_m-1.0";
+        main_header["pulse_id"] = static_cast<Json::UInt64>(pulse_id);
+        main_header["hash"] = md5(data_header_);
 
         // Check https://bobobobo.wordpress.com/2010/10/17/md5-c-implementation/ for MD5 Hash ...
 
 
         // Send main header
-        string main_header_serialized = main_header.str();
+        string main_header_serialized = writer_.write(main_header);
         size_t bytes_sent =zmq_socket_->send(main_header_serialized.c_str(), main_header_serialized.size(), ZMQ_NOBLOCK|ZMQ_SNDMORE);
         if (bytes_sent == 0) {
             Debug("ZMQ message [main header] NOT send.\n");
@@ -185,6 +189,9 @@ void BSRead::read(long pulse_id)
                 }
             }
 
+            struct dbCommon* precord = channel_config->address.precord;
+            //Lock the
+            dbScanLock(precord);
             //All values are treated in the same way, data header contains information about
             // their types, packing and endianess
 
@@ -203,14 +210,16 @@ void BSRead::read(long pulse_id)
             // [31:0] = nanoseconds
             //Note: structure is packed into 64bit int to avoid any problems with structure bit packing 
             //      and to avoid potential alingment issues
-            uint64_t rtimestamp = (channel_config->address.precord->time.secPastEpoch);
+            uint64_t rtimestamp = (precord->time.secPastEpoch);
             rtimestamp = rtimestamp << 32;
-            rtimestamp |= channel_config->address.precord->time.nsec;
+            rtimestamp |= precord->time.nsec;
             
             bytes_sent = zmq_socket_->send(&rtimestamp, sizeof(rtimestamp), ZMQ_NOBLOCK|ZMQ_SNDMORE);
             if (bytes_sent == 0) {
                     Debug("ZMQ message [data header] NOT send.\n");
             }
+
+            dbScanUnlock(precord);
         }
 
         // Send closing message
@@ -227,6 +236,8 @@ void BSRead::read(long pulse_id)
 std::string BSRead::generateDataHeader(){
     Json::Value root,channels,channel;
     root["htype"] = "bsr_d-1.0";
+    root["bigEndian"] = (EPICS_BYTE_ORDER == EPICS_ENDIAN_BIG);
+
 
     //Iterate over channels and create data header channel entires
     for(vector<BSReadChannelConfig>::iterator iterator = configuration_.begin(); iterator != configuration_.end(); ++iterator){
