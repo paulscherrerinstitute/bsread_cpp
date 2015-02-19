@@ -210,11 +210,14 @@ void BSRead::read(long pulse_id)
             // [31:0] = nanoseconds
             //Note: structure is packed into 64bit int to avoid any problems with structure bit packing 
             //      and to avoid potential alingment issues
-            uint64_t rtimestamp = (precord->time.secPastEpoch);
-            rtimestamp = rtimestamp << 32;
-            rtimestamp |= precord->time.nsec;
+            struct timespec t;
+            epicsTimeToTimespec (&t, &(precord->time)); //Convert to unix time
+
+            uint64_t rtimestamp[2];
+            rtimestamp[0] = t.tv_sec;
+            rtimestamp[1] = t.tv_nsec;
             
-            bytes_sent = zmq_socket_->send(&rtimestamp, sizeof(rtimestamp), ZMQ_NOBLOCK|ZMQ_SNDMORE);
+            bytes_sent = zmq_socket_->send(rtimestamp, sizeof(rtimestamp), ZMQ_NOBLOCK|ZMQ_SNDMORE);
             if (bytes_sent == 0) {
                     Debug("ZMQ message [data header] NOT send.\n");
             }
