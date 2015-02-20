@@ -1,5 +1,5 @@
 require "ZMQ"
-require "BSREAD",2.0.1
+require "BSREAD"
 
 
 dbLoadTemplate "bsread.subs"
