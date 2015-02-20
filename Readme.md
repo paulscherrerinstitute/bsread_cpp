@@ -60,6 +60,10 @@ There are following channels to control and configure __bsread__:
   * __$(P):CONFIGURE__ - For internal use only
   * __$(P):READ__ - Readout record - whenever processed a readout will be triggered	 
 
+## Debug Channels
+  * __$(P):READ.FTVA__ - Time in seconds required to take the last snapshot (double)
+  * __$(P):READ.FTVB__ - Number of snapshot time overruns (FTVA > 1ms) (ulong)
+
 
 # Development
 
