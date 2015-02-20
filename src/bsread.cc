@@ -133,7 +133,7 @@ void BSRead::configure(const string & json_string)
 }
 
 
-void BSRead::read(long pulse_id)
+void BSRead::read(long pulse_id, struct timespec t)
 {
     //Skip read if configuration is not available yet...
     if (configuration_.empty()) {
@@ -148,10 +148,16 @@ void BSRead::read(long pulse_id)
     try {
         // Construct main header
         // std::ostringstream main_header;
-        Json::Value main_header;
+        Json::Value main_header,main_header_global_timestamp;
         main_header["htype"] = "bsr_m-1.0";
         main_header["pulse_id"] = static_cast<Json::UInt64>(pulse_id);
         main_header["hash"] = md5(data_header_);
+
+        main_header_global_timestamp["epoch"]=static_cast<Json::UInt64>(t.tv_sec);
+        main_header_global_timestamp["ns"]=static_cast<Json::UInt64>(t.tv_nsec);
+
+        main_header["global_timestamp"]=main_header_global_timestamp;
+
 
         // Check https://bobobobo.wordpress.com/2010/10/17/md5-c-implementation/ for MD5 Hash ...
 
@@ -205,11 +211,9 @@ void BSRead::read(long pulse_id)
             }
 
             //Add timestamp binary blob
-            //Current timestamp is packed into a single 64bit unsigned integer where:
-            // [63:32] = seconds past EPICS epoch (00:00 1/1/1990)
-            // [31:0] = nanoseconds
-            //Note: structure is packed into 64bit int to avoid any problems with structure bit packing 
-            //      and to avoid potential alingment issues
+            //Current timestamp is packed into a two 64bit unsigned integers where:
+            //[0] seconds past POSIX epoch (00:00 1.1.1970)
+            //[1] nanoseconds since last full second.
             struct timespec t;
             epicsTimeToTimespec (&t, &(precord->time)); //Convert to unix time
 
