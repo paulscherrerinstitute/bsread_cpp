@@ -82,6 +82,24 @@ long bsread_read_init(aSubRecord* prec){
         Debug("INPA must be a scalar.\n");
         return fail_init(prec);
     }
+    //INPB is master timestamp seconds
+    if (prec->ftb != DBF_ULONG) {
+        Debug("FTB must be ULONG.\n");
+        return fail_init(prec);
+    }
+    if (prec->nob != 1) {
+        Debug("INPB must be a scalar.\n");
+        return fail_init(prec);
+    }
+    //INPC is master timestamp nsec
+    if (prec->ftc != DBF_ULONG) {
+        Debug("FTA must be ULONG.\n");
+        return fail_init(prec);
+    }
+    if (prec->noc != 1) {
+        Debug("INPA must be a scalar.\n");
+        return fail_init(prec);
+    }
 
     // VALA = snapshot duration
     if (prec->ftva != DBF_DOUBLE) {
@@ -108,14 +126,21 @@ long bsread_read_init(aSubRecord* prec){
 
 long bsread_read(aSubRecord* prec){
     Debug("read\n");
-    long* a = (long*)(prec->a);
-    long pulse_id = a[0];
+    //Extract pulse id
+    unsigned long* a = (unsigned long*)(prec->a);
+    unsigned long pulse_id = a[0];
+
+    //Extract timestamp
+    struct timespec t;
+    t.tv_sec = ((unsigned long*)(prec->b))[0];
+    t.tv_nsec = ((unsigned long*)(prec->c))[0];
+
 
     //Serialization performance measurment
     struct timespec t0, t1;
     clock_gettime(CLOCK_MONOTONIC, &t0);
 
-    BSRead::get_instance()->read(pulse_id);
+    BSRead::get_instance()->read(pulse_id,t);
 
     clock_gettime(CLOCK_MONOTONIC, &t1);
     double timeSpan = (t1.tv_sec * 1e9 + t1.tv_nsec) - (t0.tv_sec * 1e9 + t0.tv_nsec);
