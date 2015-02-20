@@ -44,7 +44,7 @@ public:
     void configure(const std::string & json);
 
     // Read all currently configured channels and send values out via ZMQ;
-    void read(long pulse_id);
+    void read(long pulse_id, struct timespec timestamp);
 
     //This function has to be called from the same thread as read(). It will check wether new configuration is 
     //available and apply it. Returns true if new configuration was applied.

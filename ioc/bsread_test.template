@@ -30,3 +30,11 @@ record(calc, "$(P):TEST_4") {
 record(stringin, "$(P):TEST_STRING") {
         field(VAL,"Hello world")
  }
+
+
+record(waveform, "$(P):TEST_ARRAY")
+{
+	field(SCAN, "Passive")
+	field(NELM, "10")	
+	field(FTVL, "DOUBLE")	
+}
