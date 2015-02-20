@@ -26,8 +26,7 @@ The stream consists of messages consisting of several sub-messages.
 
 ```
 
-Values are  either encoded in LITTLE_ENDIAN if
-the IOC runs on a Linux machine or BIG_ENDIAN if the IOC runs on vxWorks.
+The specification can be be found at https://docs.google.com/document/d/1BynCjz5Ax-onDW0y8PVQnYmSssb6fAyHkdDl1zh21yY/edit#
 
 
 # Installation
