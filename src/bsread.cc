@@ -153,7 +153,7 @@ void BSRead::read(long pulse_id, struct timespec t)
         main_header["pulse_id"] = static_cast<Json::UInt64>(pulse_id);
         main_header["hash"] = md5(data_header_);
 
-        main_header_global_timestamp["epoch"]=static_cast<Json::UInt64>(t.tv_sec);
+        main_header_global_timestamp["epoch"]=static_cast<Json::UInt64>(t.tv_sec - 631152000); //Offset epics EPOCH into POSIX epich 
         main_header_global_timestamp["ns"]=static_cast<Json::UInt64>(t.tv_nsec);
 
         main_header["global_timestamp"]=main_header_global_timestamp;
@@ -207,7 +207,7 @@ void BSRead::read(long pulse_id, struct timespec t)
 
             bytes_sent = zmq_socket_->send(val, element_size*no_elements, ZMQ_NOBLOCK|ZMQ_SNDMORE);
             if (bytes_sent == 0) {
-                    Debug("ZMQ message [data header] NOT send.\n");
+                    Debug("ZMQ message [data] NOT send.\n");
             }
 
             //Add timestamp binary blob
@@ -223,7 +223,7 @@ void BSRead::read(long pulse_id, struct timespec t)
             
             bytes_sent = zmq_socket_->send(rtimestamp, sizeof(rtimestamp), ZMQ_NOBLOCK|ZMQ_SNDMORE);
             if (bytes_sent == 0) {
-                    Debug("ZMQ message [data header] NOT send.\n");
+                    Debug("ZMQ message [timestamp] NOT send.\n");
             }
 
             dbScanUnlock(precord);
