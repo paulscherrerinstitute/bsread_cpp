@@ -29,7 +29,8 @@ using namespace zmq;
  * Create a zmq context, create and connect a zmq push socket
  * If a zmq context or zmq socket creation failed, an zmq exception will be thrown
  */
-BSRead::BSRead(): zmq_context_(new zmq::context_t(1)), zmq_socket_(new socket_t(*zmq_context_, ZMQ_PUSH)), mutex_(), configuration_()
+BSRead::BSRead(): zmq_context_(new zmq::context_t(1)), zmq_socket_(new socket_t(*zmq_context_, ZMQ_PUSH)), mutex_(), configuration_(),
+zmq_overflows_(0)
 {
     const char * const address = "tcp://*:9999";
     int high_water_mark = 100;
@@ -166,13 +167,15 @@ void BSRead::read(long pulse_id, struct timespec t)
         string main_header_serialized = writer_.write(main_header);
         size_t bytes_sent =zmq_socket_->send(main_header_serialized.c_str(), main_header_serialized.size(), ZMQ_NOBLOCK|ZMQ_SNDMORE);
         if (bytes_sent == 0) {
-            Debug("ZMQ message [main header] NOT send.\n");
+            zmq_overflows_++;
+            Debug("ZMQ message [main header] NOT send. [%ld]\n",zmq_overflows_);            
         }
 
         // Send data header
         bytes_sent =zmq_socket_->send(data_header_.c_str(), data_header_.size(), ZMQ_NOBLOCK|ZMQ_SNDMORE);
         if (bytes_sent == 0) {
-            Debug("ZMQ message [data header] NOT send.\n");
+            zmq_overflows_++;
+            Debug("ZMQ message [data header] NOT send. [%ld]\n",zmq_overflows_);
         }
 
         // Read channels and send sub-messages
@@ -189,14 +192,15 @@ void BSRead::read(long pulse_id, struct timespec t)
                 if ( ((pulse_id-offset) % frequency ) != 0) {
                   bytes_sent = zmq_socket_->send(0, 0, ZMQ_NOBLOCK|ZMQ_SNDMORE);
                   if (bytes_sent == 0) {
-                    Debug("ZMQ message [data header] NOT send.\n");
+                    zmq_overflows_++;
+                    Debug("ZMQ message [NODAT] NOT send.[%ld]\n",zmq_overflows_);
                   }
                   continue;
                 }
             }
 
             struct dbCommon* precord = channel_config->address.precord;
-            //Lock the
+            //Lock the record beeing read
             dbScanLock(precord);
             //All values are treated in the same way, data header contains information about
             // their types, packing and endianess
@@ -207,7 +211,8 @@ void BSRead::read(long pulse_id, struct timespec t)
 
             bytes_sent = zmq_socket_->send(val, element_size*no_elements, ZMQ_NOBLOCK|ZMQ_SNDMORE);
             if (bytes_sent == 0) {
-                    Debug("ZMQ message [data] NOT send.\n");
+                    zmq_overflows_++;
+                    Debug("ZMQ message [data] NOT send. [%ld]\n",zmq_overflows_);
             }
 
             //Add timestamp binary blob
@@ -223,16 +228,19 @@ void BSRead::read(long pulse_id, struct timespec t)
             
             bytes_sent = zmq_socket_->send(rtimestamp, sizeof(rtimestamp), ZMQ_NOBLOCK|ZMQ_SNDMORE);
             if (bytes_sent == 0) {
-                    Debug("ZMQ message [timestamp] NOT send.\n");
+                    zmq_overflows_++;
+                    Debug("ZMQ message [timestamp] NOT send. [%ld]\n",zmq_overflows_);
             }
 
             dbScanUnlock(precord);
         }
 
         // Send closing message
-//        char empty_char[1];
-        zmq_socket_->send(0, 0, ZMQ_NOBLOCK);
-
+        bytes_sent = zmq_socket_->send(0, 0, ZMQ_NOBLOCK);
+        if (bytes_sent == 0) {
+            zmq_overflows_++;
+            Debug("ZMQ message [EOM] NOT send.[%ld]\n",zmq_overflows_);
+        }
 
     } catch(zmq::error_t &e ){
         Debug("ZMQ send failed: %s  \n", e.what());
@@ -292,6 +300,11 @@ bool BSRead::applyConfiguration(){
     }
 
     return newConfig;
+}
+
+
+unsigned long BSRead::numberOfZmqOverflows(){
+    return zmq_overflows_;
 }
 
 /**

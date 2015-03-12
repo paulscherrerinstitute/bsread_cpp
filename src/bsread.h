@@ -49,24 +49,30 @@ public:
     //This function has to be called from the same thread as read(). It will check wether new configuration is 
     //available and apply it. Returns true if new configuration was applied.
     bool applyConfiguration();
+
+    unsigned long numberOfZmqOverflows();
     // Get singleton instance of this class
     static BSRead* get_instance();
 
 private:
 
-    BSRead();
-
+    //ZMQ related fields
     zmq::context_t* zmq_context_;
     zmq::socket_t*  zmq_socket_;
-    epicsMutex mutex_;
+    unsigned long zmq_overflows_;   //Number of zmq send errors
+
+    epicsMutex mutex_;          //synchornisation between config/read thread
     Json::FastWriter writer_;   //Json writer instance used for generating data headers
     std::string data_header_;
+    
     std::vector<BSReadChannelConfig> configuration_;
     // Contains next configuration. Incoming configuration is stored
     // here and than copied into configuration_ within BSRead::read method.
     // This prevents blocking of read method.
     std::vector<BSReadChannelConfig> configuration_incoming_;
 
+
+    BSRead();
     std::string generateDataHeader();
 };
 
