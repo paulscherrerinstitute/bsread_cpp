@@ -135,7 +135,7 @@ long bsread_read_init(aSubRecord* prec){
 
 
 long bsread_read(aSubRecord* prec){
-    Debug("read\n");
+    //Debug("read\n");
     //Extract pulse id
     unsigned long* a = (unsigned long*)(prec->a);
     unsigned long pulse_id = a[0];
