@@ -120,12 +120,22 @@ long bsread_read_init(aSubRecord* prec){
         Debug("NOVB must be 1\n");
         return fail_init(prec);
     }
+
+    // VALC = number of dropped messages
+    if (prec->ftvc != DBF_ULONG) {
+        Debug("FTVC must be ULONG\n");
+        return fail_init(prec);
+    }
+    if (prec->novc != 1){
+        Debug("NOVB must be 1\n");
+        return fail_init(prec);
+    }
     return 0;
 }
 
 
 long bsread_read(aSubRecord* prec){
-    Debug("read\n");
+    //Debug("read\n");
     //Extract pulse id
     unsigned long* a = (unsigned long*)(prec->a);
     unsigned long pulse_id = a[0];
@@ -156,6 +166,8 @@ long bsread_read(aSubRecord* prec){
         return -1; //Throw record into an alarm state
     }
 
+    //Update the overflow count
+    (*(unsigned long*)prec->valc) = BSRead::get_instance()->numberOfZmqOverflows();
     //Check if new configuration is available
     BSRead::get_instance()->applyConfiguration();
     return 0;
