@@ -122,11 +122,11 @@ long bsread_read_init(aSubRecord* prec){
     }
 
     // VALC = number of dropped messages
-    if (prec->ftvb != DBF_ULONG) {
-        Debug("FTVB must be ULONG\n");
+    if (prec->ftvc != DBF_ULONG) {
+        Debug("FTVC must be ULONG\n");
         return fail_init(prec);
     }
-    if (prec->novb != 1){
+    if (prec->novc != 1){
         Debug("NOVB must be 1\n");
         return fail_init(prec);
     }

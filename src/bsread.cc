@@ -236,11 +236,11 @@ void BSRead::read(long pulse_id, struct timespec t)
         }
 
         // Send closing message
-        bytes_sent = zmq_socket_->send(0, 0, ZMQ_NOBLOCK);
-        if (bytes_sent == 0) {
-            zmq_overflows_++;
-            Debug("ZMQ message [EOM] NOT send.[%ld]\n",zmq_overflows_);
-        }
+        bytes_sent = zmq_socket_->send(0, 0, ZMQ_NOBLOCK); //We can not check for EAGAIN on 0-length message :/ 
+        // if (bytes_sent == 0) {
+        //     zmq_overflows_++;
+        //     Debug("ZMQ message [EOM] NOT send.[%ld]\n",zmq_overflows_);
+        // }
 
     } catch(zmq::error_t &e ){
         Debug("ZMQ send failed: %s  \n", e.what());
