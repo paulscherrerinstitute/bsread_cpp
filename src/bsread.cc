@@ -29,8 +29,12 @@ using namespace zmq;
  * Create a zmq context, create and connect a zmq push socket
  * If a zmq context or zmq socket creation failed, an zmq exception will be thrown
  */
-BSRead::BSRead(): zmq_context_(new zmq::context_t(1)), zmq_socket_(new socket_t(*zmq_context_, ZMQ_PUSH)), mutex_(), configuration_(),
-zmq_overflows_(0)
+BSRead::BSRead():
+    zmq_context_(new zmq::context_t(1)),
+    zmq_socket_(new socket_t(*zmq_context_, ZMQ_PUSH)),
+    zmq_overflows_(0),
+    mutex_(),
+    configuration_()
 {
     const char * const address = "tcp://*:9999";
     int high_water_mark = 100;
