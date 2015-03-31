@@ -270,6 +270,21 @@ std::string BSRead::generateDataHeader(){
         else if(channel_config->address.dbr_field_type == DBR_STRING){
             channel["type"]="String";
         }
+        else if(channel_config->address.dbr_field_type == DBR_LONG){
+            channel["type"]="Long";
+        }
+        else if(channel_config->address.dbr_field_type == DBR_ULONG){
+            channel["type"]="ULong";
+        }
+        else if(channel_config->address.dbr_field_type == DBR_SHORT){
+            channel["type"]="Short";
+        }
+        else if(channel_config->address.dbr_field_type == DBR_USHORT){
+            channel["type"]="Short";
+        }
+        else{
+            Debug("BSREAD: Channel %s has unsuporrted type: %d\n",channel_config->channel_name.c_str(), channel_config->address.dbr_field_type);
+        }
 
         channels.append(channel);
     }
@@ -277,6 +292,7 @@ std::string BSRead::generateDataHeader(){
     root["channels"] = channels;
 
     //Serialize to string
+    // Debug("%s",writer_.write(root).c_str());
     return writer_.write(root);
 
 }
