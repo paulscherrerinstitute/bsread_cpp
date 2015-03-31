@@ -9,7 +9,7 @@ SOURCES += src/bsread.cc
 SOURCES += src/json.cc
 SOURCES += src/md5.cc
 
-DBDS += bsread.dbd
+DBDS += src/bsread.dbd
 
 USR_CXXFLAGS += -fno-operator-names
 USR_CXXFLAGS += -DDEBUG
