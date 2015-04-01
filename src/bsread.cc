@@ -280,7 +280,7 @@ std::string BSRead::generateDataHeader(){
             channel["type"]="Short";
         }
         else if(channel_config->address.dbr_field_type == DBR_USHORT){
-            channel["type"]="Short";
+            channel["type"]="UShort";
         }
         else{
             Debug("BSREAD: Channel %s has unsuporrted type: %d\n",channel_config->channel_name.c_str(), channel_config->address.dbr_field_type);
