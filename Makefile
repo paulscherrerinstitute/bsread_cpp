@@ -9,11 +9,10 @@ SOURCES += src/bsread.cc
 SOURCES += src/json.cc
 SOURCES += src/md5.cc
 
-DBD += src/bsread.dbd
+DBDS += src/bsread.dbd
 
 USR_CXXFLAGS += -fno-operator-names
 USR_CXXFLAGS += -DDEBUG
 USR_CFLAGS += -DDEBUG
 
-LIBVERSION = 3.0.1
 PROJECT = BSREAD
