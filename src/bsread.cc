@@ -37,7 +37,7 @@ BSRead::BSRead():
     configuration_()
 {
     const char * const address = "tcp://*:9999";
-    int high_water_mark = 100;
+    int high_water_mark = 1000;
     zmq_socket_->setsockopt(ZMQ_SNDHWM, &high_water_mark, sizeof(high_water_mark));
     zmq_socket_->bind(address);
 }
@@ -266,6 +266,9 @@ std::string BSRead::generateDataHeader(){
 
         if(channel_config->address.dbr_field_type == DBR_DOUBLE){
             channel["type"]="Double";
+        }
+        else if(channel_config->address.dbr_field_type == DBR_FLOAT){
+            channel["type"]="Float";
         }
         else if(channel_config->address.dbr_field_type == DBR_STRING){
             channel["type"]="String";
