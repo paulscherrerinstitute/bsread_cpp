@@ -1,0 +1,24 @@
+# Macros
+# P  -  Record prefix, e.g. MTEST-BSREAD
+
+record(calc, "$(P):SIM-PULSE")
+{
+	field(DESC, "Pulse id counter")
+    field(SCAN,".01 second")
+	field(FLNK, "$(P):READ")
+	field(CALC, "A+VAL+1")
+	field(INPA, "0")
+	field(EGU, "Counts")
+}
+
+record(calc, "$(P):SIM-TS-SEC")
+{
+	field(DESC, "Pulse id counter")
+    field(SCAN,".1 second")
+#	field(FLNK, "$(P):READ")
+	field(CALC, "A+VAL+1")
+	field(INPA, "0")
+	field(EGU, "Counts")
+}
+
+record(calc, "$(P):SIM-TS-NSEC")
