@@ -230,7 +230,13 @@ void BSRead::read(long pulse_id, struct timespec t)
             rtimestamp[0] = t.tv_sec;
             rtimestamp[1] = t.tv_nsec;
             
-            bytes_sent = zmq_socket_->send(rtimestamp, sizeof(rtimestamp), ZMQ_NOBLOCK|ZMQ_SNDMORE);
+            //Last element?
+            int zmq_flags = ZMQ_NOBLOCK | ZMQ_SNDMORE;
+            if( iterator == (--configuration_.end())){
+                zmq_flags = ZMQ_NOBLOCK;
+            }
+
+            bytes_sent = zmq_socket_->send(rtimestamp, sizeof(rtimestamp), zmq_flags);
             if (bytes_sent == 0) {
                     zmq_overflows_++;
                     Debug("ZMQ message [timestamp] NOT send. [%ld]\n",zmq_overflows_);
@@ -238,13 +244,6 @@ void BSRead::read(long pulse_id, struct timespec t)
 
             dbScanUnlock(precord);
         }
-
-        // Send closing message
-        bytes_sent = zmq_socket_->send(0, 0, ZMQ_NOBLOCK); //We can not check for EAGAIN on 0-length message :/ 
-        // if (bytes_sent == 0) {
-        //     zmq_overflows_++;
-        //     Debug("ZMQ message [EOM] NOT send.[%ld]\n",zmq_overflows_);
-        // }
 
     } catch(zmq::error_t &e ){
         Debug("ZMQ send failed: %s  \n", e.what());

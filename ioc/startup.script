@@ -1,5 +1,4 @@
-require "ZMQ"
-require "BSREAD"
+require "BSREAD",3.0.1
 
 
 dbLoadTemplate "bsread.subs"

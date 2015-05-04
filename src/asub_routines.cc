@@ -147,13 +147,13 @@ long bsread_read(aSubRecord* prec){
 
 
     //Serialization performance measurment
-    struct timespec t0, t1;
-    clock_gettime(CLOCK_MONOTONIC, &t0);
+    epicsTimeStamp t0,t1;
+    epicsTimeGetCurrent(&t0);
 
     BSRead::get_instance()->read(pulse_id,t);
 
-    clock_gettime(CLOCK_MONOTONIC, &t1);
-    double timeSpan = (t1.tv_sec * 1e9 + t1.tv_nsec) - (t0.tv_sec * 1e9 + t0.tv_nsec);
+    epicsTimeGetCurrent(&t1);
+    double timeSpan = (t1.secPastEpoch * 1e9 + t1.nsec) - (t0.secPastEpoch * 1e9 + t0.nsec);
     timeSpan/=1e6; //time in ms
 
     // Put the serialization time into VALA.
