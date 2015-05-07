@@ -5,27 +5,6 @@ via ZMQ. All channels to be read out need to reside on the same IOC than the __b
 The ZMQ data stream is served in a ZMQ PUSH/PULL delivery scheme. The default port is 9999.
 The stream consists of messages consisting of several sub-messages.
 
-```
-+-------------------------+
-|  Main Header            |
-|                         |
-+-------------------------+
-|  Data Header            |
-|                         |
-+-------------------------+
-|  Value                  |
-+-------------------------+
-|  Timestamp              |
-+-------------------------+
-           ...
-+-------------------------+
-|  Value                  |
-+-------------------------+
-|  Timestamp              |
-+-------------------------+
-
-```
-
 The specification can be be found at https://docs.google.com/document/d/1BynCjz5Ax-onDW0y8PVQnYmSssb6fAyHkdDl1zh21yY/edit#
 
 
