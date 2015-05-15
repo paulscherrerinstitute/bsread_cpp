@@ -29,3 +29,11 @@ BSREAD can be used without timing receiver for testing puropses, for that add th
 
 
 		< $(TEMPLATES)/BSREAD/bsread_sim.startup
+
+
+## Template installation
+
+Set your INSTBASE variable to desired location (e.g. /fin/devl) and run 
+		./install.sh 
+
+		
