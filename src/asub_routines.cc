@@ -41,9 +41,9 @@ static long fail_process(aSubRecord *prec)
 }
 
 long bsread_configure_init(aSubRecord* record){
-    Debug("configure init\n");
+    Debug(2,"configure init\n");
     if (record->fta != DBF_CHAR) {
-        Debug("FTA has invalid type. Must be a CHAR");
+        errlogPrintf("FTA has invalid type. Must be a CHAR");
         return fail_init(record);
     }
 
@@ -52,18 +52,18 @@ long bsread_configure_init(aSubRecord* record){
 
 
 long bsread_configure(aSubRecord* prec){
-    Debug("configure\n");
+    Debug(2,"configure\n");
     /* Reading from a string waveform */
     char const *configuration = (char const *) prec->a;
         if (strnlen(configuration, prec->noa) == prec->noa) {
-            Debug("Config is not null terminated!\n");
+            errlogPrintf("Config is not null terminated!\n");
             return fail_process(prec);
         }
     try{
         BSRead::get_instance()->configure(string(configuration));
     }
     catch(runtime_error & e){
-        Debug("Problem parsing BSDAQ configuration: %s\n", e.what());
+        errlogPrintf("Problem parsing BSDAQ configuration: %s\n", e.what());
         return fail_process(prec);
     }
 
@@ -72,62 +72,62 @@ long bsread_configure(aSubRecord* prec){
 
 
 long bsread_read_init(aSubRecord* prec){
-    Debug("read init\n");
+    Debug(2,"read init\n");
     // INPA = bunch ID
     if (prec->fta != DBF_ULONG) {
-        Debug("FTA must be ULONG.\n");
+        errlogPrintf("FTA must be ULONG.\n");
         return fail_init(prec);
     }
     if (prec->noa != 1) {
-        Debug("INPA must be a scalar.\n");
+        errlogPrintf("INPA must be a scalar.\n");
         return fail_init(prec);
     }
     //INPB is master timestamp seconds
     if (prec->ftb != DBF_ULONG) {
-        Debug("FTB must be ULONG.\n");
+        errlogPrintf("FTB must be ULONG.\n");
         return fail_init(prec);
     }
     if (prec->nob != 1) {
-        Debug("INPB must be a scalar.\n");
+        errlogPrintf("INPB must be a scalar.\n");
         return fail_init(prec);
     }
     //INPC is master timestamp nsec
     if (prec->ftc != DBF_ULONG) {
-        Debug("FTA must be ULONG.\n");
+        errlogPrintf("FTA must be ULONG.\n");
         return fail_init(prec);
     }
     if (prec->noc != 1) {
-        Debug("INPA must be a scalar.\n");
+        errlogPrintf("INPA must be a scalar.\n");
         return fail_init(prec);
     }
 
     // VALA = snapshot duration
     if (prec->ftva != DBF_DOUBLE) {
-        Debug("FTVA must be DOUBLE.\n");
+        errlogPrintf("FTVA must be DOUBLE.\n");
         return fail_init(prec);
     }
     if (prec->nova != 1) {
-        Debug("NOVA must be 1.\n");
+        errlogPrintf("NOVA must be 1.\n");
         return fail_init(prec);
     }
 
     // VALB = number of timeouts
     if (prec->ftvb != DBF_ULONG) {
-        Debug("FTVB must be ULONG\n");
+        errlogPrintf("FTVB must be ULONG\n");
         return fail_init(prec);
     }
     if (prec->novb != 1){
-        Debug("NOVB must be 1\n");
+        errlogPrintf("NOVB must be 1\n");
         return fail_init(prec);
     }
 
     // VALC = number of dropped messages
     if (prec->ftvc != DBF_ULONG) {
-        Debug("FTVC must be ULONG\n");
+        errlogPrintf("FTVC must be ULONG\n");
         return fail_init(prec);
     }
     if (prec->novc != 1){
-        Debug("NOVB must be 1\n");
+        errlogPrintf("NOVB must be 1\n");
         return fail_init(prec);
     }
     return 0;
@@ -135,7 +135,7 @@ long bsread_read_init(aSubRecord* prec){
 
 
 long bsread_read(aSubRecord* prec){
-    //Debug("read\n");
+    Debug(3,"read\n");
     //Extract pulse id
     unsigned long* a = (unsigned long*)(prec->a);
     unsigned long pulse_id = a[0];

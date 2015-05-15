@@ -14,11 +14,17 @@
 #include "json.h"
 
 
+
+extern int bsread_debug;
+
+
 #ifdef DEBUG
-#define Debug(args...) printf(args)
+#define Debug(level,args...) if(bsread_debug >= level) printf(args); ;
 #else
-#define Debug(args...)
+#define Debug(level,args...)
 #endif
+
+
 
 // Class holding the configuration for one channel
 class BSReadChannelConfig {

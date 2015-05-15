@@ -57,14 +57,14 @@ void BSRead::configure(const string & json_string)
     bool parsingSuccessful = reader.parse( json_string, root );
     if ( !parsingSuccessful ){
        string msg = "Could not parse JSON:" + reader.getFormatedErrorMessages();
-       Debug(msg.c_str());
+       errlogPrintf(msg.c_str());
        throw runtime_error(msg);
     }
 
     const Json::Value channels = root["channels"];
     if (channels.empty()) {
         string msg = "Invalid configuration - missing mandatory channels attribute";
-        Debug(msg.c_str());
+        errlogPrintf(msg.c_str());
         throw runtime_error(msg);
     } else {
         //Parsing was successful so we can drop existing configuration
@@ -89,7 +89,7 @@ void BSRead::configure(const string & json_string)
             if (current_channel["offset"] != Json::Value::null) {
                 int offset = 0;
                 if (!(istringstream(current_channel["offset"].asString()) >> offset)) {
-                    Debug("Invalid offset for channel: %s\n", config.channel_name.c_str());
+                    errlogPrintf("Invalid offset for channel: %s\n", config.channel_name.c_str());
                 }
                 else {
                     config.offset = offset;
@@ -99,14 +99,14 @@ void BSRead::configure(const string & json_string)
             if (current_channel["frequency"] != Json::Value::null) {
                 int frequency = 0;
                 if (!(istringstream(current_channel["frequency"].asString()) >> frequency)) {
-                    Debug("Invalid frequency for channel: %s\n", config.channel_name.c_str());
+                    errlogPrintf("Invalid frequency for channel: %s\n", config.channel_name.c_str());
                 }
                 else {
                     if (frequency > 0) {
                         config.frequency = frequency;
                     }
                     else {
-                        Debug("Invalid frequency for channel: %s . [frequency<=0] \n", config.channel_name.c_str()); // TODO Need to throw exception
+                        errlogPrintf("Invalid frequency for channel: %s . [frequency<=0] \n", config.channel_name.c_str()); // TODO Need to throw exception
                     }
                 }
             }
@@ -114,13 +114,13 @@ void BSRead::configure(const string & json_string)
             //Find address
             if(dbNameToAddr(config.channel_name.c_str(), &(config.address))) {
                 //Could not find desired record
-                Debug("Channel %s does not exist!", config.channel_name.c_str()); // TODO Need to throw exception
+                errlogPrintf("Channel %s does not exist!", config.channel_name.c_str()); // TODO Need to throw exception
                 continue;
             }
 
            configuration_incoming_.push_back(config);
             
-            Debug("Added channel %s offset: %d  frequency: %d\n", config.channel_name.c_str(), config.offset, config.frequency);
+            Debug(1,"Added channel %s offset: %d  frequency: %d\n", config.channel_name.c_str(), config.offset, config.frequency);
 
             data_header_stream << "{ \"name\":\"" << config.channel_name << "\", \"type\":\"";
             if(config.address.dbr_field_type == DBR_DOUBLE){
@@ -171,14 +171,14 @@ void BSRead::read(long pulse_id, struct timespec t)
         size_t bytes_sent =zmq_socket_->send(main_header_serialized.c_str(), main_header_serialized.size(), ZMQ_NOBLOCK|ZMQ_SNDMORE);
         if (bytes_sent == 0) {
             zmq_overflows_++;
-            Debug("ZMQ message [main header] NOT send. [%ld]\n",zmq_overflows_);            
+            Debug(2,"ZMQ message [main header] NOT send. [%ld]\n",zmq_overflows_);
         }
 
         // Send data header
         bytes_sent =zmq_socket_->send(data_header_.c_str(), data_header_.size(), ZMQ_NOBLOCK|ZMQ_SNDMORE);
         if (bytes_sent == 0) {
             zmq_overflows_++;
-            Debug("ZMQ message [data header] NOT send. [%ld]\n",zmq_overflows_);
+            Debug(2,"ZMQ message [data header] NOT send. [%ld]\n",zmq_overflows_);
         }
 
         // Read channels and send sub-messages
@@ -196,7 +196,7 @@ void BSRead::read(long pulse_id, struct timespec t)
                   bytes_sent = zmq_socket_->send(0, 0, ZMQ_NOBLOCK|ZMQ_SNDMORE);
                   if (bytes_sent == 0) {
                     zmq_overflows_++;
-                    Debug("ZMQ message [NODAT] NOT send.[%ld]\n",zmq_overflows_);
+                    Debug(2,"ZMQ message [NODAT] NOT send.[%ld]\n",zmq_overflows_);
                   }
                   continue;
                 }
@@ -215,7 +215,7 @@ void BSRead::read(long pulse_id, struct timespec t)
             bytes_sent = zmq_socket_->send(val, element_size*no_elements, ZMQ_NOBLOCK|ZMQ_SNDMORE);
             if (bytes_sent == 0) {
                     zmq_overflows_++;
-                    Debug("ZMQ message [data] NOT send. [%ld]\n",zmq_overflows_);
+                    Debug(2,"ZMQ message [data] NOT send. [%ld]\n",zmq_overflows_);
             }
 
             //Add timestamp binary blob
@@ -238,14 +238,14 @@ void BSRead::read(long pulse_id, struct timespec t)
             bytes_sent = zmq_socket_->send(rtimestamp, sizeof(rtimestamp), zmq_flags);
             if (bytes_sent == 0) {
                     zmq_overflows_++;
-                    Debug("ZMQ message [timestamp] NOT send. [%ld]\n",zmq_overflows_);
+                    Debug(2,"ZMQ message [timestamp] NOT send. [%ld]\n",zmq_overflows_);
             }
 
             dbScanUnlock(precord);
         }
 
     } catch(zmq::error_t &e ){
-        Debug("ZMQ send failed: %s  \n", e.what());
+        Debug(2,"ZMQ send failed: %s  \n", e.what());
     }
 
 }
@@ -284,7 +284,8 @@ std::string BSRead::generateDataHeader(){
             channel["type"]="UShort";
         }
         else{
-            Debug("BSREAD: Channel %s has unsuporrted type: %d\n",channel_config->channel_name.c_str(), channel_config->address.dbr_field_type);
+            errlogPrintf("BSREAD: Channel %s has unsuporrted type: %d\n",channel_config->channel_name.c_str(), channel_config->address.dbr_field_type);
+            continue;
         }
 
         channels.append(channel);
@@ -293,7 +294,7 @@ std::string BSRead::generateDataHeader(){
     root["channels"] = channels;
 
     //Serialize to string
-    // Debug("%s",writer_.write(root).c_str());
+    // Debug(2,"%s",writer_.write(root).c_str());
     return writer_.write(root);
 
 }
@@ -304,7 +305,7 @@ bool BSRead::applyConfiguration(){
     //Never block! 
     if(mutex_.tryLock()){
        if(configuration_incoming_.size()){
-           Debug("Apply new configuration\n");
+           Debug(1,"Apply new configuration\n");
            
            // Todo Could be more efficient
            // could be, should be? Regardless of implementation we will always need
@@ -335,4 +336,11 @@ BSRead* BSRead::get_instance()
 {
     static BSRead instance_;
     return &instance_;
+}
+
+int bsread_debug=0;
+
+#include <epicsExport.h>
+extern "C"{
+    epicsExportAddress(int,bsread_debug);
 }
