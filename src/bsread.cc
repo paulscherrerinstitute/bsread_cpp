@@ -158,11 +158,10 @@ void BSRead::read(long pulse_id, struct timespec t)
         main_header["pulse_id"] = static_cast<Json::UInt64>(pulse_id);
         main_header["hash"] = md5(data_header_);
 
-        main_header_global_timestamp["epoch"]=static_cast<Json::UInt64>(t.tv_sec - 631152000); //Offset epics EPOCH into POSIX epich 
+        main_header_global_timestamp["epoch"]=static_cast<Json::UInt64>(t.tv_sec + 631152000); //Offset epics EPOCH into POSIX epich 
         main_header_global_timestamp["ns"]=static_cast<Json::UInt64>(t.tv_nsec);
 
         main_header["global_timestamp"]=main_header_global_timestamp;
-
 
         // Check https://bobobobo.wordpress.com/2010/10/17/md5-c-implementation/ for MD5 Hash ...
 
