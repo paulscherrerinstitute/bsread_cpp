@@ -60,6 +60,16 @@ make install
 __Note__: For spotting problems easier and quicker it is recommended to prepend the __dye__ command before the
 actual make statement.
 
+
+* Compilation using vanilla EPICS build system
+
+Set the correct parameters (EPICS_BASE, etc) in `configure/RELEASE`, change directory to src and run make. 
+
+    cd src
+    make
+
+The output will be in $TOP/lib/$arch 
+
 ## JSON
 The json.cc and json.h files where generated from the json-cpp project. Following steps are required to do so
 
