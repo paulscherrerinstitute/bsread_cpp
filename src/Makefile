@@ -19,11 +19,13 @@ DBD += bsread.dbd
 bsread_SRCS += asub_routines.cc
 bsread_SRCS += bsread.cc
 bsread_SRCS += json.cc
+bsread_SRCS += md5.cc
 
 bsread_LIBS += $(EPICS_BASE_IOC_LIBS)
-bsread_SYS_LIBS += zmq
+bsread_SYS_LIBS_Linux += zmq
+bsread_LIBS_WIN32 += libzmq
 
-CXXFLAGS+=-fno-operator-names
+CXXFLAGS_Linux+=-fno-operator-names
 
 #===========================
 

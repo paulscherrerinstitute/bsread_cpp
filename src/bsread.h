@@ -18,11 +18,21 @@
 extern int bsread_debug;
 
 
+
 #ifdef DEBUG
-#define Debug(level,args...) if(bsread_debug >= level) printf(args); ;
+ #ifdef _WIN32
+  #define Debug(level,...) if(bsread_debug >= level) printf(__VA_ARGS__); ;
+ #else
+  #define Debug(level,args...) if(bsread_debug >= level) printf(args); ;
+ #endif
 #else
-#define Debug(level,args...)
+ #ifdef _WIN32
+  #define Debug(level,...)
+ #else
+  #define Debug(level,args...)
+ #endif
 #endif
+
 
 
 
@@ -52,7 +62,7 @@ public:
     // Read all currently configured channels and send values out via ZMQ;
     void read(long pulse_id, struct timespec timestamp);
 
-    //This function has to be called from the same thread as read(). It will check wether new configuration is 
+    //This function has to be called from the same thread as read(). It will check wether new configuration is
     //available and apply it. Returns true if new configuration was applied.
     bool applyConfiguration();
 
@@ -70,7 +80,7 @@ private:
     epicsMutex mutex_;          //synchornisation between config/read thread
     Json::FastWriter writer_;   //Json writer instance used for generating data headers
     std::string data_header_;
-    
+
     std::vector<BSReadChannelConfig> configuration_;
     // Contains next configuration. Incoming configuration is stored
     // here and than copied into configuration_ within BSRead::read method.
