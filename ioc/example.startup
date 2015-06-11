@@ -1,9 +1,6 @@
 
-
 epicsEnvSet SYS PC7920
-
 epicsEnvSet TEMPLATES /fin/devl/iocBoot/templates/
-
 
 ##Simulated mode, using trigger at 0.01s
 
