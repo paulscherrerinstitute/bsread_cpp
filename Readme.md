@@ -114,23 +114,21 @@ caput BSREAD:SIM-PULSE.FLNK BSREAD:READ
 
 To stop the readout unset the __FLNK__ field of the test trigger.
 
+
 ## Python Client
 
-For receiving data you an use a simple Python client. The only requirement is to have the `pyzmq` package installed.
+The most simple client for receiving data you an use following simple Python script. The only requirement is to have the `pyzmq` package installed.
+
 
 ```python
 import zmq
-import array
 
 context = zmq.Context.instance()
 
 sock = context.socket(zmq.PULL)
-sock.connect('tcp://gfalc6064:9999')
+sock.connect('tcp://ioc_hostname:9999')
 
 while True:
     message = sock.recv()
     print message
-    ## value = array.array('d',message)
-    # value.byteswap() # if different endianness
-    ## print value
 ```

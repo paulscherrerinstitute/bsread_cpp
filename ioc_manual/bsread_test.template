@@ -8,22 +8,6 @@ record(calc, "$(P):TEST_1") {
 	field(CALC,"A+1")
 	field(SCAN,".1 second")
 }
-
-record(ai, "$(P):TEST_1-AI"){
-	field(INP, "$(P):TEST_1")
-	field(SCAN,".1 second")
-}
-
-record(bi, "$(P):TEST_1-BI"){
-	field(INP, "$(P):TEST_1")
-	field(SCAN,".1 second")
-}
-
-record(longin, "$(P):TEST_1-LI"){
-	field(INP, "$(P):TEST_1")
-	field(SCAN,".1 second")
-}
-
 record(calc, "$(P):TEST_2") {
 	field(VAL,"0")
 	field(INPA,"$(P):TEST_2")
@@ -48,23 +32,9 @@ record(stringin, "$(P):TEST_STRING") {
  }
 
 
-record(waveform, "$(P):TEST_WVF-DOUBLE")
+record(waveform, "$(P):TEST_ARRAY")
 {
 	field(SCAN, "Passive")
 	field(NELM, "10")	
 	field(FTVL, "DOUBLE")	
-}
-
-record(waveform, "$(P):TEST_WVF-LONG")
-{
-	field(SCAN, "Passive")
-	field(NELM, "10")	
-	field(FTVL, "LONG")	
-}
-
-record(waveform, "$(P):TEST_WVF-SHORT")
-{
-	field(SCAN, "Passive")
-	field(NELM, "10")	
-	field(FTVL, "SHORT")	
 }
