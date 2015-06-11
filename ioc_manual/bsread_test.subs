@@ -1,3 +1,0 @@
-file bsread_test.template {
-	pattern{P} {BSREAD-TEST}
-}
