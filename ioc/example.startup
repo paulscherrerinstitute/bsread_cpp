@@ -2,9 +2,6 @@
 epicsEnvSet SYS TEST
 epicsEnvSet BSREAD_HOME templates
 
-##Simulated mode, using trigger at 0.01s
-
-< $(BSREAD_HOME)/bsread_sim.startup
-
 dbLoadRecords(test.template,"P=$(SYS)-BSREAD-TEST")
 
+< $(BSREAD_HOME)/bsread_sim.startup
