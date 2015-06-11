@@ -1,9 +1,9 @@
 require "BSREAD","slejko_t"
 
 epicsEnvSet BSREAD_HOME $(BSREAD_HOME=$(TEMPLATES)/BSREAD)
+
 epicsEnvSet EVR $(EVR=EVR0)
 epicsEnvSet BSREAD_EVENT $(BSREAD_EVENT=40)
-
 
 epicsEnvSet BSREAD_PULSEID $(BSREAD_PULSEID= $(SYS)-DBUF-$(EVR):BunchIdRx-I)
 epicsEnvSet BSREAD_TS_SEC $(BSREAD_TS_SEC= $(SYS)-DBUF-$(EVR):BunchIdRx-MASTER-TS-SEC)
