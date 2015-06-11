@@ -1,6 +1,6 @@
 
 epicsEnvSet SYS TEST
-epicsEnvSet BSREAD_HOME templates/
+epicsEnvSet BSREAD_HOME templates
 
 ##Simulated mode, using trigger at 0.01s
 
