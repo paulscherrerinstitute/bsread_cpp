@@ -3,7 +3,7 @@ __bsread__ provides the synchronized, fast, IOC based readout functionality for 
 
 The ZMQ data stream is served in a ZMQ PUSH/PULL delivery scheme. The default port is 9999. The stream consists of messages consisting of several sub-messages.
 
-The specification can be be found at https://docs.google.com/document/d/1BynCjz5Ax-onDW0y8PVQnYmSssb6fAyHkdDl1zh21yY/edit#
+The specification can be be found at [here](https://docs.google.com/document/d/1BynCjz5Ax-onDW0y8PVQnYmSssb6fAyHkdDl1zh21yY/edit#)
 
 
 # Installation
@@ -19,13 +19,9 @@ If you want to customize options, such as BSREAD event or source of PulseID, etc
 
 ```
 epicsEnvSet EVR $(EVR=EVR0)   ##Set EVR receiver id (default EVR0)
-
 epicsEnvSet BSREAD_EVENT $(BSREAD_EVENT=40) ##Trigger BSREAD using EVR event (default event 40)
-
 epicsEnvSet BSREAD_PULSEID $(BSREAD_PULSEID= $(SYS)-DBUF-$(EVR):BunchIdRx-I) ##which record to use to obtaion pulse id(default PulseID received using EVR Dbuff)
-
 epicsEnvSet BSREAD_TS_SEC $(BSREAD_TS_SEC= $(SYS)-DBUF-$(EVR):BunchIdRx-MASTER-TS-SEC) ##record holding timestamp seconds (default dbuff)
-
 epicsEnvSet BSREAD_TS_NSEC $(BSREAD_TS_NSEC= $(SYS)-DBUF-$(EVR):BunchIdRx-MASTER-TS-NSEC) ##record holding timestamp nsec (default dbuff)
 ```
 
@@ -42,6 +38,7 @@ BSREAD can be used without timing receiver for testing puropses, for that add th
 # Usage
 
 There are following channels to configure, control and monitor __bsread__:
+
   * __$(P):CONFIGURATION__ - Configuration - i.e. channels to be read out
 
   * __$(P):READ.FTVA__ - Time in seconds required for last readout (double)
@@ -92,7 +89,7 @@ make install
 __Note__: For spotting problems easier and quicker it is recommended to prepend the __dye__ command before the actual make statement.
 
 
-To compile the driver using a vanilla EPICS build system, set the correct parameters (`EPICS_BASE`, etc) in `configure/RELEASE`, change directory to `src` and run `make`. The resulting output will be in $TOP/lib/$arch 
+__Note__: To compile the driver using a vanilla EPICS build system, set the correct parameters (`EPICS_BASE`, etc) in `configure/RELEASE`, change directory to `src` and run `make`. The resulting files will be located in `$TOP/lib/$arch` 
 
 ## Miscelaneous
 ### JSON
