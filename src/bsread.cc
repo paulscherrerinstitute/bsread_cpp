@@ -96,17 +96,17 @@ void BSRead::configure(const string & json_string)
                 }
             }
 
-            if (current_channel["frequency"] != Json::Value::null) {
-                int frequency = 0;
-                if (!(istringstream(current_channel["frequency"].asString()) >> frequency)) {
-                    errlogPrintf("Invalid frequency for channel: %s\n", config.channel_name.c_str());
+            if (current_channel["modulo"] != Json::Value::null) {
+                int modulo = 0;
+                if (!(istringstream(current_channel["modulo"].asString()) >> modulo)) {
+                    errlogPrintf("Invalid modulo for channel: %s\n", config.channel_name.c_str());
                 }
                 else {
-                    if (frequency > 0) {
-                        config.frequency = frequency;
+                    if (modulo > 0) {
+                        config.modulo = modulo;
                     }
                     else {
-                        errlogPrintf("Invalid frequency for channel: %s . [frequency<=0] \n", config.channel_name.c_str()); // TODO Need to throw exception
+                        errlogPrintf("Invalid modulo for channel: %s . [modulo<=0] \n", config.channel_name.c_str()); // TODO Need to throw exception
                     }
                 }
             }
@@ -120,7 +120,7 @@ void BSRead::configure(const string & json_string)
 
            configuration_incoming_.push_back(config);
             
-            Debug(1,"Added channel %s offset: %d  frequency: %d\n", config.channel_name.c_str(), config.offset, config.frequency);
+            Debug(1,"Added channel %s offset: %d  modulo: %d\n", config.channel_name.c_str(), config.offset, config.modulo);
 
             data_header_stream << "{ \"name\":\"" << config.channel_name << "\", \"type\":\"";
             if(config.address.dbr_field_type == DBR_DOUBLE){
@@ -187,12 +187,11 @@ void BSRead::read(long pulse_id, struct timespec t)
             BSReadChannelConfig *channel_config = &(*iterator);
 
             // Check whether channel needs to be read out for this pulse
-            unsigned frequency = channel_config->frequency;
+            unsigned modulo = channel_config->modulo;
             int offset = channel_config->offset;
 
-            if (frequency > 0) {
-                frequency = 100/frequency;
-                if ( ((pulse_id-offset) % frequency ) != 0) {
+            if (modulo > 0) {
+                if ( ((pulse_id+offset) % modulo ) != 0) {
                   bytes_sent = zmq_socket_->send(0, 0, ZMQ_NOBLOCK|ZMQ_SNDMORE);
                   if (bytes_sent == 0) {
                     zmq_overflows_++;
