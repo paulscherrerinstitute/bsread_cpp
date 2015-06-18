@@ -1,136 +1,107 @@
 # Overview
-__bsread__ provides a fast IOC based readout functionality. It reads configured channels and streams out the data
-via ZMQ. All channels to be read out need to reside on the same IOC than the __bsread__ code is running.
+__bsread__ provides the synchronized, fast, IOC based readout functionality for the SwissFEL data acquisition system. It reads configured channels on a trigger and streams out the data via ZMQ.
 
-The ZMQ data stream is served in a ZMQ PUSH/PULL delivery scheme. The default port is 9999.
-The stream consists of messages consisting of several sub-messages.
+The ZMQ data stream is served in a ZMQ PUSH/PULL delivery scheme. The default port is 9999. The stream consists of messages consisting of several sub-messages.
 
-The specification can be be found at https://docs.google.com/document/d/1BynCjz5Ax-onDW0y8PVQnYmSssb6fAyHkdDl1zh21yY/edit#
+The specification can be be found at [here](https://docs.google.com/document/d/1BynCjz5Ax-onDW0y8PVQnYmSssb6fAyHkdDl1zh21yY/edit#)
 
 
 # Installation
-To configure __bsread__ on your IOC continue as follows:
 
-  * Copy latest _bsread.template_ file from the __bsread__ project to your IOC configuration folder
-  * Create substitution file _bsread.subs_ for bsread.template ([Example](ioc/bsread.subs))
- 
-	```
-	file bsread.template {
-		{
-			P = "YOUR-PREFIX"
-		} 
-	} 
-	```
+## Standard Setup
+In order to add bsread to your IOC, simply add the following line to the IOC startup script: 
 
-  * Configure startup script as follows:
-    
-    * Load ZMQ and BSREAD drivers
-    
-	```
-	require "ZMQ", "<version>"
-	require "BSREAD", "<version>"
-	```
+```
+< $(TEMPLATES)/BSREAD/bsread.startup
+```
+
+If you want to customize options, such as BSREAD event or source of PulseID, etc. you can do so by setting appropriate env variables *before* loading bsread
+
+```
+epicsEnvSet EVR $(EVR=EVR0)   ##Set EVR receiver id (default EVR0)
+epicsEnvSet BSREAD_EVENT $(BSREAD_EVENT=40) ##Trigger BSREAD using EVR event (default event 40)
+epicsEnvSet BSREAD_PULSEID $(BSREAD_PULSEID= $(SYS)-DBUF-$(EVR):BunchIdRx-I) ##which record to use to obtaion pulse id(default PulseID received using EVR Dbuff)
+epicsEnvSet BSREAD_TS_SEC $(BSREAD_TS_SEC= $(SYS)-DBUF-$(EVR):BunchIdRx-MASTER-TS-SEC) ##record holding timestamp seconds (default dbuff)
+epicsEnvSet BSREAD_TS_NSEC $(BSREAD_TS_NSEC= $(SYS)-DBUF-$(EVR):BunchIdRx-MASTER-TS-NSEC) ##record holding timestamp nsec (default dbuff)
+```
+
+## Simulation
+
+BSREAD can be used without timing receiver for testing puropses, for that add the following line to the IOC startup: 
+
+```
+< $(TEMPLATES)/BSREAD/bsread_sim.startup
+```
+
+
 
 # Usage
-There are following channels to control and configure __bsread__:
+
+There are following channels to configure, control and monitor __bsread__:
 
   * __$(P):CONFIGURATION__ - Configuration - i.e. channels to be read out
-  * __$(P):CONFIGURE__ - For internal use only
-  * __$(P):READ__ - Readout record - whenever processed a readout will be triggered	 
 
-## Debug Channels
-  * __$(P):READ.FTVA__ - Time in seconds required to take the last snapshot (double)
-  * __$(P):READ.FTVB__ - Number of snapshot time overruns (FTVA > 1ms) (ulong)
+  * __$(P):READ.FTVA__ - Time in seconds required for last readout (double)
+  * __$(P):READ.FTVB__ - Number of times time for read was > 1ms (i.e. FTVA > 1ms) (ulong)
+
+## Python Client
+
+The most simple client for receiving data you an use following simple Python script. The only requirement is to have the `pyzmq` package installed.
+
+
+```python
+import zmq
+
+context = zmq.Context.instance()
+
+sock = context.socket(zmq.PULL)
+sock.connect('tcp://ioc_hostname:9999')
+
+while True:
+    message = sock.recv()
+    print message
+```
 
 
 # Development
 
-* Compilation
+## Templates
+__bsread__ comes with a set of predefined templates (i.e. to be able to easily intall it on IOCs). To install/deploy these templates, set your `INSTBASE` variable to desired location (e.g. _/fin/devl_) and run
+
+```
+./install_templates.sh 
+```
+
+## Driver
+
+To compile the _bsread_ driver within the PSI EPICS infrastructure use:
 
 ```
 make
 ```
 
-* Installation
+To install within the PSI EPICS infrastructure use:
 
 ```
 make install
 ```
 
-__Note__: For spotting problems easier and quicker it is recommended to prepend the __dye__ command before the
-actual make statement.
+__Note__: For spotting problems easier and quicker it is recommended to prepend the __dye__ command before the actual make statement.
 
 
-* Compilation using vanilla EPICS build system
+__Note__: To compile the driver using a vanilla EPICS build system, set the correct parameters (`EPICS_BASE`, etc) in `configure/RELEASE`, change directory to `src` and run `make`. The resulting files will be located in `$TOP/lib/$arch` 
 
-Set the correct parameters (EPICS_BASE, etc) in `configure/RELEASE`, change directory to src and run make. 
+## Miscelaneous
+### JSON
+The `json.cc` and `json.h` files where generated from the json-cpp project. To generate these these file, download json-cpp from the [project page](https://github.com/open-source-parsers/jsoncpp), enter the json-cpp folder and run:
 
-    cd src
-    make
+```
+python amalgamate.py
+```
 
-The output will be in $TOP/lib/$arch 
-
-## JSON
-The json.cc and json.h files where generated from the json-cpp project. Following steps are required to do so
-
-Enter the json-cpp folder and run:
-
-    python amalgamate.py
-
-This will generate json.cc and json.h files in ./dist. See README in json-cpp sources for more details.
+This will generate `json.cc` and `json.h` files in `./dist`. See the README in json-cpp sources for more details.
  
 
 ## Coding Style
 The code follows the following coding style: http://google-styleguide.googlecode.com/svn/trunk/cppguide.html
 
-# Testing
-
-Configure readout channels and read out the channels:
-
-```
-export EPICS_CA_ADDR_LIST=gfalc6064
-/usr/local/epics/base/bin/SL6-x86_64/caput -S  BSREAD:CONFIGURATION '{"channels": [{"name":   "BSREAD-TEST:TEST_1","offset":1, "frequency":100 }, {"name":"BSREAD-TEST:TEST_2", "offset":1, "frequency":10} ]}'
-```
-
-# Test IOC
-There is a test ioc inside the git repository inside the `ioc` folder. To use the IOC for testing, compile the
-__BSREAD__ sources inside the `src` folder (use the Makefile inside the folder!), switch to the ioc directory,
-execut the `makeioc.sh` script and start the ioc via `iocsh startup.script`.
-
-The testioc comes with 4 counters incrementing at different speeds.
-
-The readout can be trigger manually by triggering the processing of the read record:
-
-```
-caput BSREAD:READ.PROC 1
-```
-
-The testioc also comes with a 100Hz counter that can be used for triggering readouts. You can use this counter to trigger the readout by settings
-its __FLNK__ field to the read record.
-
-```
-caput BSREAD:SIM-PULSE.FLNK BSREAD:READ
-``` 
-
-To stop the readout unset the __FLNK__ field of the test trigger.
-
-## Python Client
-
-For receiving data you an use a simple Python client. The only requirement is to have the `pyzmq` package installed.
-
-```python
-import zmq
-import array
-
-context = zmq.Context.instance()
-
-sock = context.socket(zmq.PULL)
-sock.connect('tcp://gfalc6064:9999')
-
-while True:
-    message = sock.recv()
-    print message
-    ## value = array.array('d',message)
-    # value.byteswap() # if different endianness
-    ## print value
-```

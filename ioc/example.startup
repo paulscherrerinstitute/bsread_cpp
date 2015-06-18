@@ -1,0 +1,7 @@
+
+epicsEnvSet SYS TEST
+epicsEnvSet BSREAD_HOME templates
+
+dbLoadRecords(test.template,"P=$(SYS)-BSREAD-TEST")
+
+< $(BSREAD_HOME)/bsread_sim.startup

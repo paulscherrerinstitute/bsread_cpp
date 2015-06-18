@@ -1,11 +1,13 @@
 
+epicsEnvSet BSREAD_HOME $(BSREAD_HOME=$(TEMPLATES)/BSREAD)
+
 addScan .01
 
 epicsEnvSet BSREAD_PULSEID $(SYS)-BSREAD:SIM-PULSE
 epicsEnvSet BSREAD_TS_SEC $(SYS)-BSREAD:SIM-TS-SEC
 epicsEnvSet BSREAD_TS_NSEC $(SYS)-BSREAD:SIM-TS-NSEC
 
-dbLoadRecords("$(TEMPLATES)/BSREAD/bsread_sim.template","P=$(SYS)-BSREAD")
+dbLoadRecords("$(BSREAD_HOME)/bsread_sim.template","P=$(SYS)-BSREAD")
 
-< $(TEMPLATES)/BSREAD/bsread.startup
+< $(BSREAD_HOME)/bsread.startup
 

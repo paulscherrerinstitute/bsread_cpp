@@ -41,11 +41,11 @@ class BSReadChannelConfig {
 
 public:
 
-    BSReadChannelConfig(): frequency(0), offset(0) {}
+    BSReadChannelConfig(): modulo(0), offset(0) {}
 
     std::string channel_name;
     dbAddr address;
-    unsigned int frequency;
+    unsigned int modulo;
     int offset;
 };
 
