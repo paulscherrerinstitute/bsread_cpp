@@ -76,8 +76,6 @@ void BSRead::configure(const string & json_string)
         epicsGuard < epicsMutex > guard(mutex_);
 
         configuration_incoming_.clear();
-        std::ostringstream data_header_stream;
-        data_header_stream << "{  \"htype\":\"bsr_d-1.0\", \"channels\":[";
 
         // Parsing success, iterate over per-record configuration
         for (Json::Value::const_iterator iterator = channels.begin(); iterator != channels.end(); ++iterator)  {
@@ -118,22 +116,10 @@ void BSRead::configure(const string & json_string)
                 continue;
             }
 
-           configuration_incoming_.push_back(config);
+            configuration_incoming_.push_back(config);
             
             Debug(1,"Added channel %s offset: %d  modulo: %d\n", config.channel_name.c_str(), config.offset, config.modulo);
-
-            data_header_stream << "{ \"name\":\"" << config.channel_name << "\", \"type\":\"";
-            if(config.address.dbr_field_type == DBR_DOUBLE){
-                data_header_stream << "Double";
-            }
-            else if(config.address.dbr_field_type == DBR_STRING){
-                data_header_stream << "String";
-            }
-            data_header_stream << "\"},";
         }
-
-        data_header_stream << "]}";
-        data_header_ = data_header_stream.str();
     }
 }
 
