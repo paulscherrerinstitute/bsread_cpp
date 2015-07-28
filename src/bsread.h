@@ -80,6 +80,7 @@ private:
     epicsMutex mutex_;          //synchornisation between config/read thread
     Json::FastWriter writer_;   //Json writer instance used for generating data headers
     std::string data_header_;
+    bool applyConfiguration_;   //determines if new configuration was entered and needs to be applied
 
     std::vector<BSReadChannelConfig> configuration_;
     // Contains next configuration. Incoming configuration is stored

@@ -34,6 +34,7 @@ BSRead::BSRead():
     zmq_socket_(new socket_t(*zmq_context_, ZMQ_PUSH)),
     zmq_overflows_(0),
     mutex_(),
+    applyConfiguration_(false),
     configuration_()
 {
     const char * const address = "tcp://*:9999";
@@ -62,7 +63,7 @@ void BSRead::configure(const string & json_string)
     }
 
     const Json::Value channels = root["channels"];
-    if (channels.empty()) {
+    if (channels.isNull()) {    // Only throw error if attribute 'channels' is not found in the JSON root. It might be empty, which is OK.
         string msg = "Invalid configuration - missing mandatory channels attribute. ";
         errlogPrintf(msg.c_str());
         throw runtime_error(msg);
@@ -120,6 +121,8 @@ void BSRead::configure(const string & json_string)
             
             Debug(1,"Added channel %s offset: %d  modulo: %d\n", config.channel_name.c_str(), config.offset, config.modulo);
         }
+
+        applyConfiguration_ = true;
     }
 }
 
@@ -289,7 +292,7 @@ bool BSRead::applyConfiguration(){
     
     //Never block! 
     if(mutex_.tryLock()){
-       if(configuration_incoming_.size()){
+       if(applyConfiguration_){
            Debug(1,"Apply new configuration\n");
            
            // Todo Could be more efficient
@@ -297,7 +300,7 @@ bool BSRead::applyConfiguration(){
            // to iterate over vector at least once. Since configuarition is small 
            // it will be difficult to be faster than a direct copy.
            configuration_ = configuration_incoming_;
-           configuration_incoming_.clear();
+           applyConfiguration_ = false;
            newConfig = true;
 
            // New configuration! Data needs to be updated...
