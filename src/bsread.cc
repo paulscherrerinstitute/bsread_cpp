@@ -63,7 +63,7 @@ void BSRead::configure(const string & json_string)
 
     const Json::Value channels = root["channels"];
     if (channels.empty()) {
-        string msg = "Invalid configuration - missing mandatory channels attribute";
+        string msg = "Invalid configuration - missing mandatory channels attribute. ";
         errlogPrintf(msg.c_str());
         throw runtime_error(msg);
     } else {
