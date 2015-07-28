@@ -287,6 +287,9 @@ std::string BSRead::generateDataHeader(){
             continue;
         }
 
+        channel["offset"]=channel_config->offset;
+        channel["modulo"]=channel_config->modulo;
+
         channels.append(channel);
     }
 
