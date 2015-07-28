@@ -27,9 +27,24 @@ record(aSub, "$(P):READ")
     field(FTVA, "DOUBLE")					# Time in seconds required to take the last snapshot
     field(FTVB, "ULONG")					# Number of snapshot time overruns (FTVA > 1ms)
     field(FTVC, "ULONG")					# Number of ZMQ message overflows
+    field(DISA, "1")
     field(PREC,6)
 }
 
+## Enable/disable processing of $(P):READ
+## Record to set the inhibit flag that prevents
+## BSREAD from reading and sending out data when active.
+
+record(bo, "$(P):INHIBIT")
+{
+	field(PINI, "YES")
+	field(SCAN, "Passive")
+	field(DESC, "Inhibits data readouts")
+	field(ZNAM, "Normal operation")
+	field(ONAM, "Inhibit")
+	field(VAL,  "0")
+	field(OUT,  "$(P):READ.DISV")
+}
 
 ## Record is used to configure the bsread system
 ## INPA should point to character waveform record containing
