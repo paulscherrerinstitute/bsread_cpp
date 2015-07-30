@@ -175,13 +175,19 @@ void BSRead::read(long pulse_id, struct timespec t)
 
             BSReadChannelConfig *channel_config = &(*iterator);
 
+            //Last element?
+            int zmq_flags = ZMQ_NOBLOCK | ZMQ_SNDMORE;
+            if( iterator == (--configuration_.end())){
+                zmq_flags = ZMQ_NOBLOCK;
+            }
+
             // Check whether channel needs to be read out for this pulse
             unsigned modulo = channel_config->modulo;
             int offset = channel_config->offset;
 
             if (modulo > 0) {
                 if ( ((pulse_id+offset) % modulo ) != 0) {
-                  bytes_sent = zmq_socket_->send(0, 0, ZMQ_NOBLOCK|ZMQ_SNDMORE);
+                  bytes_sent = zmq_socket_->send(0, 0, zmq_flags);
                   if (bytes_sent == 0) {
                     zmq_overflows_++;
                     Debug(2,"ZMQ message [NODAT] NOT send.[%ld]\n",zmq_overflows_);
@@ -216,12 +222,6 @@ void BSRead::read(long pulse_id, struct timespec t)
             uint64_t rtimestamp[2];
             rtimestamp[0] = t.tv_sec;
             rtimestamp[1] = t.tv_nsec;
-            
-            //Last element?
-            int zmq_flags = ZMQ_NOBLOCK | ZMQ_SNDMORE;
-            if( iterator == (--configuration_.end())){
-                zmq_flags = ZMQ_NOBLOCK;
-            }
 
             bytes_sent = zmq_socket_->send(rtimestamp, sizeof(rtimestamp), zmq_flags);
             if (bytes_sent == 0) {
