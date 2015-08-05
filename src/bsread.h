@@ -47,6 +47,7 @@ public:
     dbAddr address;
     unsigned int modulo;
     int offset;
+    Json::Value type;
 };
 
 
