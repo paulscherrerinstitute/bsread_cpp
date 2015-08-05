@@ -165,6 +165,7 @@ void BSRead::read(long pulse_id, struct timespec t)
             modulo = channel_config->modulo;
             offset = channel_config->offset;
 
+            if (modulo == 0) break;
             if (modulo > 0) {
                 if ( ((pulse_id+offset) % modulo ) != 0) {
                     continue;   // channel won't be send in this pulse, moving on...
