@@ -154,82 +154,104 @@ void BSRead::read(long pulse_id, struct timespec t)
 
         // Check https://bobobobo.wordpress.com/2010/10/17/md5-c-implementation/ for MD5 Hash ...
 
+        // Check wheter there is any channel that needs to be read out for this pulse
+        vector<BSReadChannelConfig>::iterator iterator;
+        BSReadChannelConfig *channel_config;
+        unsigned modulo;
+        int offset;
 
-        // Send main header
-        string main_header_serialized = writer_.write(main_header);
-        size_t bytes_sent =zmq_socket_->send(main_header_serialized.c_str(), main_header_serialized.size(), ZMQ_NOBLOCK|ZMQ_SNDMORE);
-        if (bytes_sent == 0) {
-            zmq_overflows_++;
-            Debug(2,"ZMQ message [main header] NOT send. [%ld]\n",zmq_overflows_);
-        }
-
-        // Send data header
-        bytes_sent =zmq_socket_->send(data_header_.c_str(), data_header_.size(), ZMQ_NOBLOCK|ZMQ_SNDMORE);
-        if (bytes_sent == 0) {
-            zmq_overflows_++;
-            Debug(2,"ZMQ message [data header] NOT send. [%ld]\n",zmq_overflows_);
-        }
-
-        // Read channels and send sub-messages
-        for(vector<BSReadChannelConfig>::iterator iterator = configuration_.begin(); iterator != configuration_.end(); ++iterator){
-
-            BSReadChannelConfig *channel_config = &(*iterator);
-
-            // Check whether channel needs to be read out for this pulse
-            unsigned modulo = channel_config->modulo;
-            int offset = channel_config->offset;
+        for( iterator = configuration_.begin(); iterator != configuration_.end(); ++iterator){
+            channel_config = &(*iterator);
+            modulo = channel_config->modulo;
+            offset = channel_config->offset;
 
             if (modulo > 0) {
                 if ( ((pulse_id+offset) % modulo ) != 0) {
-                  bytes_sent = zmq_socket_->send(0, 0, ZMQ_NOBLOCK|ZMQ_SNDMORE);
-                  if (bytes_sent == 0) {
-                    zmq_overflows_++;
-                    Debug(2,"ZMQ message [NODAT] NOT send.[%ld]\n",zmq_overflows_);
-                  }
-                  continue;
+                    continue;   // channel won't be send in this pulse, moving on...
+                }
+                else {
+                    break;      // we found a channel to send!
                 }
             }
+        }
 
-            struct dbCommon* precord = channel_config->address.precord;
-            //Lock the record beeing read
-            dbScanLock(precord);
-            //All values are treated in the same way, data header contains information about
-            // their types, packing and endianess
-
-            void* val = channel_config->address.pfield; //Data pointer
-            long no_elements = channel_config->address.no_elements; 
-            long element_size = channel_config->address.field_size;
-
-            bytes_sent = zmq_socket_->send(val, element_size*no_elements, ZMQ_NOBLOCK|ZMQ_SNDMORE);
+        if (iterator != configuration_.end()) { // there are messages to send, so let's send them
+            // Send main header
+            string main_header_serialized = writer_.write(main_header);
+            size_t bytes_sent =zmq_socket_->send(main_header_serialized.c_str(), main_header_serialized.size(), ZMQ_NOBLOCK|ZMQ_SNDMORE);
             if (bytes_sent == 0) {
-                    zmq_overflows_++;
-                    Debug(2,"ZMQ message [data] NOT send. [%ld]\n",zmq_overflows_);
+                zmq_overflows_++;
+                Debug(2,"ZMQ message [main header] NOT send. [%ld]\n",zmq_overflows_);
             }
 
-            //Add timestamp binary blob
-            //Current timestamp is packed into a two 64bit unsigned integers where:
-            //[0] seconds past POSIX epoch (00:00 1.1.1970)
-            //[1] nanoseconds since last full second.
-            struct timespec t;
-            epicsTimeToTimespec (&t, &(precord->time)); //Convert to unix time
-
-            uint64_t rtimestamp[2];
-            rtimestamp[0] = t.tv_sec;
-            rtimestamp[1] = t.tv_nsec;
-            
-            //Last element?
-            int zmq_flags = ZMQ_NOBLOCK | ZMQ_SNDMORE;
-            if( iterator == (--configuration_.end())){
-                zmq_flags = ZMQ_NOBLOCK;
-            }
-
-            bytes_sent = zmq_socket_->send(rtimestamp, sizeof(rtimestamp), zmq_flags);
+            // Send data header
+            bytes_sent =zmq_socket_->send(data_header_.c_str(), data_header_.size(), ZMQ_NOBLOCK|ZMQ_SNDMORE);
             if (bytes_sent == 0) {
-                    zmq_overflows_++;
-                    Debug(2,"ZMQ message [timestamp] NOT send. [%ld]\n",zmq_overflows_);
+                zmq_overflows_++;
+                Debug(2,"ZMQ message [data header] NOT send. [%ld]\n",zmq_overflows_);
             }
 
-            dbScanUnlock(precord);
+            // Read channels and send sub-messages
+            for(iterator = configuration_.begin(); iterator != configuration_.end(); ++iterator){
+
+                channel_config = &(*iterator);
+
+                //Last element?
+                int zmq_flags = ZMQ_NOBLOCK | ZMQ_SNDMORE;
+                if( iterator == (--configuration_.end())){
+                    zmq_flags = ZMQ_NOBLOCK;
+                }
+
+                // Check whether channel needs to be read out for this pulse
+                modulo = channel_config->modulo;
+                offset = channel_config->offset;
+
+                if (modulo > 0) {
+                    if ( ((pulse_id+offset) % modulo ) != 0) {
+                      bytes_sent = zmq_socket_->send(0, 0, zmq_flags);
+                      if (bytes_sent == 0) {
+                        zmq_overflows_++;
+                        Debug(2,"ZMQ message [NODAT] NOT send.[%ld]\n",zmq_overflows_);
+                      }
+                      continue;
+                    }
+                }
+
+                struct dbCommon* precord = channel_config->address.precord;
+                //Lock the record beeing read
+                dbScanLock(precord);
+                //All values are treated in the same way, data header contains information about
+                // their types, packing and endianess
+
+                void* val = channel_config->address.pfield; //Data pointer
+                long no_elements = channel_config->address.no_elements;
+                long element_size = channel_config->address.field_size;
+
+                bytes_sent = zmq_socket_->send(val, element_size*no_elements, ZMQ_NOBLOCK|ZMQ_SNDMORE);
+                if (bytes_sent == 0) {
+                        zmq_overflows_++;
+                        Debug(2,"ZMQ message [data] NOT send. [%ld]\n",zmq_overflows_);
+                }
+
+                //Add timestamp binary blob
+                //Current timestamp is packed into a two 64bit unsigned integers where:
+                //[0] seconds past POSIX epoch (00:00 1.1.1970)
+                //[1] nanoseconds since last full second.
+                struct timespec t;
+                epicsTimeToTimespec (&t, &(precord->time)); //Convert to unix time
+
+                uint64_t rtimestamp[2];
+                rtimestamp[0] = t.tv_sec;
+                rtimestamp[1] = t.tv_nsec;
+
+                bytes_sent = zmq_socket_->send(rtimestamp, sizeof(rtimestamp), zmq_flags);
+                if (bytes_sent == 0) {
+                        zmq_overflows_++;
+                        Debug(2,"ZMQ message [timestamp] NOT send. [%ld]\n",zmq_overflows_);
+                }
+
+                dbScanUnlock(precord);
+            }
         }
 
     } catch(zmq::error_t &e ){
