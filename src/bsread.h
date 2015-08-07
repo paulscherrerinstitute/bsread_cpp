@@ -47,6 +47,7 @@ public:
     dbAddr address;
     unsigned int modulo;
     int offset;
+    std::string type;
 };
 
 

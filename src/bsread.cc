@@ -117,6 +117,33 @@ void BSRead::configure(const string & json_string)
                 continue;
             }
 
+            // determine if the DBR type is supported
+            if(config.address.dbr_field_type == DBR_DOUBLE){
+                config.type="Double";
+            }
+            else if(config.address.dbr_field_type == DBR_FLOAT){
+                config.type="Float";
+            }
+            else if(config.address.dbr_field_type == DBR_STRING){
+                config.type="String";
+            }
+            else if(config.address.dbr_field_type == DBR_LONG){
+                config.type="Long";
+            }
+            else if(config.address.dbr_field_type == DBR_ULONG){
+                config.type="ULong";
+            }
+            else if(config.address.dbr_field_type == DBR_SHORT){
+                config.type="Short";
+            }
+            else if(config.address.dbr_field_type == DBR_USHORT){
+                config.type="UShort";
+            }
+            else{
+                errlogPrintf("BSREAD: Channel %s has unsuporrted type: %d\n",config.channel_name.c_str(), config.address.dbr_field_type); // TODO Need to throw exception
+                continue;
+            }
+
             configuration_incoming_.push_back(config);
             
             Debug(1,"Added channel %s offset: %d  modulo: %d\n", config.channel_name.c_str(), config.offset, config.modulo);
@@ -272,33 +299,7 @@ std::string BSRead::generateDataHeader(){
         BSReadChannelConfig *channel_config = &(*iterator);
 
         channel["name"]=channel_config->channel_name;
-
-        if(channel_config->address.dbr_field_type == DBR_DOUBLE){
-            channel["type"]="Double";
-        }
-        else if(channel_config->address.dbr_field_type == DBR_FLOAT){
-            channel["type"]="Float";
-        }
-        else if(channel_config->address.dbr_field_type == DBR_STRING){
-            channel["type"]="String";
-        }
-        else if(channel_config->address.dbr_field_type == DBR_LONG){
-            channel["type"]="Long";
-        }
-        else if(channel_config->address.dbr_field_type == DBR_ULONG){
-            channel["type"]="ULong";
-        }
-        else if(channel_config->address.dbr_field_type == DBR_SHORT){
-            channel["type"]="Short";
-        }
-        else if(channel_config->address.dbr_field_type == DBR_USHORT){
-            channel["type"]="UShort";
-        }
-        else{
-            errlogPrintf("BSREAD: Channel %s has unsuporrted type: %d\n",channel_config->channel_name.c_str(), channel_config->address.dbr_field_type);
-            continue;
-        }
-
+        channel["type"]=channel_config->type;
         channel["offset"]=channel_config->offset;
         channel["modulo"]=channel_config->modulo;
 

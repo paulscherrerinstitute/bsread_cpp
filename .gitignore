@@ -2,3 +2,12 @@
 .idea
 BSREAD.iml
 .project
+
+# QT Creator project files
+*.config
+*.creator*
+*.files
+*.includes
+
+# results from make
+O.*
