@@ -291,7 +291,6 @@ void BSRead::read(long pulse_id, struct timespec t)
 std::string BSRead::generateDataHeader(){
     Json::Value root,channels,channel;
     root["htype"] = "bsr_d-1.0";
-    root["encoding"] = (EPICS_BYTE_ORDER == EPICS_ENDIAN_BIG) ? "big" : "little";
 
 
     //Iterate over channels and create data header channel entires
@@ -300,6 +299,14 @@ std::string BSRead::generateDataHeader(){
 
         channel["name"]=channel_config->channel_name;
         channel["type"]=channel_config->type;
+
+        if (EPICS_BYTE_ORDER == EPICS_ENDIAN_BIG){
+            channel["encoding"] = "big";
+        }
+        else{
+            channel["encoding"] = "little";
+        }
+
         channel["offset"]=channel_config->offset;
         channel["modulo"]=channel_config->modulo;
 
