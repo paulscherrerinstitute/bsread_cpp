@@ -66,11 +66,14 @@ while True:
 # Development
 
 ## Templates
-__bsread__ comes with a set of predefined templates (i.e. to be able to easily intall it on IOCs). To install/deploy these templates, set your `INSTBASE` variable to desired location (e.g. _/fin/devl_) and run
+__bsread__ comes with a set of predefined templates (i.e. to be able to easily install it on IOCs). To install/deploy these templates, set your `INSTBASE` variable to desired location (e.g. _/fin/devl_) and run
 
 ```
 ./install_templates.sh 
 ```
+
+## Running test IOC
+When using predefined templates from `ioc/` folder for testing purposes, you should never run the install script (`./install_templates.sh`). One can run an IOC from `ioc/` folder in a standard PSI way. Detailed instructions are available in `ioc/readme.md`.
 
 ## Driver
 
