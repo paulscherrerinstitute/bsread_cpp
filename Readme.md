@@ -43,6 +43,7 @@ There are following channels to configure, control and monitor __bsread__:
 
   * __$(P):READ.FTVA__ - Time in seconds required for last readout (double)
   * __$(P):READ.FTVB__ - Number of times time for read was > 1ms (i.e. FTVA > 1ms) (ulong)
+  * __$(P):INHIBIT__ - Inhibits data readouts when set to 1. Normal operation can be resumed by setting record value back to default value 0.
 
 ## Python Client
 
