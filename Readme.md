@@ -43,6 +43,52 @@ There are following channels to configure, control and monitor __bsread__:
 
   * __$(P):READ.FTVA__ - Time in seconds required for last readout (double)
   * __$(P):READ.FTVB__ - Number of times time for read was > 1ms (i.e. FTVA > 1ms) (ulong)
+  * __$(P):INHIBIT__ - Inhibits data readouts when set to 1. Normal operation can be resumed by setting record value back to default value 0.
+
+## Using configuration record
+The configuration record (__$(P):CONFIGURATION__) is used to set the channels to be read out together with additional properties for each channel:
+
+ * __channel name__ - The name of the channel to read out
+ * __modulo__ - Modulo applied to pulse-id to determine the readout (min: 1, max: max-integer, default: 1)
+ * __offset__ - Offset in pulses (default: 0)
+
+The actual readout of channel named __channel name__ will be at: (pulse-id + __offset__)% __modulo__.
+
+Configuration is pushed to the configuration record as a JSON string. The following example win enable the readout of channel _BSREAD-TEST:TEST_1_ with modulo 2 and offset 0 and channel _BSREAD-TEST:TEST_2_ with modulo 10 and offset 2:
+
+    {"channels":[
+      {
+        "name":"BSREAD-TEST:TEST_1",
+        "offset":0,
+        "modulo":2
+      }, 
+      {
+        "name":"BSREAD-TEST:TEST_2",
+        "offset":2,
+        "modulo":10
+      }
+    ]}
+    
+Such configuration can be pushed to the configuration record like so (assume __$(P)__ = _TEST-BSREAD_):
+    
+    /usr/local/epics/base/bin/SL6-x86_64/caput -S TEST-BSREAD:CONFIGURATION '{"channels": [{"name":"BSREAD-TEST:TEST_1","offset":0,"modulo":2},{"name":"BSREAD-TEST:TEST_12,"offset":2,"modulo":10} ]}'
+
+### Examples
+Assume that __$(P)__ = _TEST-BSREAD_ is the following examples.
+
+* Clear configuration
+
+    /usr/local/epics/base/bin/SL6-x86_64/caput -S TEST-BSREAD:CONFIGURATION '{"channels": []}'
+    
+* Configure readout of channel _BSREAD-TEST:TEST_1_ with offset 5
+
+    /usr/local/epics/base/bin/SL6-x86_64/caput -S TEST-BSREAD:CONFIGURATION '{"channels": [{"name":"BSREAD-TEST:TEST_1","offset":5}]}'
+    
+* Configure readout of channel _BSREAD-TEST:TEST_1_ and _BSREAD-TEST:TEST_2_, both with offset 0 and modulo 1
+
+    /usr/local/epics/base/bin/SL6-x86_64/caput -S TEST-BSREAD:CONFIGURATION '{"channels": [{"name":"BSREAD-TEST:TEST_1"},{"name":"BSREAD-TEST:TEST_2"}]}'
+    
+
 
 ## Python Client
 
@@ -66,11 +112,14 @@ while True:
 # Development
 
 ## Templates
-__bsread__ comes with a set of predefined templates (i.e. to be able to easily intall it on IOCs). To install/deploy these templates, set your `INSTBASE` variable to desired location (e.g. _/fin/devl_) and run
+__bsread__ comes with a set of predefined templates (i.e. to be able to easily install it on IOCs). To install/deploy these templates, set your `INSTBASE` variable to desired location (e.g. _/fin/devl_) and run
 
 ```
 ./install_templates.sh 
 ```
+
+## Running test IOC
+When using predefined templates from `ioc/` folder for testing purposes, you should never run the install script (`./install_templates.sh`). One can run an IOC from `ioc/` folder in a standard PSI way. Detailed instructions are available in `ioc/readme.md`.
 
 ## Driver
 
