@@ -70,9 +70,9 @@ void BSRead::configure(const string & json_string)
     } else {
         //Parsing was successful so we can drop existing configuration
 
-        //This mutex is only protecting configuration_incoming, not actuall configuration_ 
+        //This mutex is only protecting configuration_incoming, not actuall configuration_
         //configuration_incoming_ is only a placeholder for configuration that is waiting to be applied
-        //Thread that samples the data will have to acquire this mutex before accessing configuration_incoming_ 
+        //Thread that samples the data will have to acquire this mutex before accessing configuration_incoming_
         //In order to avoid locking the sampling thread a non-blocking try_lock is used.
         epicsGuard < epicsMutex > guard(mutex_);
 
@@ -145,7 +145,7 @@ void BSRead::configure(const string & json_string)
             }
 
             configuration_incoming_.push_back(config);
-            
+
             Debug(1,"Added channel %s offset: %d  modulo: %d\n", config.channel_name.c_str(), config.offset, config.modulo);
         }
 
@@ -174,7 +174,7 @@ void BSRead::read(long pulse_id, struct timespec t)
         main_header["pulse_id"] = static_cast<Json::UInt64>(pulse_id);
         main_header["hash"] = md5(data_header_);
 
-        main_header_global_timestamp["epoch"]=static_cast<Json::UInt64>(t.tv_sec + 631152000); //Offset epics EPOCH into POSIX epich 
+        main_header_global_timestamp["epoch"]=static_cast<Json::UInt64>(t.tv_sec + 631152000); //Offset epics EPOCH into POSIX epich
         main_header_global_timestamp["ns"]=static_cast<Json::UInt64>(t.tv_nsec);
 
         main_header["global_timestamp"]=main_header_global_timestamp;
@@ -194,7 +194,7 @@ void BSRead::read(long pulse_id, struct timespec t)
 
             if (modulo == 0) break;
             if (modulo > 0) {
-                if ( ((pulse_id+offset) % modulo ) != 0) {
+                if ( ((pulse_id-offset) % modulo ) != 0) {
                     continue;   // channel won't be send in this pulse, moving on...
                 }
                 else {
@@ -235,7 +235,7 @@ void BSRead::read(long pulse_id, struct timespec t)
                 offset = channel_config->offset;
 
                 if (modulo > 0) {
-                    if ( ((pulse_id+offset) % modulo ) != 0) {
+                    if ( ((pulse_id-offset) % modulo ) != 0) {
                       bytes_sent = zmq_socket_->send(0, 0, zmq_flags);
                       if (bytes_sent == 0) {
                         zmq_overflows_++;
@@ -323,15 +323,15 @@ std::string BSRead::generateDataHeader(){
 
 bool BSRead::applyConfiguration(){
     bool newConfig = false;
-    
-    //Never block! 
+
+    //Never block!
     if(mutex_.tryLock()){
        if(applyConfiguration_){
            Debug(1,"Apply new configuration\n");
-           
+
            // Todo Could be more efficient
            // could be, should be? Regardless of implementation we will always need
-           // to iterate over vector at least once. Since configuarition is small 
+           // to iterate over vector at least once. Since configuarition is small
            // it will be difficult to be faster than a direct copy.
            configuration_ = configuration_incoming_;
            applyConfiguration_ = false;
