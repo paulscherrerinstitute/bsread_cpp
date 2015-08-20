@@ -9,7 +9,7 @@ The specification can be be found at [here](https://docs.google.com/document/d/1
 # Installation
 
 ## Standard Setup
-In order to add bsread to your IOC, simply add the following line to the IOC startup script: 
+In order to add bsread to your IOC, simply add the following line to the IOC startup script:
 
 ```
 < $(TEMPLATES)/BSREAD/bsread.startup
@@ -27,7 +27,7 @@ epicsEnvSet BSREAD_TS_NSEC $(BSREAD_TS_NSEC= $(SYS)-DBUF-$(EVR):BunchIdRx-MASTER
 
 ## Simulation
 
-BSREAD can be used without timing receiver for testing puropses, for that add the following line to the IOC startup: 
+BSREAD can be used without timing receiver for testing puropses, for that add the following line to the IOC startup:
 
 ```
 < $(TEMPLATES)/BSREAD/bsread_sim.startup
@@ -52,7 +52,7 @@ The configuration record (__$(P):CONFIGURATION__) is used to set the channels to
  * __modulo__ - Modulo applied to pulse-id to determine the readout (min: 1, max: max-integer, default: 1)
  * __offset__ - Offset in pulses (default: 0)
 
-The actual readout of channel named __channel name__ will be at: (pulse-id + __offset__)% __modulo__.
+The actual readout of channel named __channel name__ will be at: (pulse-id - __offset__)% __modulo__.
 
 Configuration is pushed to the configuration record as a JSON string. The following example win enable the readout of channel _BSREAD-TEST:TEST_1_ with modulo 2 and offset 0 and channel _BSREAD-TEST:TEST_2_ with modulo 10 and offset 2:
 
@@ -61,16 +61,16 @@ Configuration is pushed to the configuration record as a JSON string. The follow
         "name":"BSREAD-TEST:TEST_1",
         "offset":0,
         "modulo":2
-      }, 
+      },
       {
         "name":"BSREAD-TEST:TEST_2",
         "offset":2,
         "modulo":10
       }
     ]}
-    
+
 Such configuration can be pushed to the configuration record like so (assume __$(P)__ = _TEST-BSREAD_):
-    
+
     /usr/local/epics/base/bin/SL6-x86_64/caput -S TEST-BSREAD:CONFIGURATION '{"channels": [{"name":"BSREAD-TEST:TEST_1","offset":0,"modulo":2},{"name":"BSREAD-TEST:TEST_12,"offset":2,"modulo":10} ]}'
 
 ### Examples
@@ -79,15 +79,15 @@ Assume that __$(P)__ = _TEST-BSREAD_ is the following examples.
 * Clear configuration
 
     /usr/local/epics/base/bin/SL6-x86_64/caput -S TEST-BSREAD:CONFIGURATION '{"channels": []}'
-    
+
 * Configure readout of channel _BSREAD-TEST:TEST_1_ with offset 5
 
     /usr/local/epics/base/bin/SL6-x86_64/caput -S TEST-BSREAD:CONFIGURATION '{"channels": [{"name":"BSREAD-TEST:TEST_1","offset":5}]}'
-    
+
 * Configure readout of channel _BSREAD-TEST:TEST_1_ and _BSREAD-TEST:TEST_2_, both with offset 0 and modulo 1
 
     /usr/local/epics/base/bin/SL6-x86_64/caput -S TEST-BSREAD:CONFIGURATION '{"channels": [{"name":"BSREAD-TEST:TEST_1"},{"name":"BSREAD-TEST:TEST_2"}]}'
-    
+
 
 
 ## Python Client
@@ -115,7 +115,7 @@ while True:
 __bsread__ comes with a set of predefined templates (i.e. to be able to easily install it on IOCs). To install/deploy these templates, set your `INSTBASE` variable to desired location (e.g. _/fin/devl_) and run
 
 ```
-./install_templates.sh 
+./install_templates.sh
 ```
 
 ## Running test IOC
@@ -138,7 +138,7 @@ make install
 __Note__: For spotting problems easier and quicker it is recommended to prepend the __dye__ command before the actual make statement.
 
 
-__Note__: To compile the driver using a vanilla EPICS build system, set the correct parameters (`EPICS_BASE`, etc) in `configure/RELEASE`, change directory to `src` and run `make`. The resulting files will be located in `$TOP/lib/$arch` 
+__Note__: To compile the driver using a vanilla EPICS build system, set the correct parameters (`EPICS_BASE`, etc) in `configure/RELEASE`, change directory to `src` and run `make`. The resulting files will be located in `$TOP/lib/$arch`
 
 ## Miscelaneous
 ### JSON
@@ -149,8 +149,7 @@ python amalgamate.py
 ```
 
 This will generate `json.cc` and `json.h` files in `./dist`. See the README in json-cpp sources for more details.
- 
+
 
 ## Coding Style
 The code follows the following coding style: http://google-styleguide.googlecode.com/svn/trunk/cppguide.html
-
