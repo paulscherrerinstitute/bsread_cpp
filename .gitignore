@@ -1,4 +1,8 @@
 .cvsignore
 .idea
 O.*
+bsread.configure
+bsread.creator*
+bsread.files*
+bsread.includes
 BSREAD.iml
