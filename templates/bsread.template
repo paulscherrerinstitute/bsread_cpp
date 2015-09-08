@@ -10,6 +10,12 @@
 ##                 This is used as a performance measurement, this should never be greater
 ##                 than 1ms.
 ##
+## Macros:
+##		- P: prefix
+##		- BSREAD_PULSEID bsread pulse id pointer
+##		- BSREAD_TS_SEC global timestamp sec input link
+##		- BSREAD_TS_NSEC global timestamp nsec input link
+
 
 record(aSub, "$(P):READ")
 {
@@ -70,13 +76,3 @@ record(waveform, "$(P):CONFIGURATION")
 }
 
 
-## Trigger record from EVR
-
-record(longout, "$(P):Trig-Event_") {
-  field(DTYP, "EVR Event")
-  field(SCAN, "I/O Intr")
-  field(OUT , "@OBJ=$(EVR),Code=$(BSREAD_EVENT)")
-  field(VAL , "0")
-  field(TSE , "-2") # from device support
-  field(FLNK, "$(P):READ")
-}
