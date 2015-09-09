@@ -49,7 +49,8 @@ In order to run bsread without a EVR receiver (e.g. for testing or for use with 
 
 Simply append the following line to startup script: 
 
-    require "bsread_sim",0.1,"SYS=SLEJKO-TEST" ##Note that version (0.1) should be omitted in production deplyoments, currently it is needed due to a bug in require
+    require "bsread"
+    runScript $(bsread_DIR)/bsread_sim.cmd, "SYS=SLEJKO-TEST"
 
 Paramaters that can be passed to the module are: 
     
@@ -69,7 +70,8 @@ Majority of systems will use bsread in connection with hardware timing receiver 
 
 Simply append the following line to startup script: 
 
-    require "bsread_evr",0.1,"SYS=SLEJKO-TEST,EVR=EVR0" ##Note that version (0.1) should be omitted in production deplyoments, currently it is needed due to a bug in require
+    require "bsread"
+    runScript $(bsread_DIR)/bsread_evr.cmd, "SYS=SLEJKO-TEST,EVR=EVR0"
 
 Paramaters that can be passed to the module are: 
     
