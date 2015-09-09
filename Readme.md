@@ -28,6 +28,64 @@ The stream consists of messages consisting of several sub-messages.
 
 The specification can be be found at https://docs.google.com/document/d/1BynCjz5Ax-onDW0y8PVQnYmSssb6fAyHkdDl1zh21yY/edit#
 
+#Usage
+
+__Currently only installed to fin/devel since usage relies on updated _require_ and *drive.makefile*__
+
+
+3 modules are provided: 
+ - __bsread__
+    Core bsread libraries and templates.
+ - __bsread_evr__
+    bsread startup command predifined for standard SwissFEL EVR setup
+ - __bsread_sim__
+    bsread startup command predifined for standard SwissFEL EVR setup 
+
+Also see _examples_ directory.
+
+##bsread_sim
+
+In order to run bsread without a EVR receiver (e.g. for testing or for use with softIOC and systems without timing) a bsread_sim module can be used. This module creates a 100Hz scan record and connects it to bsread and free running pulseid counter. Note that any data obtained in this way is not (and can not be) synchronised with data obtained from bsread systems that are connected to timing system.
+
+Simply append the following line to startup script: 
+
+    require "bsread_sim",0.1,"SYS=SLEJKO-TEST" ##Note that version (0.1) should be omitted in production deplyoments, currently it is needed due to a bug in require
+
+Paramaters that can be passed to the module are: 
+    
+    - mandatory
+      - SYS: A system prefix (e.g. my IOC0), is expanded to $(SYS)-BSREAD:xx
+
+    - optional:
+      - BSREAD_PULSEID Record used to obtaian pulse id 
+      - BSREAD_TS_SEC Record used to obtaian global timestamp sec
+      - BSREAD_TS_NSEC Record used to obtaian global timestamp sec
+
+
+##bsread_evr 
+
+Majority of systems will use bsread in connection with hardware timing receiver (EVR). To simplify setup a bsread_evr module is provided. This module loads bsread and connects it to correct EVR records (so that it is triggered by hardware timing event and that pulse_id and global timestamp are obtained from databuffer)
+
+
+Simply append the following line to startup script: 
+
+    require "bsread_evr",0.1,"SYS=SLEJKO-TEST,EVR=EVR0" ##Note that version (0.1) should be omitted in production deplyoments, currently it is needed due to a bug in require
+
+Paramaters that can be passed to the module are: 
+    
+    - mandatory
+      - SYS: A system prefix (e.g. my IOC0), is expanded to $(SYS)-BSREAD:xx
+
+    - optional [default]:
+      - EVR Id of EVR to be used [EVR0]
+      - BSREAD_EVENT timing event that should be used to trigger bsread acquisition
+      - BSREAD_PULSEID Record used to obtaian pulse id 
+      - BSREAD_TS_SEC Record used to obtaian global timestamp sec
+      - BSREAD_TS_NSEC Record used to obtaian global timestamp sec
+
+
+
+
 
 # Installation
 To configure __bsread__ on your IOC continue as follows:
