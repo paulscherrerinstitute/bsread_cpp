@@ -296,6 +296,7 @@ std::string BSRead::generateDataHeader(){
     //Iterate over channels and create data header channel entires
     for(vector<BSReadChannelConfig>::iterator iterator = configuration_.begin(); iterator != configuration_.end(); ++iterator){
         BSReadChannelConfig *channel_config = &(*iterator);
+        Json::Value shape(Json::arrayValue);
 
         channel["name"]=channel_config->channel_name;
         channel["type"]=channel_config->type;
@@ -309,6 +310,9 @@ std::string BSRead::generateDataHeader(){
 
         channel["offset"]=channel_config->offset;
         channel["modulo"]=channel_config->modulo;
+
+        shape.append((Json::UInt64)channel_config->address.no_elements);
+        channel["shape"] = shape;
 
         channels.append(channel);
     }
