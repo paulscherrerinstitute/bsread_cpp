@@ -15,4 +15,10 @@ USR_CXXFLAGS += -fno-operator-names
 USR_CXXFLAGS += -DDEBUG
 USR_CFLAGS += -DDEBUG
 
-PROJECT = BSREAD
+PROJECT = bsread
+
+TEMPLATES += templates/bsread.template
+TEMPLATES += templates/bsread_sim.template
+TEMPLATES += templates/bsread_evr.template
+
+
