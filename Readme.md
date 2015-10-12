@@ -38,6 +38,9 @@ Paramaters that can be passed to the module are:
       - BSREAD_PULSEID Record used to obtaian pulse id 
       - BSREAD_TS_SEC Record used to obtaian global timestamp sec
       - BSREAD_TS_NSEC Record used to obtaian global timestamp sec
+      - READ_FLNK is a forward link for the :READ record
+
+There is additional macro used to disable loading of the EVR template. To achieve this, use macro `NO_EVR=#`.
 
 
 ##bsread_evr 
