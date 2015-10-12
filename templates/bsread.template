@@ -30,6 +30,8 @@ record(aSub, "$(P):READ")
     field(DISV, "1")						# If DISV=DISA, then the record will be disabled
     field(SDIS, "$(P):INHIBIT")				# DISA value is read from here
     field(PREC,6)
+
+    field(FLNK, "$(READ_FLNK=)")			# Allows forward linking to a custom record
 }
 
 ## Enable/disable processing of $(P):READ
