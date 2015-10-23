@@ -15,9 +15,9 @@ using namespace std;
 
 namespace bsread{
 
-enum bsdata_type {BSDATA_DOUBLE, BSDATA_FLOAT, BSDATA_LONG, BSDATA_ULONG, BSDATA_INT, BSDATA_UINT, BSDATA_SHORT,BSDATA_USHORT,BSDATA_STRING};
-static const char*bsdata_type_name[] = {"Double","Float","Long","ULong","Integer","UInt","Short","UShort","String"};
-static const size_t bsdata_type_size[] = { 8,4,8,8,4,4,2,2,1 };
+enum bsdata_type {BSDATA_DOUBLE, BSDATA_FLOAT, BSDATA_LONG, BSDATA_ULONG, BSDATA_INT, BSDATA_UINT, BSDATA_SHORT,BSDATA_USHORT,BSDATA_CHAR,BSDATA_UCHAR,BSDATA_STRING};
+static const char*bsdata_type_name[] = {"Double","Float","Long","ULong","Integer","UInt","Short","UShort","Char","UChar","String"};
+static const size_t bsdata_type_size[] = { 8,4,8,8,4,4,2,2,1,1,1 };
 
 class BSDataChannel;
 typedef void (*BSDataCallaback)(BSDataChannel* chan,bool acquire, void* pvt);
@@ -42,13 +42,13 @@ public:
     int             m_meta_offset;
 
     BSDataChannel(const string& name,bsdata_type type):
-        m_name(name),
         m_type(type),
-        m_len(0),
         m_data(0),
-        m_callback(0),
+        m_len(0),
+        m_name(name),
         m_encoding_le(true),
         m_enabled(true),
+        m_callback(0),
         m_meta_modulo(0),
         m_meta_offset(0)
     {}
@@ -166,6 +166,10 @@ public:
         m_channels.push_back(c);
     }
 
+    void clear_channels(){
+        m_channels.clear();
+    }
+
     /**
      * sets the message pulseid and global timestamp metadata.if set_enable = true
      * than BSDataChannel enable flag will be modified according to offset and modulo.
@@ -180,7 +184,7 @@ public:
 
 
         if(set_enable){
-            for(int i=0;i<m_channels.size();i++){
+            for(size_t i=0;i<m_channels.size();i++){
                 BSDataChannel* c = m_channels[i];
 
                 int modulo = c->m_meta_modulo;
@@ -213,8 +217,8 @@ public:
         Json::Value root;
         root["htype"] = "bsr_d-1.0";
 
-        for(int i=0;i<m_channels.size();i++){
-            root["channels"][i]=m_channels[i]->get_data_header();
+        for(size_t i=0;i<m_channels.size();i++){
+            root["channels"][(int)i]=m_channels[i]->get_data_header();
         }
 
         return m_writer.write(root);
@@ -244,7 +248,7 @@ public:
      * @param sndhwm
      * @param sock_type
      */
-    BSDataSenderZmq(string address,int sndhwm=10,int sock_type=ZMQ_PUSH);;
+    BSDataSenderZmq(string address,int sndhwm=10,int sock_type=ZMQ_PUSH);
 
 
     size_t send_message(BSDataMessage& message){
@@ -284,7 +288,7 @@ public:
 
 
 
-        for(int i=0;i<channels->size();i++){
+        for(size_t i=0;i<channels->size();i++){
             BSDataChannel* chan = channels->at(i);
 
             m_os << "#" << channels->at(i)->get_name() << endl;

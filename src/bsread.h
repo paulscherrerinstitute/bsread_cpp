@@ -13,11 +13,11 @@
 #include "zmq.hpp"
 #include "json.h"
 
-
+#include "bsdata.h"
 
 extern int bsread_debug;
 
-
+#define DEBUG
 
 #ifdef DEBUG
  #ifdef _WIN32
@@ -47,7 +47,7 @@ public:
     dbAddr address;
     unsigned int modulo;
     int offset;
-    std::string type;
+    bsread::bsdata_type type;
 };
 
 
@@ -57,7 +57,10 @@ class BSRead
 
 public:
 
+    void confiugre_zmq(const char* address,int socket_type,int hwm);
+
     //Configuration method accepting a json string. Function will throw runtime error in case json is invalid.
+    //Configuration will only be applied after applyConfiguration was called. (periodically after read)
     void configure(const std::string & json);
 
     // Read all currently configured channels and send values out via ZMQ;
@@ -72,18 +75,15 @@ public:
     static BSRead* get_instance();
 
 private:
+    bsread::BSDataMessage message_;
+    bsread::BSDataSenderZmq* sender_;
+    bsread::BSDataSenderZmq* sender_new_; //Temporary variable for sender that is applied on next iteration, protected by mutex_
 
-    //ZMQ related fields
-    zmq::context_t* zmq_context_;
-    zmq::socket_t*  zmq_socket_;
     unsigned long zmq_overflows_;   //Number of zmq send errors
 
     epicsMutex mutex_;          //synchornisation between config/read thread
-    Json::FastWriter writer_;   //Json writer instance used for generating data headers
-    std::string data_header_;
     bool applyConfiguration_;   //determines if new configuration was entered and needs to be applied
 
-    std::vector<BSReadChannelConfig> configuration_;
     // Contains next configuration. Incoming configuration is stored
     // here and than copied into configuration_ within BSRead::read method.
     // This prevents blocking of read method.

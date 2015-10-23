@@ -71,6 +71,19 @@ Paramaters that can be passed to the module are:
 
 # Advance Usage
 
+## Changing default ZMQ socket options
+
+Using bsreadConfigure iocsh function it is possible to set ZMQ socket paramters:
+
+    bsreadConfigure <ZMQ address> <PUSH|PUB> <high watermark> 
+    e.g.: 
+
+    bsreadConfigure "tcp://*:9090" PUSH 100
+
+Function can be used either on startup (before iocInit) or during operation, in which case the new socket will be opened and prepared in advance and switched at the end of next "read" operation. This allows for seamless handover without data loss.
+
+
+
 There are following channels to configure, control and monitor __bsread__:
 
   * __$(P):CONFIGURATION__ - Configuration - i.e. channels to be read out
