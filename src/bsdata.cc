@@ -40,13 +40,12 @@ void bsread::BSDataChannel::set_timestamp(timespec timestamp){
 }
 
 bsread::BSDataSenderZmq::BSDataSenderZmq(string address, int sndhwm, int sock_type):
-    m_address(address),
     m_ctx(1),
-    m_sock(m_ctx,sock_type)
+    m_sock(m_ctx,sock_type),
+    m_address(address.c_str())
 {
-    m_sock.bind(address);
-    m_sock.setsockopt(ZMQ_SNDHWM, sndhwm);
-
+    m_sock.bind(address.c_str());
+    m_sock.setsockopt(ZMQ_SNDHWM, &sndhwm,sizeof(sndhwm));
 }
 
 size_t bsread::BSDataSenderZmq::send_message(bsread::BSDataMessage &message, zmq::socket_t& sock){
@@ -68,7 +67,7 @@ size_t bsread::BSDataSenderZmq::send_message(bsread::BSDataMessage &message, zmq
 
     //Send data for each channel
     const vector<BSDataChannel*>* channels = message.get_channels();
-    for(int i=0;i<channels->size();i++){
+    for(size_t i=0;i<channels->size();i++){
         BSDataChannel* chan = channels->at(i);
 
         //Only send enabled channels

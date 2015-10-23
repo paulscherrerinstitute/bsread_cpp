@@ -6,6 +6,7 @@ EXCLUDE_ARCHS=T2 V67 ppc603 ppc405 embeddedlinux-xscale_be
 
 SOURCES += src/asub_routines.cc
 SOURCES += src/bsread.cc
+SOURCES += src/bsdata.cc
 SOURCES += src/json.cc
 SOURCES += src/md5.cc
 
