@@ -81,7 +81,7 @@ void example(size_t buffer_len, double sleep=0.01){
     double time_spent;
     bsread::BSDataChannel time_channel("BSREADTESTS:TIME_SPENT",bsread::BSDATA_DOUBLE);
     time_channel.set_data(&time_spent,1);
-    time_channel.m_meta_modulo=100;
+    time_channel.m_meta_modulo=1;
 
     //Now we need to create a bsdata message that will capture our channels
     bsread::BSDataMessage message;

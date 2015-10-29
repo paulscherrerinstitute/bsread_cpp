@@ -116,3 +116,59 @@ size_t bsread::BSDataSenderZmq::send_message(bsread::BSDataMessage &message, zmq
 
     return msg_len;
 }
+
+void bsread::BSDataMessage::add_channel(bsread::BSDataChannel *c){
+    m_channels.push_back(c);
+    //Update MD5 datahash since data header has changed
+    m_datahash = md5(get_data_header());
+}
+
+void bsread::BSDataMessage::clear_channels(){
+    m_channels.clear();
+}
+
+void bsread::BSDataMessage::set(long pulseid, timespec timestamp, bool set_enable){
+    m_pulseid = pulseid;
+    m_globaltimestamp = timestamp;
+
+
+    if(set_enable){
+        for(size_t i=0;i<m_channels.size();i++){
+            BSDataChannel* c = m_channels[i];
+
+            int modulo = c->m_meta_modulo;
+            int offset = c->m_meta_offset;
+
+            //Calculate modulo if set
+            if (modulo > 0) {
+                if ( ((pulseid-offset) % modulo ) == 0) {
+                    c->set_enabled(true);
+                }
+                else{
+                    c->set_enabled(false);
+                }
+            }
+        }
+    }
+}
+
+string bsread::BSDataMessage::get_main_header(){
+    Json::Value root;
+    root["htype"] = "bsr_m-1.0";
+    root["pulse_id"] = static_cast<Json::Int64>(m_pulseid);
+    root["global_timestamp"]["epoch"] = static_cast<Json::Int64>(m_globaltimestamp.tv_sec);
+    root["global_timestamp"]["ns"] = static_cast<Json::Int64>(m_globaltimestamp.tv_nsec);
+    root["hash"]=m_datahash;
+    return m_writer.write(root);;
+}
+
+string bsread::BSDataMessage::get_data_header(){
+    Json::Value root;
+    root["htype"] = "bsr_d-1.0";
+
+    for(size_t i=0;i<m_channels.size();i++){
+        root["channels"][(int)i]=m_channels[i]->get_data_header();
+    }
+
+    return m_writer.write(root);
+}

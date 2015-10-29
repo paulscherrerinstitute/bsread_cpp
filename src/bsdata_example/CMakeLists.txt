@@ -16,6 +16,6 @@ set(CMAKE_BUILD_TYPE Debug)
 # Add executable called "helloDemo" that is built from the source files
 # "demo.cxx" and "demo_b.cxx". The extensions are automatically found.
 
-add_executable (bsdata_example ./example.cpp ../json.cc ../json.h ../bsdata.h ../bsdata.cc)
+add_executable (bsdata_example ./example.cpp ../json.cc ../json.h ../bsdata.h ../bsdata.cc ../md5.cc)
 target_link_libraries(bsdata_example zmq)
 include_directories(bsdata_example ..)

@@ -2,17 +2,17 @@
 
 ## Quick start
 
-Simply include bsdata.cc and json.cc and link against zmq library. 
+Simply include bsdata.cc and json.cc, md5.cc and link against zmq library.
 
 E.g in cmake: 
 
-	add_executable (bsdata_example ./example.cpp ../json.cc ../json.h ../bsdata.h ../bsdata.cc)
+        add_executable (bsdata_example ./example.cpp ../md5.cc ../json.cc ../json.h ../bsdata.h ../bsdata.cc)
 	target_link_libraries(bsdata_example zmq)
 
 
 Or manually using c++:
 
-	g++ -o test example.cpp ../json.cc ../bsdata.cc -I.. -lzmq
+        g++ -o test example.cpp ../json.cc ../md5.cc ../bsdata.cc -I.. -lzmq
 
 
 ## Example: 
