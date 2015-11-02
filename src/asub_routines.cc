@@ -139,6 +139,7 @@ long bsread_read(aSubRecord* prec){
     //Extract pulse id
     unsigned long* a = (unsigned long*)(prec->a);
     unsigned long pulse_id = a[0];
+    long ret = 0; //Return value
 
     //Extract timestamp
     struct timespec t;
@@ -160,17 +161,17 @@ long bsread_read(aSubRecord* prec){
     *(double *)prec->vala = timeSpan;
     prec->neva = 1;
 
-    //If it takes more than 1 ms to sample the data than we have an error
-    if(timeSpan > 1.0){
+    //If it takes more than 2 ms to sample the data than we have an error
+    if(timeSpan > 2.0){
         (*(unsigned long*)prec->valb)++; //increase number of "timeouts"
-        return -1; //Throw record into an alarm state
+        ret = -1; //Return -1 to put record in alarm state
     }
 
     //Update the overflow count
     (*(unsigned long*)prec->valc) = BSRead::get_instance()->numberOfZmqOverflows();
     //Check if new configuration is available
     BSRead::get_instance()->applyConfiguration();
-    return 0;
+    return ret;
 }
 
 
