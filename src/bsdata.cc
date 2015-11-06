@@ -29,6 +29,18 @@ bool bsread::BSDataChannel::get_enabled(){
     return m_enabled;
 }
 
+bsread::BSDataChannel::BSDataChannel(const string &name, bsread::bsdata_type type):
+    m_type(type),
+    m_data(0),
+    m_len(0),
+    m_name(name),
+    m_encoding_le(true),
+    m_enabled(true),
+    m_callback(0),
+    m_meta_modulo(1),
+    m_meta_offset(0)
+{}
+
 size_t bsread::BSDataChannel::set_data(void *data, size_t len){
     m_data=data;
     m_len=len;
@@ -39,8 +51,8 @@ void bsread::BSDataChannel::set_timestamp(timespec timestamp){
     m_timestamp = timestamp;
 }
 
-bsread::BSDataSenderZmq::BSDataSenderZmq(string address, int sndhwm, int sock_type):
-    m_ctx(1),
+bsread::BSDataSenderZmq::BSDataSenderZmq(zmq::context_t &ctx, string address, int sndhwm, int sock_type):
+    m_ctx(ctx),
     m_sock(m_ctx,sock_type),
     m_address(address.c_str())
 {
@@ -136,7 +148,8 @@ void bsread::BSDataMessage::set(long pulseid, timespec timestamp, bool set_enabl
         for(size_t i=0;i<m_channels.size();i++){
             BSDataChannel* c = m_channels[i];
 
-            int modulo = c->m_meta_modulo;
+            int modulo = c->m_meta_modulo;            
+
             int offset = c->m_meta_offset;
 
             //Calculate modulo if set

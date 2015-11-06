@@ -124,10 +124,34 @@ void example(size_t buffer_len, double sleep=0.01){
 
 }
 
+void test_json(){
+    using namespace bsread;
+
+    BSDataMessage all_channels;
+
+    //Create 100 channels
+    for(int i=0;i<100;i++){
+        char name[255];
+        snprintf(name,255,"BSDATA_TEST:CHANNEL%d",i);
+        BSDataChannel* chan = new BSDataChannel(string(name),BSDATA_CHAR);
+        all_channels.add_channel(chan);
+    }
+
+    string json_test="{\"channels\":[{\"name\":\"BSDATA_TEST:CHANNEL5\",\"modulo\":10}]}";
+
+    BSDataMessage configured = BSReadConfigurator::parse_json_config(all_channels,json_test);
+
+    cout << configured.get_data_header() << endl;
+
+}
+
 
 int main(int argc, char *argv[])
 {
 
+    test_json();
+
+    exit(0);
     example(300e3); //300e3*4b = ~1.2 mb * 100Hz = 120Mb/s = 960MBps
 
     double dbl_test[2048];

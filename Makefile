@@ -3,10 +3,11 @@ include /ioc/tools/driver.makefile
 BUILDCLASSES=Linux
 EXCLUDE_VERSIONS=3.13 3.14.8
 EXCLUDE_ARCHS=T2 V67 ppc603 ppc405 embeddedlinux-xscale_be 
-
+#ARCH_FILTER=SL6%
 SOURCES += src/asub_routines.cc
 SOURCES += src/bsread.cc
 SOURCES += src/bsdata.cc
+SOURCES += src/epics_bsread.cc
 SOURCES += src/json.cc
 SOURCES += src/md5.cc
 

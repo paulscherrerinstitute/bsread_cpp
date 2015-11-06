@@ -11,7 +11,7 @@
 #include <errlog.h>
 #include <recSup.h>
 
-#include "bsread.h"
+#include "epics_bsread.h"
 #include <stdlib.h>
 
 #include <epicsExport.h>
@@ -40,11 +40,16 @@ static long fail_process(aSubRecord *prec)
     return -1;
 }
 
-long bsread_configure_init(aSubRecord* record){
-    Debug(2,"configure init\n");
-    if (record->fta != DBF_CHAR) {
+long bsread_configure_init(aSubRecord* prec){
+    bsread_debug(3,"configure init");
+
+    //Fetch bsread instance
+    prec->dpvt = (void*)epicsBSRead::get_instance("default");
+
+
+    if (prec->fta != DBF_CHAR) {
         errlogPrintf("FTA has invalid type. Must be a CHAR");
-        return fail_init(record);
+        return fail_init(prec);
     }
 
   return 0;
@@ -52,7 +57,7 @@ long bsread_configure_init(aSubRecord* record){
 
 
 long bsread_configure(aSubRecord* prec){
-    Debug(2,"configure\n");
+    bsread_debug(3,"bsread config via asub");
     /* Reading from a string waveform */
     char const *configuration = (char const *) prec->a;
         if (strnlen(configuration, prec->noa) == prec->noa) {
@@ -60,7 +65,7 @@ long bsread_configure(aSubRecord* prec){
             return fail_process(prec);
         }
     try{
-        BSRead::get_instance()->configure(string(configuration));
+        ((bsread::BSRead*)(prec->dpvt))->configure(string(configuration));
     }
     catch(runtime_error & e){
         errlogPrintf("Problem parsing BSDAQ configuration: %s\n", e.what());
@@ -72,7 +77,11 @@ long bsread_configure(aSubRecord* prec){
 
 
 long bsread_read_init(aSubRecord* prec){
-    Debug(2,"read init\n");
+    bsread_debug(3,"read init");
+
+    //Fetch bsread instance
+    prec->dpvt = (void*)epicsBSRead::get_instance("default");
+
     // INPA = bunch ID
     if (prec->fta != DBF_ULONG) {
         errlogPrintf("FTA must be ULONG.\n");
@@ -135,7 +144,7 @@ long bsread_read_init(aSubRecord* prec){
 
 
 long bsread_read(aSubRecord* prec){
-    Debug(3,"read\n");
+    bsread_debug(5,"asub bsred read invoked");
     //Extract pulse id
     unsigned long* a = (unsigned long*)(prec->a);
     unsigned long pulse_id = a[0];
@@ -151,7 +160,11 @@ long bsread_read(aSubRecord* prec){
     epicsTimeStamp t0,t1;
     epicsTimeGetCurrent(&t0);
 
-    BSRead::get_instance()->read(pulse_id,t);
+
+    bsread::BSRead* sender = (bsread::BSRead*)(prec->dpvt);
+    sender->send(pulse_id,t);
+
+//    BSRead::get_instance()->read(pulse_id,t);
 
     epicsTimeGetCurrent(&t1);
     double timeSpan = (t1.secPastEpoch * 1e9 + t1.nsec) - (t0.secPastEpoch * 1e9 + t0.nsec);
@@ -168,9 +181,8 @@ long bsread_read(aSubRecord* prec){
     }
 
     //Update the overflow count
-    (*(unsigned long*)prec->valc) = BSRead::get_instance()->numberOfZmqOverflows();
+    (*(unsigned long*)prec->valc) = sender->zmq_overflows(); 
     //Check if new configuration is available
-    BSRead::get_instance()->applyConfiguration();
     return ret;
 }
 
