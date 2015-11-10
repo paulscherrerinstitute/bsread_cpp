@@ -113,7 +113,7 @@ public:
         return m_timestamp;
     }
 
-    void get_timestamp(long int dest[2]){
+    void get_timestamp(long long dest[2]){
         dest[0] = m_timestamp.tv_sec;
         dest[1] = m_timestamp.tv_nsec;
     }
@@ -166,7 +166,7 @@ public:
      * @param timestamp
      * @param calc_enable
      */
-    void set(long pulseid, timespec timestamp,bool set_enable=true);
+    void set(long long pulseid, timespec timestamp,bool set_enable=true);
 
     string get_main_header();
 
@@ -252,7 +252,7 @@ public:
             const void* data = chan->acquire();
             size_t len = chan->get_len();
 
-            long int rtimestamp[2];
+            long long rtimestamp[2];
             chan->get_timestamp(rtimestamp);
 
             m_os.write(static_cast<const char*>(data),len);

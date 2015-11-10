@@ -3,6 +3,15 @@
 //const char*bsdata_type_name[] = {"Double","Float","Long","ULong","Int","UInt","Short","UShort","String"};
 //const size_t bsdata_type_size[] = { 8,4,8,8,4,4,2,2,1 };
 
+
+//Simple code to allow runtime detection of system endianess
+bool isLittleEndian()
+{
+    short int number = 0x1;
+    char *numPtr = (char*)&number;
+    return (numPtr[0] == 1);
+}
+
 Json::Value bsread::BSDataChannel::get_data_header(){
     Json::Value root;
     root["name"]=m_name;
@@ -34,7 +43,7 @@ bsread::BSDataChannel::BSDataChannel(const string &name, bsread::bsdata_type typ
     m_data(0),
     m_len(0),
     m_name(name),
-    m_encoding_le(true),
+    m_encoding_le(isLittleEndian()),
     m_enabled(true),
     m_callback(0),
     m_meta_modulo(1),
@@ -90,7 +99,7 @@ size_t bsread::BSDataSenderZmq::send_message(bsread::BSDataMessage &message, zmq
             size_t len = chan->get_len();
 
             //Fetch timestamp
-            long int rtimestamp[2];
+            long long rtimestamp[2];
             chan->get_timestamp(rtimestamp);
 
             part_len = sock.send(data,len,ZMQ_SNDMORE | ZMQ_NOBLOCK);
@@ -99,9 +108,9 @@ size_t bsread::BSDataSenderZmq::send_message(bsread::BSDataMessage &message, zmq
 
             //Last part
             if(i==channels->size()-1)
-                part_len = sock.send(rtimestamp,2*sizeof(long int),ZMQ_NOBLOCK);
+                part_len = sock.send(rtimestamp,2*sizeof(long long),ZMQ_NOBLOCK);
             else
-                part_len = sock.send(rtimestamp,2*sizeof(long int),ZMQ_SNDMORE | ZMQ_NOBLOCK);
+                part_len = sock.send(rtimestamp,2*sizeof(long long),ZMQ_SNDMORE | ZMQ_NOBLOCK);
 
             msg_len+=part_len;
 
@@ -132,14 +141,14 @@ size_t bsread::BSDataSenderZmq::send_message(bsread::BSDataMessage &message, zmq
 void bsread::BSDataMessage::add_channel(bsread::BSDataChannel *c){
     m_channels.push_back(c);
     //Update MD5 datahash since data header has changed
-    m_datahash = md5(get_data_header());
+    m_datahash.clear();
 }
 
 void bsread::BSDataMessage::clear_channels(){
     m_channels.clear();
 }
 
-void bsread::BSDataMessage::set(long pulseid, timespec timestamp, bool set_enable){
+void bsread::BSDataMessage::set(long long pulseid, timespec timestamp, bool set_enable){
     m_pulseid = pulseid;
     m_globaltimestamp = timestamp;
 
@@ -170,7 +179,10 @@ string bsread::BSDataMessage::get_main_header(){
     root["htype"] = "bsr_m-1.0";
     root["pulse_id"] = static_cast<Json::Int64>(m_pulseid);
     root["global_timestamp"]["epoch"] = static_cast<Json::Int64>(m_globaltimestamp.tv_sec);
-    root["global_timestamp"]["ns"] = static_cast<Json::Int64>(m_globaltimestamp.tv_nsec);
+    root["global_timestamp"]["ns"] = static_cast<Json::Int64>(m_globaltimestamp.tv_nsec);    
+
+    if(m_datahash.empty()) m_datahash =  md5(get_data_header());
+
     root["hash"]=m_datahash;
     return m_writer.write(root);;
 }
