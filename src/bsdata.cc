@@ -141,7 +141,7 @@ size_t bsread::BSDataSenderZmq::send_message(bsread::BSDataMessage &message, zmq
 void bsread::BSDataMessage::add_channel(bsread::BSDataChannel *c){
     m_channels.push_back(c);
     //Update MD5 datahash since data header has changed
-//    m_datahash = md5(get_data_header()); //TODO: md5 hash :/
+    m_datahash.clear();
 }
 
 void bsread::BSDataMessage::clear_channels(){
@@ -180,6 +180,9 @@ string bsread::BSDataMessage::get_main_header(){
     root["pulse_id"] = static_cast<Json::Int64>(m_pulseid);
     root["global_timestamp"]["epoch"] = static_cast<Json::Int64>(m_globaltimestamp.tv_sec);
     root["global_timestamp"]["ns"] = static_cast<Json::Int64>(m_globaltimestamp.tv_nsec);    
+
+    if(m_datahash.empty()) m_datahash =  md5(get_data_header());
+
     root["hash"]=m_datahash;
     return m_writer.write(root);;
 }
