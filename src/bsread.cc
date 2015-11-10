@@ -166,10 +166,11 @@ BSDataMessage BSRead::parse_json_config(const vector<BSDataChannel *> &all_chann
 
 
     if(root["grep"]!=Json::nullValue){
+        bsread_debug(4,"Enabling all channels [%d]",all_channels.size());
         for(size_t i=0;i<all_channels.size();i++){
             outMsg.add_channel(all_channels[i]);
         }
-
+        bsread_debug(4,"Done, returning...");
         return outMsg;
     }
 
@@ -248,6 +249,7 @@ void BSRead::zmq_config_thread(void *param)
         response["status"]="ok";
 
         self->m_zmq_sock_config->recv(&msg);
+        bsread_debug(3,"ZMQ RPC: received message, parsing...!");
 
 
         try{
