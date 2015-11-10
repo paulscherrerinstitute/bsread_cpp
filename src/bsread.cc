@@ -1,5 +1,4 @@
 #include "bsread.h"
-#include "bsdata.h"
 
 #include <stdexcept>
 #include <iostream>
@@ -25,32 +24,61 @@
 using namespace std;
 using namespace zmq;
 
+int bsread_debug;
+
+namespace bsread{
 
 /**
  * Create a zmq context, create and connect a zmq push socket
  * If a zmq context or zmq socket creation failed, an zmq exception will be thrown
  */
 BSRead::BSRead():
-    zmq_overflows_(0),
-    mutex_(),
-    applyConfiguration_(false)
-{
-    const char * const address = "tcp://*:9990";
-    int high_water_mark = 1000;
-
-    confiugre_zmq(address,ZMQ_PUSH,high_water_mark);
-    applyConfiguration();
+    m_message(0),
+    m_message_new(0),
+    m_sender(0),
+    m_sender_new(0),    
+    m_zmq_ctx(1),
+    zmq_overflows_(0)
+{    
 }
 
 
 
 void BSRead::confiugre_zmq(const char *address, int socket_type, int hwm)
 {
-    printf("Creating new bsread ZMQ context: %s of type %d HWM set to %d messages\n",address,socket_type,hwm);
-    epicsGuard <epicsMutex> guard(mutex_);
-    bsread::BSDataSenderZmq* zmq = new bsread::BSDataSenderZmq(address,hwm,socket_type);
-    sender_new_ = zmq;
+    bsread_debug(1,"Creating new bsread ZMQ context for BSREAD: %s of type %d HWM set to %d messages",address,socket_type,hwm);
+    epicsGuard <epicsMutex> guard(m_mutex_config);
+    bsread::BSDataSenderZmq* zmq = new bsread::BSDataSenderZmq(m_zmq_ctx,address,hwm,socket_type);
+
+    if(!m_sender) m_sender = zmq;
+
+    else m_sender_new = zmq;
+
+
 }
+
+
+
+void BSRead::confiugre_zmq_config(const char *address)
+{
+
+    if(m_thread_config_zmq){
+        bsread_debug(1,"ZMQ RPC already running! Will not reconfigure...");
+    }
+
+    bsread_debug(1,"starting bsread ZMQ RPC thread on %s",address);
+//    Configuration socket
+    m_zmq_sock_config = new socket_t(m_zmq_ctx,ZMQ_REP);
+    m_zmq_sock_config->bind(address);
+
+   //Start thread
+    m_thread_config_zmq = epicsThreadCreate("bsread_config_thread",epicsThreadPriorityLow,epicsThreadGetStackSize(epicsThreadStackMedium),&BSRead::zmq_config_thread,this);
+
+
+//    while(1);
+//    zmq_config_thread(this);
+}
+
 
 /**
  * Configure bsread. Accepts a json string. Function will throw runtime error in case json is invalid.
@@ -59,271 +87,195 @@ void BSRead::confiugre_zmq(const char *address, int socket_type, int hwm)
  */
 void BSRead::configure(const string & json_string)
 {
-    Json::Value root;
-    Json::Reader reader;
+    epicsGuard<epicsMutex> guard(m_mutex_config);
 
-    // Try to parse the incoming json string
-    bool parsingSuccessful = reader.parse( json_string, root );
-    if ( !parsingSuccessful ){
-       string msg = "Could not parse JSON:" + reader.getFormatedErrorMessages();
-       errlogPrintf(msg.c_str());
-       throw runtime_error(msg);
-    }
-
-    const Json::Value channels = root["channels"];
-    if (channels.isNull()) {    // Only throw error if attribute 'channels' is not found in the JSON root. It might be empty, which is OK.
-        string msg = "Invalid configuration - missing mandatory channels attribute. ";
-        errlogPrintf(msg.c_str());
-        throw runtime_error(msg);
-    } else {
-        //Parsing was successful so we can drop existing configuration
-
-        //This mutex is only protecting configuration_incoming, not actuall configuration_
-        //configuration_incoming_ is only a placeholder for configuration that is waiting to be applied
-        //Thread that samples the data will have to acquire this mutex before accessing configuration_incoming_
-        //In order to avoid locking the sampling thread a non-blocking try_lock is used.
-        epicsGuard < epicsMutex > guard(mutex_);
-
-        configuration_incoming_.clear();
-
-        // Parsing success, iterate over per-record configuration
-        for (Json::Value::const_iterator iterator = channels.begin(); iterator != channels.end(); ++iterator)  {
-
-            BSReadChannelConfig config;
-            const Json::Value current_channel = *iterator;
-            config.channel_name = current_channel["name"].asString(); //TODO: Add grep support.
-
-            if (current_channel["offset"] != Json::Value::null) {
-                int offset = 0;
-                if (!(istringstream(current_channel["offset"].asString()) >> offset)) {
-                    errlogPrintf("Invalid offset for channel: %s\n", config.channel_name.c_str());
-                }
-                else {
-                    config.offset = offset;
-                }
-            }
-
-            if (current_channel["modulo"] != Json::Value::null) {
-                int modulo = 0;
-                if (!(istringstream(current_channel["modulo"].asString()) >> modulo)) {
-                    errlogPrintf("Invalid modulo for channel: %s\n", config.channel_name.c_str());
-                }
-                else {
-                    if (modulo > 0) {
-                        config.modulo = modulo;
-                    }
-                    else {
-                        errlogPrintf("Invalid modulo for channel: %s . [modulo<=0] \n", config.channel_name.c_str()); // TODO Need to throw exception
-                    }
-                }
-            }
-
-            //Find address
-            if(dbNameToAddr(config.channel_name.c_str(), &(config.address))) {
-                //Could not find desired record
-                errlogPrintf("Channel %s does not exist!", config.channel_name.c_str()); // TODO Need to throw exception
-                continue;
-            }
-
-            // determine if the DBR type is supported
-            if(config.address.dbr_field_type == DBR_DOUBLE){
-                config.type=bsread::BSDATA_DOUBLE;
-            }
-            else if(config.address.dbr_field_type == DBR_FLOAT){
-                config.type=bsread::BSDATA_FLOAT;
-            }
-            else if(config.address.dbr_field_type == DBR_STRING){
-                config.type=bsread::BSDATA_STRING;
-            }
-            else if(config.address.dbr_field_type == DBR_LONG){
-                config.type=bsread::BSDATA_INT;
-            }
-            else if(config.address.dbr_field_type == DBR_ULONG){
-                config.type=bsread::BSDATA_UINT;
-            }
-            else if(config.address.dbr_field_type == DBR_SHORT){
-                config.type=bsread::BSDATA_SHORT;
-            }
-            else if(config.address.dbr_field_type == DBR_USHORT){
-                config.type=bsread::BSDATA_USHORT;
-            }
-            else{
-                errlogPrintf("BSREAD: Channel %s has unsuporrted type: %d\n",config.channel_name.c_str(), config.address.dbr_field_type); // TODO Need to throw exception
-                continue;
-            }
-
-            configuration_incoming_.push_back(config);
-
-            Debug(1,"Added channel %s offset: %d  modulo: %d\n", config.channel_name.c_str(), config.offset, config.modulo);
-        }
-
-        applyConfiguration_ = true;
-    }
+    if(m_message_new) delete m_message_new;
+    m_message_new = new BSDataMessage(parse_json_config(m_channels,json_string));
 }
 
 
-void BSRead::read(long pulse_id, struct timespec t)
+void BSRead::send(long pulse_id, struct timespec t)
 {
+    //Startup condition, guard will block here...
+    if(!m_sender){
+        epicsGuard<epicsMutex> guard(m_mutex_config);
+
+        if(!m_sender_new)
+            throw std::runtime_error("ZMQ socket not configured!");
+        else m_sender = m_sender_new;
+
+        m_sender_new = 0;
+    }
+
+    //Try to apply new configuration
+    if(m_mutex_config.tryLock()){
+
+        if(m_message_new){
+           bsread_debug(2,"Applying new configuration");
+
+           //Clear exisiting message
+           delete m_message;
+           m_message = m_message_new;
+           m_message_new = 0;
+       }
+
+       if(m_sender_new){
+           if(m_sender)
+            delete m_sender;
+
+           bsread_debug(2,"Applying new ZMQ socket");
+
+           m_sender=m_sender_new;
+           m_sender_new = 0;
+       }
+
+       m_mutex_config.unlock();
+    }
 
     //Skip read if configuration is not available yet...
-    if(message_.get_channels()->empty() || sender_ == NULL){
+    if(!m_message || m_message->get_channels()->empty()){
         return;
     }
 
     //Set message pulse id and global timestamp
-    message_.set(pulse_id,t);
+    m_message->set(pulse_id,t);
 
-    Debug(1,"Sending id %ld\n",pulse_id);
+    bsread_debug(5,"Sending id %ld",pulse_id);
 
     //Send message
-    if(!sender_->send_message(message_)){
+    if(!m_sender->send_message(*m_message)){
         zmq_overflows_++;
-        Debug(2,"BSread not sent :( [%ld]\n",numberOfZmqOverflows());
+        bsread_debug(5,"not sent :( [%ld]",zmq_overflows_);
     }
 
 
 }
 
-/*
- * Callback function invoked by bsdata used to lock the record and apply the
- * timestamp
- */
-void lock_record(bsread::BSDataChannel* chan, bool acquire, void* pvt){
-    struct dbCommon* precord = static_cast<dbCommon*>(pvt);
+BSDataMessage BSRead::parse_json_config(const vector<BSDataChannel *> &all_channels, string json_string){
+    Json::Value root;
+    Json::Reader reader;
 
-    if(acquire){
-        dbScanLock(precord);
+    BSDataMessage outMsg;
 
-        //Set channels timestamp
-        struct timespec t;
-        epicsTimeToTimespec (&t, &(precord->time)); //Convert to unix time
-        chan->set_timestamp(t);
+    // Try to parse the incoming json string
+    bool parsingSuccessful = reader.parse( json_string, root );
+
+    if ( !parsingSuccessful ){
+        throw runtime_error("Could not parse JSON: " + reader.getFormatedErrorMessages());
     }
-    else{
-        dbScanUnlock(precord);
+
+
+    if(root["grep"]!=Json::nullValue){
+        for(size_t i=0;i<all_channels.size();i++){
+            outMsg.add_channel(all_channels[i]);
+        }
+
+        return outMsg;
+    }
+
+    const Json::Value channels = root["channels"];
+    if (channels.isNull()) {    // Only throw error if attribute 'channels' is not found in the JSON root. It might be empty, which is OK.
+        throw runtime_error("Invalid configuration - missing mandatory channels attribute.");
+    }
+
+
+    // Parsing success, iterate over per-record configuration
+    for (Json::Value::const_iterator iterator = channels.begin(); iterator != channels.end(); ++iterator)  {
+
+        const Json::Value current_channel = *iterator;
+        string name = current_channel["name"].asString(); //TODO: Add grep support.
+
+        //Check if the channel exists
+        BSDataChannel* chan = 0;
+
+        for(size_t i=0;i<all_channels.size();i++){
+            if(all_channels[i]->get_name() == name){
+                chan=all_channels[i];
+                break;
+            }
+        }
+
+        if(!chan) throw runtime_error("Channel "+name+" does not exist!");
+
+        int offset=0;   //Default offset
+        int modulo=1;   //Default modulo
+
+        if (current_channel["offset"] != Json::Value::null) {
+            offset = current_channel["offset"].asInt();
+        }
+
+        if (current_channel["modulo"] != Json::Value::null) {
+            modulo = current_channel["modulo"].asInt();
+
+            if(modulo < 1){
+                throw runtime_error("Invalid modulo specfied for channel: "+name);
+            }
+        }
+
+
+        chan->m_meta_modulo = modulo;
+        chan->m_meta_offset = offset;
+        outMsg.add_channel(chan);
+    }
+
+    return outMsg;
+
+
+}
+
+BSRead::~BSRead(){
+    if(m_message_new) delete m_message_new;
+    if(m_sender_new) delete m_sender_new;
+
+    if(m_message) delete m_message;
+    if(m_sender) delete m_sender;
+
+    for(size_t i;i<m_channels.size();i++){
+        delete m_channels[i];
     }
 }
 
+void BSRead::zmq_config_thread(void *param)
+{
+    BSRead* self = static_cast<BSRead*>(param);
 
-bool BSRead::applyConfiguration(){
-    bool newConfig = false;
+    while(true){
+        bsread_debug(3,"ZMQ RPC: waiting for message!");
 
-    //Never block!
-    if(mutex_.tryLock()){
-       if(applyConfiguration_){
-           Debug(1,"Apply new configuration\n");
+        zmq::message_t msg;
 
-           //Clear exisiting message
-           message_.clear_channels();
+        Json::Value response;
+        response["status"]="ok";
 
-           //Construct new BSData message
-           for(size_t i=0; i< configuration_incoming_.size(); i++){
-               BSReadChannelConfig& conf = configuration_incoming_[i];
-
-               //Create a new channel
-               bsread::BSDataChannel* chan = new bsread::BSDataChannel(conf.channel_name,conf.type);
-
-               //Fetch data and set data for the channel
-               struct dbCommon* precord = conf.address.precord;
-               chan->set_data(conf.address.pfield,conf.address.no_elements);
-
-               //Set callback, callback is used to lock and unlock the data
-               chan->set_callback(lock_record,precord);
-
-               //Set channel metadata
-               chan->m_meta_modulo = conf.modulo;
-               chan->m_meta_offset = conf.offset;
-
-               message_.add_channel(chan);
-
-           }
-
-           applyConfiguration_ = false;
-           newConfig = true;
+        self->m_zmq_sock_config->recv(&msg);
 
 
-       }
+        try{
+            self->configure(string((char*)msg.data()));
+            bsread_debug(2,"ZMQ RPC: new configuration applied!");
 
-       if(sender_new_){
-           if(sender_)
-            delete sender_;
+        }
+        catch(std::runtime_error& e){
+            response["status"]="error";
+            response["error"]=e.what();
+            bsread_debug(2,"ZMQ RPC: invalid configuration received: %s",e.what());
 
-           sender_=sender_new_;
-           sender_new_ = 0;
-       }
+        }
 
-       mutex_.unlock();
+        string json_response = response.toStyledString();
+
+        self->m_zmq_sock_config->send(json_response.c_str(),json_response.length());
     }
 
-    return newConfig;
 }
 
-
-unsigned long BSRead::numberOfZmqOverflows(){
+unsigned long BSRead::zmq_overflows() const
+{
     return zmq_overflows_;
 }
 
-/**
- * Get singleton instance of this class
- */
-BSRead* BSRead::get_instance()
-{
-    static BSRead instance_;
-    return &instance_;
-}
 
 int bsread_debug=0;
 
-#include <epicsExport.h>
-extern "C"{
-    epicsExportAddress(int,bsread_debug);
-}
-
-
-#include <iocsh.h>
-
-static const iocshArg bsreadConfigureArg0 = { "address",iocshArgString};
-static const iocshArg bsreadConfigureArg1 = { "type",iocshArgString};
-static const iocshArg bsreadConfigureArg2 = { "hwm",iocshArgInt};
-
-static const iocshArg *const bsreadConfigureArgs[3] =
-    {&bsreadConfigureArg0,&bsreadConfigureArg1,&bsreadConfigureArg2};
-
-static const iocshFuncDef bsreadConfigureFuncDef =
-    {"bsreadConfigure",3,bsreadConfigureArgs};
-
-static void bsreadConfigFunc(const iocshArgBuf *args)
-{
-
-    if(!args[0].sval | !args[1].sval){
-        printf("not enough arguments\n");
-        return;
-    }
-
-    int socket_type=-1;
-    if(!strcmp(args[1].sval,"PUSH")) socket_type = ZMQ_PUSH;
-    if(!strcmp(args[1].sval,"PUB")) socket_type = ZMQ_PUB;
-
-    if(socket_type == -1){
-        errlogPrintf("Invalid type arguemnt, avialbale socket types: PUSH, PUB\n");
-        return;
-    }
-
-    BSRead* bsread = BSRead::get_instance();
-
-    try{
-        bsread->confiugre_zmq(args[0].sval,socket_type,args[2].ival);
-    }
-    catch(zmq::error_t& e){
-        errlogPrintf("Could not configure the port\nRuntime excetion occured: %s\n",e.what());
-    }
 
 }
-
-static int doRegister(void)
-{
-    iocshRegister(&bsreadConfigureFuncDef,bsreadConfigFunc);
-    return 1;
-}
-static int done = doRegister();
-

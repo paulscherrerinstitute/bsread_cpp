@@ -17,81 +17,104 @@
 
 extern int bsread_debug;
 
-#define DEBUG
-
-#ifdef DEBUG
- #ifdef _WIN32
-  #define Debug(level,...) if(bsread_debug >= level) printf(__VA_ARGS__); ;
- #else
-  #define Debug(level,args...) if(bsread_debug >= level) printf(args); ;
- #endif
-#else
- #ifdef _WIN32
-  #define Debug(level,...)
- #else
-  #define Debug(level,args...)
- #endif
-#endif
+//Debug macro for consistency...
+#define bsread_debug(level,M, ...) if(bsread_debug >= level) fprintf(stderr, "BSREAD_DEBUG: (%s:%d) " M "\n", __FILE__, __LINE__, ##__VA_ARGS__)
 
 
+namespace bsread{
 
-
-// Class holding the configuration for one channel
-class BSReadChannelConfig {
-
-public:
-
-    BSReadChannelConfig(): modulo(0), offset(0) {}
-
-    std::string channel_name;
-    dbAddr address;
-    unsigned int modulo;
-    int offset;
-    bsread::bsdata_type type;
-};
-
-
-// Singleton object holding the bsread business logic
 class BSRead
 {
 
 public:
 
+    BSRead();
+
+
+    /**
+     * @brief confiugre_zmq Reconfigure bsread sender. Function must be invoked before first message can be send.
+     * This can be safely invoked during runtime and sender hangover is ensured to complete without data loss.
+     * @param address
+     * @param socket_type
+     * @param hwm
+     */
     void confiugre_zmq(const char* address,int socket_type,int hwm);
 
-    //Configuration method accepting a json string. Function will throw runtime error in case json is invalid.
-    //Configuration will only be applied after applyConfiguration was called. (periodically after read)
+
+    /**
+     * @brief confiugre_zmq_config enable ZMQ RPC socket allowing one to send
+     * JSON confiugration string via ZMQ. This function should not be called more than once!
+     * @param address
+     */
+    void confiugre_zmq_config(const char* address);
+
+    /**
+     * @brief add_channel Add a channel to BSRead instance. Note that by default
+     * the channel is NOT enabled. It has be enabled via JSON configuration string
+     * or by calling enable_all_channels();
+     *
+     * Note that the channel should not be shared between mutliple instances of BSREAD.
+     * Note that once the channel is added, its lifecycle is managed by BSRead class,
+     * the channel will be destroyed when the BSRead instance is destroyed...
+     * @param chan
+     */
+    void add_channel(BSDataChannel* chan){
+        m_channels.push_back(chan);
+    }
+
+    /**
+     * @brief configure method accepting a json string. Function will throw runtime error in case json is invalid.
+     * Configuration will only be applied after applyConfiguration was called. (periodically after read)
+     * @param json
+     */
     void configure(const std::string & json);
 
-    // Read all currently configured channels and send values out via ZMQ;
-    void read(long pulse_id, struct timespec timestamp);
+    void enable_all_channels(){
+        m_message_new = new BSDataMessage();
 
-    //This function has to be called from the same thread as read(). It will check wether new configuration is
-    //available and apply it. Returns true if new configuration was applied.
-    bool applyConfiguration();
+        for(size_t i=0;i<m_channels.size();i++){
+            m_message_new->add_channel(m_channels[i]);
+        }
 
-    unsigned long numberOfZmqOverflows();
-    // Get singleton instance of this class
-    static BSRead* get_instance();
+    }
+
+    /**
+     * @brief read read all currently configured channels and send values out via ZMQ;
+     * @param pulse_id
+     * @param timestamp
+     */
+    void send(long pulse_id, struct timespec timestamp);
+
+    static BSDataMessage parse_json_config(const vector<BSDataChannel*>& all_channels, string json_string);
+
+
+    ~BSRead();
+
+    unsigned long zmq_overflows() const;
 
 private:
-    bsread::BSDataMessage message_;
-    bsread::BSDataSenderZmq* sender_;
-    bsread::BSDataSenderZmq* sender_new_; //Temporary variable for sender that is applied on next iteration, protected by mutex_
+
+    static void zmq_config_thread(void* param);
+
+    vector<BSDataChannel*> m_channels;
+
+    bsread::BSDataMessage* m_message;
+    bsread::BSDataMessage* m_message_new;  //Used as 1-length sync queue (protced by m_mutex_config)
+
+    bsread::BSDataSenderZmq* m_sender;
+    bsread::BSDataSenderZmq* m_sender_new; //Used as 1-length sync queue (protced by m_mutex_config)
+
+    zmq::context_t m_zmq_ctx;
+    zmq::socket_t* m_zmq_sock_config;  //Socket for configuration
 
     unsigned long zmq_overflows_;   //Number of zmq send errors
 
-    epicsMutex mutex_;          //synchornisation between config/read thread
-    bool applyConfiguration_;   //determines if new configuration was entered and needs to be applied
-
-    // Contains next configuration. Incoming configuration is stored
-    // here and than copied into configuration_ within BSRead::read method.
-    // This prevents blocking of read method.
-    std::vector<BSReadChannelConfig> configuration_incoming_;
+    epicsMutex m_mutex_config;          //synchornisation between config/read thread
+    epicsThreadId m_thread_config_zmq;  //ZMQ remote configuration thread
 
 
-    BSRead();
-    std::string generateDataHeader();
 };
 
+
+}
 #endif // BSREAD_H

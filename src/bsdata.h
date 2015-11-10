@@ -37,21 +37,14 @@ class BSDataChannel{
 
 public:
 
-    /* meta data variables */
+    /* standard meta data variables */
     int             m_meta_modulo;
     int             m_meta_offset;
 
-    BSDataChannel(const string& name,bsdata_type type):
-        m_type(type),
-        m_data(0),
-        m_len(0),
-        m_name(name),
-        m_encoding_le(true),
-        m_enabled(true),
-        m_callback(0),
-        m_meta_modulo(0),
-        m_meta_offset(0)
-    {}
+    /* extra metadata variables */
+    Json::Value     m_meta;
+
+    BSDataChannel(const string& name,bsdata_type type);
 
     /**
      * @brief set_data set message data. length is specified in number of
@@ -151,7 +144,6 @@ class BSDataMessage{
 
     //Actual members
     vector<BSDataChannel*> m_channels;
-    bool m_changed; //Indicates that data header has to be reconstructed TODO: do me! [thats what she said :D ]
 
     Json::FastWriter m_writer;   //Json writer instance used for generating data headers
 
@@ -183,6 +175,14 @@ public:
     const vector<BSDataChannel*>* get_channels(){
         return &m_channels;
     }
+
+    BSDataChannel* find_channel(const string& name){
+        for(size_t i=0;i<m_channels.size();i++){
+            if(m_channels[i]->get_name() == name) return m_channels[i];
+        }
+
+        return NULL;
+    }
 };
 
 
@@ -204,7 +204,7 @@ public:
      * @param sndhwm
      * @param sock_type
      */
-    BSDataSenderZmq(string address,int sndhwm=10,int sock_type=ZMQ_PUSH);
+    BSDataSenderZmq(zmq::context_t& ctx, string address,int sndhwm=10,int sock_type=ZMQ_PUSH);
 
 
     size_t send_message(BSDataMessage& message){
@@ -215,7 +215,7 @@ public:
     static size_t send_message(BSDataMessage& message, zmq::socket_t &sock);
 private:
 
-    zmq::context_t  m_ctx;
+    zmq::context_t&  m_ctx;
     zmq::socket_t   m_sock;
     string          m_address;
 };
@@ -228,7 +228,7 @@ class BSDataSenderDebug{
 
 public:
 
-    BSDataSenderDebug(ostream& os):m_os(os){};
+    BSDataSenderDebug(ostream& os):m_os(os){}
 
 
     void send_message(BSDataMessage& message){
@@ -268,6 +268,8 @@ public:
 
 
 };
+
+
 
 
 }// End of namespace bsread
