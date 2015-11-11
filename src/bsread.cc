@@ -231,7 +231,7 @@ BSRead::~BSRead(){
     if(m_message) delete m_message;
     if(m_sender) delete m_sender;
 
-    for(size_t i;i<m_channels.size();i++){
+    for(size_t i=0;i<m_channels.size();i++){
         delete m_channels[i];
     }
 }

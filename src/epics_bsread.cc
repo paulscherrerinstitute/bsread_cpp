@@ -102,25 +102,31 @@ long epicsBSRead::bsread_add_epics_records(bsread::BSRead *instance)
 
             // determine if the DBR type is supported
             if(rec_address.dbr_field_type == DBR_DOUBLE){
-                type=bsread::BSDATA_DOUBLE;
+                type=bsread::BSDATA_FLOAT64;
             }
             else if(rec_address.dbr_field_type == DBR_FLOAT){
-                type=bsread::BSDATA_FLOAT;
+                type=bsread::BSDATA_FLOAT32;
             }
             else if(rec_address.dbr_field_type == DBR_STRING){
                 type=bsread::BSDATA_STRING;
             }
             else if(rec_address.dbr_field_type == DBR_LONG){
-                type=bsread::BSDATA_INT;
+                type=bsread::BSDATA_INT32;
             }
             else if(rec_address.dbr_field_type == DBR_ULONG){
-                type=bsread::BSDATA_UINT;
+                type=bsread::BSDATA_UINT32;
             }
             else if(rec_address.dbr_field_type == DBR_SHORT){
-                type=bsread::BSDATA_SHORT;
+                type=bsread::BSDATA_INT16;
             }
             else if(rec_address.dbr_field_type == DBR_USHORT){
-                type=bsread::BSDATA_USHORT;
+                type=bsread::BSDATA_UINT16;
+            }
+            else if(rec_address.dbr_field_type == DBR_CHAR){
+                type=bsread::BSDATA_INT8;
+            }
+            else if(rec_address.dbr_field_type == DBR_UCHAR){
+                type=bsread::BSDATA_UINT8;
             }
             else{
                 errlogPrintf("BSREAD: Channel %s has unsuporrted type: %d\n",pname, rec_address.dbr_field_type); // TODO Need to throw exception
@@ -197,7 +203,7 @@ static void bsreadConfigFunc(const iocshArgBuf *args)
     }
 
     char zmq_addr_buff[255];
-    bsread::BSRead* bsread_inst;
+    bsread::BSRead* bsread_inst=0;
     try{
 
         bsread_inst = new bsread::BSRead();

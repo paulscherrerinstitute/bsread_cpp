@@ -1,9 +1,5 @@
 #include "bsdata.h"
 
-//const char*bsdata_type_name[] = {"Double","Float","Long","ULong","Int","UInt","Short","UShort","String"};
-//const size_t bsdata_type_size[] = { 8,4,8,8,4,4,2,2,1 };
-
-
 //Simple code to allow runtime detection of system endianess
 bool isLittleEndian()
 {
@@ -18,6 +14,7 @@ Json::Value bsread::BSDataChannel::get_data_header(){
     root["type"]=bsdata_type_name[m_type];
     root["shape"][0]=static_cast<int>(m_len); //shape is array of dimensions, scalar = [1]
     root["encoding"]= m_encoding_le ? "little" : "big";
+    root["htype"]= "bsr_d-1.1";
 
     return root;
 }
