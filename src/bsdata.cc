@@ -13,8 +13,7 @@ Json::Value bsread::BSDataChannel::get_data_header(){
     root["name"]=m_name;
     root["type"]=bsdata_type_name[m_type];
     root["shape"][0]=static_cast<int>(m_len); //shape is array of dimensions, scalar = [1]
-    root["encoding"]= m_encoding_le ? "little" : "big";
-    root["htype"]= "bsr_d-1.1";
+    root["encoding"]= m_encoding_le ? "little" : "big";    
 
     return root;
 }
@@ -173,24 +172,27 @@ void bsread::BSDataMessage::set(long long pulseid, timespec timestamp, bool set_
 
 string bsread::BSDataMessage::get_main_header(){
     Json::Value root;
-    root["htype"] = "bsr_m-1.0";
+    root["htype"] = BSREAD_MAIN_HEADER_VERSION;
     root["pulse_id"] = static_cast<Json::Int64>(m_pulseid);
     root["global_timestamp"]["epoch"] = static_cast<Json::Int64>(m_globaltimestamp.tv_sec);
     root["global_timestamp"]["ns"] = static_cast<Json::Int64>(m_globaltimestamp.tv_nsec);    
-
-    if(m_datahash.empty()) m_datahash =  md5(get_data_header());
-
     root["hash"]=m_datahash;
     return m_writer.write(root);;
 }
 
 string bsread::BSDataMessage::get_data_header(){
-    Json::Value root;
-    root["htype"] = "bsr_d-1.0";
+    if(m_datahash.empty()){
+        Json::Value root;
+        root["htype"] = BSREAD_DATA_HEADER_VERSION;
 
-    for(size_t i=0;i<m_channels.size();i++){
-        root["channels"][(int)i]=m_channels[i]->get_data_header();
+        for(size_t i=0;i<m_channels.size();i++){
+            root["channels"][(int)i]=m_channels[i]->get_data_header();
+        }
+
+        m_dataheader = m_writer.write(root);
+        m_datahash = md5(m_dataheader);
     }
 
-    return m_writer.write(root);
+    return m_dataheader;
+
 }

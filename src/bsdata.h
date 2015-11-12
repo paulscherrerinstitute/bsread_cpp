@@ -13,6 +13,9 @@
 
 using namespace std;
 
+#define BSREAD_MAIN_HEADER_VERSION "bsr_m-1.0"
+#define BSREAD_DATA_HEADER_VERSION "bsr_d-1.0"
+
 namespace bsread{
 
 enum bsdata_type {BSDATA_STRING,
@@ -177,6 +180,7 @@ class BSDataMessage{
     long        m_pulseid;
     timespec    m_globaltimestamp;
     string      m_datahash;
+    string      m_dataheader;    //Copy of dataheader JSON string (to avoid reconstructing JSON on every iteration)
 
     //Actual members
     vector<BSDataChannel*> m_channels;
