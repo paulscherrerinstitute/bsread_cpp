@@ -43,10 +43,7 @@ void lock_record(bsread::BSDataChannel* chan, bool acquire, void* pvt){
     if(acquire){
         dbScanLock(precord);
 
-        //Set channels timestamp
-        struct timespec t;
-        epicsTimeToTimespec (&t, &(precord->time)); //Convert to unix time
-        chan->set_timestamp(t);
+        chan->set_timestamp(precord->time.secPastEpoch + 631152000u, precord->time.nsec);
     }
     else{
         dbScanUnlock(precord);
@@ -197,7 +194,7 @@ static void bsreadConfigFunc(const iocshArgBuf *args)
     }
 
     char zmq_addr_buff[255];
-    bsread::BSRead* bsread_inst;
+    bsread::BSRead* bsread_inst=0;
     try{
 
         bsread_inst = new bsread::BSRead();

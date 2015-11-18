@@ -26,10 +26,6 @@ std::string bsread::BSDataChannel::dump_header(){
     return get_data_header().toStyledString();
 }
 
-void bsread::BSDataChannel::set_timestamp(){
-    clock_gettime(CLOCK_REALTIME,&m_timestamp);
-}
-
 void bsread::BSDataChannel::set_enabled(bool enabled){
     m_enabled = enabled;
 }
@@ -56,7 +52,7 @@ size_t bsread::BSDataChannel::set_data(void *data, size_t len){
     return get_len();
 }
 
-void bsread::BSDataChannel::set_timestamp(timespec timestamp){
+void bsread::BSDataChannel::set_timestamp(timestamp timestamp){
     m_timestamp = timestamp;
 }
 

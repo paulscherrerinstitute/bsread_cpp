@@ -47,17 +47,20 @@ void test_chan_cb(bsread::BSDataChannel* chan,bool acquire, void* pvt){
         double* data = static_cast<double*>(chan->get_data());
         data[0]=dbltime_get(CLOCK_PROCESS_CPUTIME_ID);
 
-        chan->set_timestamp();
+        //Set the timestamp to current time
+        struct timespec t;
+        clock_gettime(clock_type,&t);
+        chan->set_timestamp(t.tv_sec,t.tv_nsec);
     }
 }
 
 
 int main(int argc, char *argv[])
 {
-    bsread_debug = 10;
+    bsread_debug = 4;
 
     //DAQ buffer
-    size_t buffer_len = 1024;
+    size_t buffer_len = 1024*100;
     unsigned int* buffer = new unsigned int[buffer_len];
 
     //Create a channel for this buffer, 4byte long unsigned int data
@@ -113,7 +116,7 @@ int main(int argc, char *argv[])
 //        cout << "Send " << sent/1024 <<" kb " << "took " << time_spent<< "ms" << endl;
 
         //Sleep 10ms
-        time_nanosleep(1000/1e3);
+        time_nanosleep(10/1e3);
 
     }
 
