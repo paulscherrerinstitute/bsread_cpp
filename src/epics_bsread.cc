@@ -27,6 +27,10 @@
 
 #include <epicsExport.h>
 
+#if defined(_MSC_VER)
+#define snprintf _snprintf
+#endif
+
 /** Static class member instances **/
 
 epicsMutex epicsBSRead::g_bsread_mtx;

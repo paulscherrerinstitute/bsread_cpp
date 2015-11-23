@@ -4,6 +4,8 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <stdint.h>
+#include <epicsTime.h>
 #include <zmq.hpp>
 
 
