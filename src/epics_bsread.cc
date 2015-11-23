@@ -27,9 +27,6 @@
 
 #include <epicsExport.h>
 
-#if defined(_MSC_VER)
-#define snprintf _snprintf
-#endif
 
 /** Static class member instances **/
 
@@ -204,13 +201,13 @@ static void bsreadConfigFunc(const iocshArgBuf *args)
         bsread_inst = new bsread::BSRead();
 //        epicsBSRead::bsread_add_epics_records(bsread_inst);
 
-        snprintf(zmq_addr_buff,255,"tcp://*:%d",args[1].ival);
+        epicsSnprintf(zmq_addr_buff,255,"tcp://*:%d",args[1].ival);
         epicsPrintf("BSREAD: Configuring instance %s to ZMQ to %s\n",args[0].sval,zmq_addr_buff);
 
         bsread_inst->confiugre_zmq(zmq_addr_buff,socket_type,args[3].ival);
 
 
-        snprintf(zmq_addr_buff,255,"tcp://*:%d",args[1].ival+1);
+        epicsSnprintf(zmq_addr_buff,255,"tcp://*:%d",args[1].ival+1);
         epicsPrintf("BSREAD: Configuring instance %s ZMQ RPC to %s\n",args[0].sval,zmq_addr_buff);
         bsread_inst->confiugre_zmq_config(zmq_addr_buff);
 

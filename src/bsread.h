@@ -83,7 +83,7 @@ public:
      * @param pulse_id
      * @param timestamp
      */
-    void send(long pulse_id, struct timespec timestamp);
+    void send(long pulse_id, timestamp tst);
 
     static BSDataMessage parse_json_config(const vector<BSDataChannel*>& all_channels, string json_string);
 

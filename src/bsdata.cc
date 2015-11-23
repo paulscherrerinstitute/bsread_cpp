@@ -144,7 +144,7 @@ void bsread::BSDataMessage::clear_channels(){
     m_channels.clear();
 }
 
-void bsread::BSDataMessage::set(long long pulseid, timespec timestamp, bool set_enable){
+void bsread::BSDataMessage::set(long long pulseid, bsread::timestamp timestamp, bool set_enable){
     m_pulseid = pulseid;
     m_globaltimestamp = timestamp;
 
@@ -174,8 +174,8 @@ string bsread::BSDataMessage::get_main_header(){
     Json::Value root;
     root["htype"] = "bsr_m-1.0";
     root["pulse_id"] = static_cast<Json::Int64>(m_pulseid);
-    root["global_timestamp"]["epoch"] = static_cast<Json::Int64>(m_globaltimestamp.tv_sec);
-    root["global_timestamp"]["ns"] = static_cast<Json::Int64>(m_globaltimestamp.tv_nsec);    
+    root["global_timestamp"]["epoch"] = static_cast<Json::Int64>(m_globaltimestamp.sec);
+    root["global_timestamp"]["ns"] = static_cast<Json::Int64>(m_globaltimestamp.nsec);
 
     if(m_datahash.empty()) m_datahash =  md5(get_data_header());
 

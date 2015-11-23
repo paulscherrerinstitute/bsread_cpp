@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 #include <stdint.h>
-#include <epicsTime.h>
+//#include <epicsTime.h>
 #include <zmq.hpp>
 
 
@@ -158,7 +158,7 @@ public:
 class BSDataMessage{
     //Message metadata
     long        m_pulseid;
-    timespec    m_globaltimestamp;
+    timestamp   m_globaltimestamp;
     string      m_datahash;
 
     //Actual members
@@ -185,7 +185,7 @@ public:
      * @param timestamp
      * @param calc_enable
      */
-    void set(long long pulseid, timespec timestamp,bool set_enable=true);
+    void set(long long pulseid, bsread::timestamp tst, bool set_enable=true);
 
     string get_main_header();
 
