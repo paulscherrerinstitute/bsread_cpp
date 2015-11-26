@@ -151,9 +151,9 @@ long bsread_read(aSubRecord* prec){
     long ret = 0; //Return value
 
     //Extract timestamp
-    struct timespec t;
-    t.tv_sec = ((unsigned long*)(prec->b))[0];
-    t.tv_nsec = ((unsigned long*)(prec->c))[0];
+    bsread::timestamp t;
+    t.sec = ((unsigned long*)(prec->b))[0];
+    t.nsec = ((unsigned long*)(prec->c))[0];
 
 
     //Serialization performance measurment

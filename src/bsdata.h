@@ -3,8 +3,9 @@
 
 #include <iostream>
 #include <string>
-#include <time.h>
 #include <vector>
+#include <stdint.h>
+//#include <epicsTime.h>
 #include <zmq.hpp>
 
 
@@ -61,10 +62,27 @@ static const size_t bsdata_type_size[] = {  1,
 class BSDataChannel;
 typedef void (*BSDataCallaback)(BSDataChannel* chan,bool acquire, void* pvt);
 
+/**
+ * @brief The timestamp struct
+ *
+ * platform independant structure for storing timestamps
+ */
+struct timestamp{
+    /**
+     * @brief sec seconds past UNIX epoch (1/1/1970)
+     */
+    int64_t sec;
+
+    /**
+     * @brief ns nanosecond offset since last full second
+     */
+    int64_t nsec;
+};
+
 class BSDataChannel{
     bsdata_type     m_type;
     void*           m_data;
-    timespec        m_timestamp;
+    timestamp       m_timestamp;
     size_t          m_len;
     string          m_name;
     bool            m_encoding_le;
@@ -141,20 +159,21 @@ public:
         return m_len*bsdata_type_size[m_type];
     }
 
-    void set_timestamp(timespec timestamp);
+    void set_timestamp(timestamp timestamp);
 
-    /**
-     * @brief set_timestamp sets the timestamp to a current system time
-     */
-    void set_timestamp();
+    void set_timestamp(int64_t sec, int64_t nsec){
+        m_timestamp.sec=sec;
+        m_timestamp.nsec = nsec;
+    }
 
-    timespec get_timestamp(){
+
+    timestamp get_timestamp(){
         return m_timestamp;
     }
 
     void get_timestamp(long long dest[2]){
-        dest[0] = m_timestamp.tv_sec;
-        dest[1] = m_timestamp.tv_nsec;
+        dest[0] = m_timestamp.sec;
+        dest[1] = m_timestamp.nsec;
     }
 
     void set_enabled(bool enabled);
@@ -178,7 +197,7 @@ public:
 class BSDataMessage{
     //Message metadata
     long        m_pulseid;
-    timespec    m_globaltimestamp;
+    timestamp   m_globaltimestamp;
     string      m_datahash;
     string      m_dataheader;    //Copy of dataheader JSON string (to avoid reconstructing JSON on every iteration)
 
@@ -206,7 +225,7 @@ public:
      * @param timestamp
      * @param calc_enable
      */
-    void set(long long pulseid, timespec timestamp,bool set_enable=true);
+    void set(long long pulseid, bsread::timestamp tst, bool set_enable=true);
 
     string get_main_header();
 

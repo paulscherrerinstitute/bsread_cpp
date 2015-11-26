@@ -18,7 +18,6 @@
 #include <zmq.hpp>
 #include "md5.h"
 #include "json.h"  // jsoncpp
-// #include "bunchData.pb.h" // protocol buffer serialization
 
 
 using namespace std;
@@ -94,7 +93,7 @@ void BSRead::configure(const string & json_string)
 }
 
 
-void BSRead::send(long pulse_id, struct timespec t)
+void BSRead::send(long pulse_id, bsread::timestamp t)
 {
     //Startup condition, guard will block here...
     if(!m_sender){

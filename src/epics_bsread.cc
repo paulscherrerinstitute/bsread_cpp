@@ -27,6 +27,7 @@
 
 #include <epicsExport.h>
 
+
 /** Static class member instances **/
 
 epicsMutex epicsBSRead::g_bsread_mtx;
@@ -43,10 +44,7 @@ void lock_record(bsread::BSDataChannel* chan, bool acquire, void* pvt){
     if(acquire){
         dbScanLock(precord);
 
-        //Set channels timestamp
-        struct timespec t;
-        epicsTimeToTimespec (&t, &(precord->time)); //Convert to unix time
-        chan->set_timestamp(t);
+        chan->set_timestamp(precord->time.secPastEpoch + 631152000u, precord->time.nsec);
     }
     else{
         dbScanUnlock(precord);
@@ -209,13 +207,13 @@ static void bsreadConfigFunc(const iocshArgBuf *args)
         bsread_inst = new bsread::BSRead();
 //        epicsBSRead::bsread_add_epics_records(bsread_inst);
 
-        snprintf(zmq_addr_buff,255,"tcp://*:%d",args[1].ival);
+        epicsSnprintf(zmq_addr_buff,255,"tcp://*:%d",args[1].ival);
         epicsPrintf("BSREAD: Configuring instance %s to ZMQ to %s\n",args[0].sval,zmq_addr_buff);
 
         bsread_inst->confiugre_zmq(zmq_addr_buff,socket_type,args[3].ival);
 
 
-        snprintf(zmq_addr_buff,255,"tcp://*:%d",args[1].ival+1);
+        epicsSnprintf(zmq_addr_buff,255,"tcp://*:%d",args[1].ival+1);
         epicsPrintf("BSREAD: Configuring instance %s ZMQ RPC to %s\n",args[0].sval,zmq_addr_buff);
         bsread_inst->confiugre_zmq_config(zmq_addr_buff);
 

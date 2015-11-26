@@ -22,10 +22,6 @@ std::string bsread::BSDataChannel::dump_header(){
     return get_data_header().toStyledString();
 }
 
-void bsread::BSDataChannel::set_timestamp(){
-    clock_gettime(CLOCK_REALTIME,&m_timestamp);
-}
-
 void bsread::BSDataChannel::set_enabled(bool enabled){
     m_enabled = enabled;
 }
@@ -52,7 +48,7 @@ size_t bsread::BSDataChannel::set_data(void *data, size_t len){
     return get_len();
 }
 
-void bsread::BSDataChannel::set_timestamp(timespec timestamp){
+void bsread::BSDataChannel::set_timestamp(timestamp timestamp){
     m_timestamp = timestamp;
 }
 
@@ -144,7 +140,7 @@ void bsread::BSDataMessage::clear_channels(){
     m_channels.clear();
 }
 
-void bsread::BSDataMessage::set(long long pulseid, timespec timestamp, bool set_enable){
+void bsread::BSDataMessage::set(long long pulseid, bsread::timestamp timestamp, bool set_enable){
     m_pulseid = pulseid;
     m_globaltimestamp = timestamp;
 
@@ -174,8 +170,10 @@ string bsread::BSDataMessage::get_main_header(){
     Json::Value root;
     root["htype"] = BSREAD_MAIN_HEADER_VERSION;
     root["pulse_id"] = static_cast<Json::Int64>(m_pulseid);
-    root["global_timestamp"]["epoch"] = static_cast<Json::Int64>(m_globaltimestamp.tv_sec);
-    root["global_timestamp"]["ns"] = static_cast<Json::Int64>(m_globaltimestamp.tv_nsec);    
+    root["global_timestamp"]["epoch"] = static_cast<Json::Int64>(m_globaltimestamp.sec);
+    root["global_timestamp"]["ns"] = static_cast<Json::Int64>(m_globaltimestamp.nsec);
+
+
     root["hash"]=m_datahash;
     return m_writer.write(root);;
 }
