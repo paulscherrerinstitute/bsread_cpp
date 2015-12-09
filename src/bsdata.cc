@@ -173,6 +173,13 @@ string bsread::BSDataMessage::get_main_header(){
     root["global_timestamp"]["epoch"] = static_cast<Json::Int64>(m_globaltimestamp.sec);
     root["global_timestamp"]["ns"] = static_cast<Json::Int64>(m_globaltimestamp.nsec);
 
+    /* Empty datahash indicates that the data_header was not yet constructed,
+     * which is needed to calculate datahash. m_datahash is updated whenever a
+     * new dataheader needs to be constructed. Here we simply overcome the lazy loading...
+     */
+    if(!m_datahash.empty()){
+        this->get_data_header();
+    }
 
     root["hash"]=m_datahash;
     return m_writer.write(root);;
