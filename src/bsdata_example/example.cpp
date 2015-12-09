@@ -49,7 +49,7 @@ void test_chan_cb(bsread::BSDataChannel* chan,bool acquire, void* pvt){
         double* data = static_cast<double*>(chan->get_data());
         data[0]=dbltime_get(CLOCK_PROCESS_CPUTIME_ID);
 
-        chan->set_timestamp();
+//        chan->set_timestamp();
     }
 }
 
@@ -68,7 +68,7 @@ void example(size_t buffer_len, double sleep=0.01){
     unsigned int* buffer = new unsigned int[buffer_len];
 
     //Create a channel for this buffer, 4byte long unsigned int data
-    bsread::BSDataChannel daq_channel("BSREADTEST:DAQ_DATA",bsread::BSDATA_INT);
+    bsread::BSDataChannel daq_channel("BSREADTEST:DAQ_DATA",bsread::BSDATA_INT32);
 
     //Since the daq_channel data and the bsread sending is preformed from the same
     //thread no locking of data is needed, we only need to set the channels data.
@@ -79,7 +79,7 @@ void example(size_t buffer_len, double sleep=0.01){
     //Lets create a second channel that will hold time needed to send the last message
 
     double time_spent;
-    bsread::BSDataChannel time_channel("BSREADTESTS:TIME_SPENT",bsread::BSDATA_DOUBLE);
+    bsread::BSDataChannel time_channel("BSREADTESTS:TIME_SPENT",bsread::BSDATA_FLOAT64);
     time_channel.set_data(&time_spent,1);
     time_channel.m_meta_modulo=1;
 
@@ -91,8 +91,10 @@ void example(size_t buffer_len, double sleep=0.01){
     message.add_channel(&time_channel);
 
 
+    zmq::context_t ctx(1);
+
     //We now need to create a bsread sender that will serialize and send out the message
-    bsread::BSDataSenderZmq zmq_sender("tcp://*:9999",4096*4096);
+    bsread::BSDataSenderZmq zmq_sender(ctx,"tcp://*:9999",4096*4096);
 
     //Lets send one message every 10ms, as in SwissFEL
     long pulse_id=0;
@@ -104,7 +106,12 @@ void example(size_t buffer_len, double sleep=0.01){
     while(true){
         pulse_id++;
         //Set a message, assign it a pulse id and prepare it for sending
-        message.set(pulse_id,global_timestamp);
+        clock_gettime(CLOCK_REALTIME,&global_timestamp);
+        bsread::timestamp tst;
+        tst.sec = (int64_t)global_timestamp.tv_sec;
+        tst.nsec = (int64_t)global_timestamp.tv_nsec;
+
+        message.set(pulse_id,tst);
 
         t = dbltime_get();
         //Send the message
@@ -113,7 +120,7 @@ void example(size_t buffer_len, double sleep=0.01){
         time_spent = (dbltime_get() - t)*1e3;
         //time_spent, which is a buffer for time_channel was updated
         //it makes sense to update its timestamp as well
-        time_channel.set_timestamp();
+        time_channel.set_timestamp(tst);
 
         cout << "Send " << sent/1024 <<" kb " << "took " << time_spent<< "ms" << endl;
 
@@ -124,96 +131,72 @@ void example(size_t buffer_len, double sleep=0.01){
 
 }
 
-void test_json(){
-    using namespace bsread;
-
-    BSDataMessage all_channels;
-
-    //Create 100 channels
-    for(int i=0;i<100;i++){
-        char name[255];
-        snprintf(name,255,"BSDATA_TEST:CHANNEL%d",i);
-        BSDataChannel* chan = new BSDataChannel(string(name),BSDATA_CHAR);
-        all_channels.add_channel(chan);
-    }
-
-    string json_test="{\"channels\":[{\"name\":\"BSDATA_TEST:CHANNEL5\",\"modulo\":10}]}";
-
-    BSDataMessage configured = BSReadConfigurator::parse_json_config(all_channels,json_test);
-
-    cout << configured.get_data_header() << endl;
-
-}
-
 
 int main(int argc, char *argv[])
 {
 
-    test_json();
-
-    exit(0);
     example(300e3); //300e3*4b = ~1.2 mb * 100Hz = 120Mb/s = 960MBps
 
-    double dbl_test[2048];
-    long int int_test[2048];
-    string str_test = "Hello world string";
-    const char* chr_test = "Hello world char";
+//    double dbl_test[2048];
+//    long int int_test[2048];
+//    string str_test = "Hello world string";
+//    const char* chr_test = "Hello world char";
 
-    bsread::BSDataChannel chan1("testChan",bsread::BSDATA_DOUBLE);
-    bsread::BSDataChannel chan2("testChan2",bsread::BSDATA_LONG);
-    bsread::BSDataChannel chan3("testChan3",bsread::BSDATA_STRING);
-    bsread::BSDataChannel chan4("testChan4",bsread::BSDATA_STRING);
-    bsread::BSDataChannel cpu_time("cputime",bsread::BSDATA_DOUBLE);
+//    bsread::BSDataChannel chan1("testChan",bsread::BSDATA_FLOAT64);
+//    bsread::BSDataChannel chan2("testChan2",bsread::BSDATA_INT32);
+//    bsread::BSDataChannel chan3("testChan3",bsread::BSDATA_STRING);
+//    bsread::BSDataChannel chan4("testChan4",bsread::BSDATA_STRING);
+//    bsread::BSDataChannel cpu_time("cputime",bsread::BSDATA_FLOAT64);
 
-    chan1.set_data(dbl_test,2048);
-    chan1.set_timestamp();
-
-
-    chan2.set_data(int_test,2048);
-    chan2.set_timestamp();
-    chan2.m_meta_modulo = 0;
-
-    chan3.set_data(strdup(str_test.c_str()),str_test.size());
-    chan3.m_meta_modulo = 10;
-
-    chan4.set_data(strdup(chr_test),strlen(chr_test));
-
-    cpu_time.set_data(new double,1);
-    cpu_time.set_timestamp();
-    cpu_time.set_callback(test_chan_cb,0);
+//    chan1.set_data(dbl_test,2048);
+////    chan1.set_timestamp();
 
 
-    bsread::BSDataMessage msg;
-    msg.add_channel(&chan1);
-    msg.add_channel(&chan2);
-//    msg.add_channel(&chan3);
-    msg.add_channel(&cpu_time);
-    msg.add_channel(&chan4);
+//    chan2.set_data(int_test,2048);
+////    chan2.set_timestamp();
+//    chan2.m_meta_modulo = 0;
+
+//    chan3.set_data(strdup(str_test.c_str()),str_test.size());
+//    chan3.m_meta_modulo = 10;
+
+//    chan4.set_data(strdup(chr_test),strlen(chr_test));
+
+//    cpu_time.set_data(new double,1);
+////    cpu_time.set_timestamp();
+//    cpu_time.set_callback(test_chan_cb,0);
+
+
+//    bsread::BSDataMessage msg;
+//    msg.add_channel(&chan1);
+//    msg.add_channel(&chan2);
+////    msg.add_channel(&chan3);
+//    msg.add_channel(&cpu_time);
+//    msg.add_channel(&chan4);
 
 
 
-//    bsread::BSDataSenderDebug sender(cout);
-//    sender.send_message(msg);
+////    bsread::BSDataSenderDebug sender(cout);
+////    sender.send_message(msg);
 
-    /* Create zmq context */
+//    /* Create zmq context */
 
-    bsread::BSDataSenderZmq bsread_zmq("tcp://*:9999",10,ZMQ_PUSH);
+//    bsread::BSDataSenderZmq bsread_zmq("tcp://*:9999",10,ZMQ_PUSH);
 
-    timespec t;
-    int i=1;
-    while(i++){
-        chan1.set_timestamp();
-        dbl_test[0]=i/10.0;
-        int_test[0]=i;
+//    timespec t;
+//    int i=1;
+//    while(i++){
+////        chan1.set_timestamp();
+//        dbl_test[0]=i/10.0;
+//        int_test[0]=i;
 
-        msg.set(i,t);
+//        msg.set(i,t);
 
-        double t0 = dbltime_get(CLOCK_REALTIME);
-        size_t a=bsread_zmq.send_message(msg);
-        t0 = dbltime_get() - t0;
-        cout << "Send " << a <<" b " << "took " << t0*1e3 << "ms" << endl;
-        time_nanosleep(0.01);
-    }
+//        double t0 = dbltime_get(CLOCK_REALTIME);
+//        size_t a=bsread_zmq.send_message(msg);
+//        t0 = dbltime_get() - t0;
+//        cout << "Send " << a <<" b " << "took " << t0*1e3 << "ms" << endl;
+//        time_nanosleep(0.01);
+//    }
 
 
 
