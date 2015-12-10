@@ -120,7 +120,34 @@ Such configuration can be pushed to the configuration record like so (assume __$
 
     /usr/local/epics/base/bin/SL6-x86_64/caput -S TEST-BSREAD:CONFIGURATION '{"channels": [{"name":"BSREAD-TEST:TEST_1","offset":0,"modulo":2},{"name":"BSREAD-TEST:TEST_12,"offset":2,"modulo":10} ]}'
 
-### Examples
+
+## ZMQ RPC
+
+BSREAD also creates a second ZMQ socket (within EPICS bsread this is always zmq port + 1 [10000 by default]) that can is used to preform a RPC calls. 
+Currently only 2 functions are implemented; introspection and configuration. 
+
+- Configuration:
+
+  request:
+
+      {"cmd":"config","config":<configuration string>}
+
+  response:
+
+      {"status":["ok","error"], "error":<error description>}
+
+- Introspection:
+
+  request:
+
+      {"cmd":"introspect"}
+
+  response:
+
+      {"status": "ok", "channels": [<enumeration of all channels>], "config":<current configuration>}
+
+
+# Examples
 Assume that __$(P)__ = _TEST-BSREAD_ is the following examples.
 
 * Clear configuration
