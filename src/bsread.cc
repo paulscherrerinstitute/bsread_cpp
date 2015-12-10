@@ -318,10 +318,11 @@ void BSRead::zmq_config_thread(void *param)
 
                 try{
                     if(cmd=="config"){
-                        self->configure(json_request);
+                        self->configure(json_request["config"]);
                         bsread_debug(2,"ZMQ RPC: new configuration applied!");
                         json_response["config"] = self->generate_json_config();
                     }
+                    //Introspect
                     if(cmd=="introspect"){
                         json_response["config"] = self->generate_json_config();
 
