@@ -49,7 +49,7 @@ void test_chan_cb(bsread::BSDataChannel* chan,bool acquire, void* pvt){
 
         //Set the timestamp to current time
         struct timespec t;
-        clock_gettime(clock_type,&t);
+        clock_gettime(CLOCK_REALTIME,&t);
         chan->set_timestamp(t.tv_sec,t.tv_nsec);
     }
 }
@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
     unsigned int* buffer = new unsigned int[buffer_len];
 
     //Create a channel for this buffer, 4byte long unsigned int data
-    bsread::BSDataChannel daq_channel("BSREADTEST:DAQ_DATA",bsread::BSDATA_INT);
+    bsread::BSDataChannel daq_channel("BSREADTEST:DAQ_DATA",bsread::BSDATA_INT32);
 
     //Since the daq_channel data and the bsread sending is preformed from the same
     //thread no locking of data is needed, we only need to set the channels data.
@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
     //Lets create a second channel that will hold time needed to send the last message
 
     double time_spent;
-    bsread::BSDataChannel time_channel("BSREADTEST:TIME_SPENT",bsread::BSDATA_DOUBLE);
+    bsread::BSDataChannel time_channel("BSREADTEST:TIME_SPENT",bsread::BSDATA_FLOAT64);
     time_channel.set_data(&time_spent,1);
     time_channel.m_meta_modulo=1;
 
@@ -88,8 +88,8 @@ int main(int argc, char *argv[])
 
     sender.enable_all_channels();
 
-    sender.confiugre_zmq("tcp://*:9991",ZMQ_PUSH,100);
-    sender.confiugre_zmq_config("tcp://*:9995");
+    sender.confiugre_zmq("tcp://*:9999",ZMQ_PUSH,100);
+    sender.confiugre_zmq_config("tcp://*:10000");
 
 //    while(1);
 
@@ -106,12 +106,16 @@ int main(int argc, char *argv[])
 
         t = dbltime_get();
         //Send the message
-        sender.send(pulse_id,global_timestamp);
+        clock_gettime(CLOCK_REALTIME,&global_timestamp);
+        bsread::timestamp tst;
+        tst.sec=global_timestamp.tv_sec;
+        tst.nsec=global_timestamp.tv_nsec;
+        sender.send(pulse_id,tst);
 
         time_spent = (dbltime_get() - t)*1e3;
         //time_spent, which is a buffer for time_channel was updated
         //it makes sense to update its timestamp as well
-        time_channel.set_timestamp();
+        time_channel.set_timestamp(tst);
 
 //        cout << "Send " << sent/1024 <<" kb " << "took " << time_spent<< "ms" << endl;
 
