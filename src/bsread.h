@@ -67,7 +67,9 @@ public:
      * Configuration will only be applied after applyConfiguration was called. (periodically after read)
      * @param json
      */
-    void configure(const std::string & json);
+    void configure(Json::Value config);
+    void configure(const string & json_string);
+
 
     void enable_all_channels(){
         m_message_new = new BSDataMessage();
@@ -85,12 +87,22 @@ public:
      */
     void send(long pulse_id, timestamp tst);
 
-    static BSDataMessage parse_json_config(const vector<BSDataChannel*>& all_channels, string json_string);
+    static BSDataMessage parse_json_config(const vector<BSDataChannel*>& all_channels, Json::Value config);
+
+    /**
+     * @brief generate_json_config generates a Json object containig current configuration.
+     * Note that the configuration is recreated from current state and is not a simple cached value
+     * of applied configuration.
+     *
+     * @return
+     */
+    Json::Value generate_json_config();
 
 
     ~BSRead();
 
     unsigned long zmq_overflows() const;
+
 
 private:
 

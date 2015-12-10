@@ -86,10 +86,24 @@ void BSRead::confiugre_zmq_config(const char *address)
  */
 void BSRead::configure(const string & json_string)
 {
+    Json::Reader json_reader;
+    Json::Value config;
+
+    //Try to decode the message
+    if(!json_reader.parse(json_string,config)){
+        throw std::runtime_error("Could not parse JSON: " + json_reader.getFormatedErrorMessages());
+    }
+
+    configure(config);
+
+}
+
+void BSRead::configure(Json::Value config)
+{
     epicsGuard<epicsMutex> guard(m_mutex_config);
 
     if(m_message_new) delete m_message_new;
-    m_message_new = new BSDataMessage(parse_json_config(m_channels,json_string));
+    m_message_new = new BSDataMessage(parse_json_config(m_channels,config));
 }
 
 
@@ -150,19 +164,8 @@ void BSRead::send(long pulse_id, bsread::timestamp t)
 
 }
 
-BSDataMessage BSRead::parse_json_config(const vector<BSDataChannel *> &all_channels, string json_string){
-    Json::Value root;
-    Json::Reader reader;
-
+BSDataMessage BSRead::parse_json_config(const vector<BSDataChannel *> &all_channels, Json::Value root){
     BSDataMessage outMsg;
-
-    // Try to parse the incoming json string
-    bool parsingSuccessful = reader.parse( json_string, root );
-
-    if ( !parsingSuccessful ){
-        throw runtime_error("Could not parse JSON: " + reader.getFormatedErrorMessages());
-    }
-
 
     if(root["grep"]!=Json::nullValue){
         bsread_debug(4,"Enabling all channels [%d]",all_channels.size());
@@ -219,9 +222,38 @@ BSDataMessage BSRead::parse_json_config(const vector<BSDataChannel *> &all_chann
     }
 
     return outMsg;
-
-
 }
+
+//Generates current json configuration...
+Json::Value BSRead::generate_json_config(){
+
+    Json::Value root;
+    Json::Value channels;
+
+    //No configuration has been set yet
+    if(!m_message){
+        root["channels"] = Json::nullValue;
+        return root;
+    }
+
+    for(int i=0;i<m_message->get_channels()->size();i++){
+        BSDataChannel* chan =m_message->get_channels()->at(i);
+        Json::Value json_chan;
+        json_chan["name"]=chan->get_name();
+        json_chan["offset"]=chan->m_meta_offset;
+        json_chan["modulo"]=chan->m_meta_modulo;
+
+        cout << json_chan << endl;
+
+        channels.append(json_chan);
+
+    }
+
+    root["channels"] = channels;
+    return root;
+}
+
+
 
 BSRead::~BSRead(){
     if(m_message_new) delete m_message_new;
@@ -235,6 +267,11 @@ BSRead::~BSRead(){
     }
 }
 
+/**
+ * @brief BSRead::zmq_config_thread A thead that handles configuration ZMQ port. It allows set-ing and retriving
+ * a new configuration...
+ * @param param
+ */
 void BSRead::zmq_config_thread(void *param)
 {
     BSRead* self = static_cast<BSRead*>(param);
@@ -242,30 +279,81 @@ void BSRead::zmq_config_thread(void *param)
     while(true){
         bsread_debug(3,"ZMQ RPC: waiting for message!");
 
-        zmq::message_t msg;
-
-        Json::Value response;
-        response["status"]="ok";
+        zmq::message_t  msg;
+        Json::Value     json_request;
+        Json::Value     json_response;
+        Json::Reader    json_reader;
 
         self->m_zmq_sock_config->recv(&msg);
         bsread_debug(3,"ZMQ RPC: received message, parsing...!");
 
 
-        try{
-            self->configure(string((char*)msg.data()));
-            bsread_debug(2,"ZMQ RPC: new configuration applied!");
-
+        //Try to decode the message
+        if(!json_reader.parse(string((char*)(msg.data())),json_request)){
+            json_response["status"]="error";
+            json_response["error"]="Could not parse JSON: " + json_reader.getFormatedErrorMessages();
         }
-        catch(std::runtime_error& e){
-            response["status"]="error";
-            response["error"]=e.what();
-            bsread_debug(2,"ZMQ RPC: invalid configuration received: %s",e.what());
+        else{ //JSON correctly decoded
 
+            //For beckward compatilibity
+            //Check if `channels` or `grep` elements are present in
+            //request. If they are it indicates that this is a configuration message
+            if(json_request.isMember("grep") || json_request.isMember("channels")){
+                try{
+                    self->configure(json_request);
+                    bsread_debug(2,"ZMQ RPC: new configuration applied!");
+                    json_response["config"] = self->generate_json_config();
+                    json_response["status"]="ok";
+                }
+                catch(std::runtime_error& e){
+                    json_response["status"]="error";
+                    json_response["error"]=e.what();
+                    bsread_debug(2,"ZMQ RPC: invalid configuration received: %s",e.what());
+                }
+            }
+
+            //RPC approach
+            else if(json_request.isMember("cmd")){
+                string cmd = json_request["cmd"].asString();
+
+                try{
+                    if(cmd=="config"){
+                        self->configure(json_request);
+                        bsread_debug(2,"ZMQ RPC: new configuration applied!");
+                        json_response["config"] = self->generate_json_config();
+                    }
+                    if(cmd=="introspect"){
+                        json_response["config"] = self->generate_json_config();
+
+                        Json::Value all_channels;
+                        for(int i=0;i<self->m_channels.size();i++){
+                                all_channels.append(self->m_channels[i]->get_name());
+                        }
+
+                        json_response["channels"]=all_channels;
+                    }
+
+
+                    json_response["status"]="ok";
+
+                }
+                catch(std::runtime_error& e){
+                    json_response["status"]="error";
+                    json_response["error"]=e.what();
+                    bsread_debug(2,"ZMQ RPC: exception while processing: %s",e.what());
+                }
+            }
+
+            //No cmd found
+            else{
+                json_response["status"]="error";
+                json_response["error"]="Did not understand this JSON, expecting cmd member..";
+            }
         }
 
-        string json_response = response.toStyledString();
-
-        self->m_zmq_sock_config->send(json_response.c_str(),json_response.length());
+        //Encode JSON to string
+        string response = json_response.toStyledString();
+        self->m_zmq_sock_config->send(response.c_str(),response.length());
     }
 
 }
