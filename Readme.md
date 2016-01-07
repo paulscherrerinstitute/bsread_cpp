@@ -5,65 +5,65 @@ The ZMQ data stream is served in a ZMQ PUSH/PULL delivery scheme. The default po
 
 The specification can be be found at [here](https://docs.google.com/document/d/1BynCjz5Ax-onDW0y8PVQnYmSssb6fAyHkdDl1zh21yY/edit#)
 
-#Usage
+# Usage
 
 __Currently only installed to fin/devel since usage relies on updated _require_ and *drive.makefile*__
 
 
-1 module is provided: 
+1 module is provided:
  - __bsread__
     Core bsread libraries and templates.
 
-2 startup scripts are provided: 
+2 startup scripts are provided:
   - __bsread_sim.cmd__ used for simulation and testing
-  - __bsread_evr.cmd__ used for production systems with EVR 
+  - __bsread_evr.cmd__ used for production systems with EVR
 
 Also see _examples_ directory.
 
-##bsread_sim
+## bsread_sim
 
-In order to run bsread without a EVR receiver (e.g. for testing or for use with softIOC and systems without timing) a bsread_sim module can be used. This module creates a 100Hz scan record and connects it to bsread and free running pulseid counter. Note that any data obtained in this way is not (and can not be) synchronised with data obtained from bsread systems that are connected to timing system.
+In order to run bsread without a EVR receiver (e.g. for testing or for use with softIOC and systems without timing) a bsread_sim module can be used. This module creates a 100Hz scan record and connects it to bsread and free running pulseid counter. Note that any data obtained in this way is not (and can not be) synchronized with data obtained from bsread systems that are connected to timing system.
 
-Simply append the following line to startup script: 
+Simply append the following line to startup script:
 
     require "bsread"
     runScript $(bsread_DIR)/bsread_sim.cmd, "SYS=SLEJKO-TEST"
 
-Paramaters that can be passed to the module are: 
-    
+Parameters that can be passed to the module are:
+
     - mandatory
       - SYS: A system prefix (e.g. my IOC0), is expanded to $(SYS)-BSREAD:xx
 
     - optional:
-      - BSREAD_PULSEID Record used to obtaian pulse id 
-      - BSREAD_TS_SEC Record used to obtaian global timestamp sec
-      - BSREAD_TS_NSEC Record used to obtaian global timestamp sec
+      - BSREAD_PULSEID Record used to obtain pulse id
+      - BSREAD_TS_SEC Record used to obtain global timestamp sec
+      - BSREAD_TS_NSEC Record used to obtain global timestamp sec
       - READ_FLNK is a forward link for the :READ record
 
 There is additional macro used to disable loading of the EVR template. To achieve this, use macro `NO_EVR=#`.
 
 
-##bsread_evr 
+## bsread_evr
 
 Majority of systems will use bsread in connection with hardware timing receiver (EVR). To simplify setup a bsread_evr module is provided. This module loads bsread and connects it to correct EVR records (so that it is triggered by hardware timing event and that pulse_id and global timestamp are obtained from databuffer)
 
 
-Simply append the following line to startup script: 
+Simply append the following line to startup script:
 
     require "bsread"
     runScript $(bsread_DIR)/bsread_evr.cmd, "SYS=SLEJKO-TEST,EVR=EVR0"
 
-Paramaters that can be passed to the module are: 
-    
+Parameters that can be passed to the module are:
+
     - mandatory
       - SYS: A system prefix (e.g. my IOC0), is expanded to $(SYS)-BSREAD:xx
 
     - optional [default]:
       - EVR Id of EVR to be used [EVR0]
       - BSREAD_EVENT timing event that should be used to trigger bsread acquisition
-      - BSREAD_PULSEID Record used to obtaian pulse id 
-      - BSREAD_TS_SEC Record used to obtaian global timestamp sec
-      - BSREAD_TS_NSEC Record used to obtaian global timestamp sec
+      - BSREAD_PULSEID Record used to obtain pulse id
+      - BSREAD_TS_SEC Record used to obtain global timestamp sec
+      - BSREAD_TS_NSEC Record used to obtain global timestamp sec
 
 
 
@@ -73,12 +73,17 @@ Paramaters that can be passed to the module are:
 
 ## Changing default ZMQ socket options
 
-Using bsreadConfigure iocsh function it is possible to set ZMQ socket paramters:
+While using the bsreadConfigure iocsh function it is possible to set ZMQ socket parameters:
 
-    bsreadConfigure <ZMQ address> <PUSH|PUB> <high watermark> 
-    e.g.: 
+```
+bsreadConfigure <ZMQ address> <PUSH|PUB> <high watermark>  
+```
 
-    bsreadConfigure "tcp://*:9090" PUSH 100
+e.g.
+
+```
+bsreadConfigure "tcp://*:9090" PUSH 100
+```
 
 Function can be used either on startup (before iocInit) or during operation, in which case the new socket will be opened and prepared in advance and switched at the end of next "read" operation. This allows for seamless handover without data loss.
 
@@ -123,8 +128,8 @@ Such configuration can be pushed to the configuration record like so (assume __$
 
 ## ZMQ RPC
 
-BSREAD also creates a second ZMQ socket (within EPICS bsread this is always zmq port + 1 [10000 by default]) that can is used to preform a RPC calls. 
-Currently only 2 functions are implemented; introspection and configuration. 
+BSREAD also creates a second ZMQ socket (within EPICS bsread this is always zmq port + 1 [10000 by default]) that can is used to preform a RPC calls.
+Currently only 2 functions are implemented; introspection and configuration.
 
 - Configuration:
 
