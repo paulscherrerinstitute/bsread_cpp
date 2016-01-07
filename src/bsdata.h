@@ -198,8 +198,10 @@ class BSDataMessage{
     //Message metadata
     long        m_pulseid;
     timestamp   m_globaltimestamp;
+    size_t      m_datasize;     //raw size of data
     string      m_datahash;
     string      m_dataheader;    //Copy of dataheader JSON string (to avoid reconstructing JSON on every iteration)
+    string      m_mainheader;
 
     //Actual members
     vector<BSDataChannel*> m_channels;
@@ -227,9 +229,9 @@ public:
      */
     void set(long long pulseid, bsread::timestamp tst, bool set_enable=true);
 
-    string get_main_header();
+    const string* get_main_header();
 
-    string get_data_header();
+    const string* get_data_header();
 
     const vector<BSDataChannel*>* get_channels(){
         return &m_channels;
@@ -241,6 +243,11 @@ public:
         }
 
         return NULL;
+    }
+
+    size_t get_datasize(){
+        get_data_header();
+        return m_datasize;
     }
 };
 
@@ -266,19 +273,40 @@ public:
     BSDataSenderZmq(zmq::context_t& ctx, string address,int sndhwm=10,int sock_type=ZMQ_PUSH);
 
 
-    size_t send_message(BSDataMessage& message){
+    virtual size_t send_message(BSDataMessage& message){
         //TODO: add stats
         return send_message(message,m_sock);
     }
 
     static size_t send_message(BSDataMessage& message, zmq::socket_t &sock);
-private:
+
+
+protected:
 
     zmq::context_t&  m_ctx;
     zmq::socket_t   m_sock;
     string          m_address;
 };
 
+
+/**
+ * @brief The BSDataSenderZmqOnepart class Experimental class
+ * in order to evaluate performance of sending all payload data as
+ * single part...
+ */
+class BSDataSenderZmqOnepart: public BSDataSenderZmq{
+public:
+
+    BSDataSenderZmqOnepart(zmq::context_t& ctx, string address,int sndhwm=10,int sock_type=ZMQ_PUSH):BSDataSenderZmq(ctx,address,sndhwm,sock_type){}
+
+
+    virtual size_t send_message(BSDataMessage& message){
+        return send_message(message,m_sock);
+    }
+
+    static size_t send_message(BSDataMessage& message, zmq::socket_t &sock);
+
+};
 
 
 

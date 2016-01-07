@@ -10,37 +10,9 @@
 
 #include <zmq.hpp>
 #include "json.h"
+#include "utils.h"
 
 using namespace std;
-
-
-///// Utilities /////////
-
-/**
- * @brief time_get same as clock_gettime except that it returns time in seconds
- * @param clock_type
- * @return
- */
-inline double dbltime_get(int clock_type=CLOCK_REALTIME){
-    struct timespec t;
-    clock_gettime(clock_type,&t);
-    return t.tv_sec + t.tv_nsec/1e9;
-}
-
-/**
- * @brief time_nanosleep same as clock_nanosleep, except that it takes argument in seconds
- * @param sec
- * @param clock_type
- */
-inline void time_nanosleep(double sec, int clock_type=CLOCK_REALTIME){
-    struct timespec t;
-    t.tv_sec=int(sec);
-    t.tv_nsec= (sec-t.tv_sec)*1e9;
-
-    clock_nanosleep(clock_type,0,&t,0);
-}
-
-
 
 
 void test_chan_cb(bsread::BSDataChannel* chan,bool acquire, void* pvt){
@@ -52,7 +24,6 @@ void test_chan_cb(bsread::BSDataChannel* chan,bool acquire, void* pvt){
 //        chan->set_timestamp();
     }
 }
-
 
 /**
  * @brief example Example showing the correct of BSDATA in application that manually manages

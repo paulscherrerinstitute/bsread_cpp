@@ -22,7 +22,7 @@ std::string bsread::BSDataChannel::dump_header(){
     return get_data_header().toStyledString();
 }
 
-void bsread::BSDataChannel::set_enabled(bool enabled){
+inline void bsread::BSDataChannel::set_enabled(bool enabled){
     m_enabled = enabled;
 }
 
@@ -62,19 +62,19 @@ bsread::BSDataSenderZmq::BSDataSenderZmq(zmq::context_t &ctx, string address, in
 }
 
 size_t bsread::BSDataSenderZmq::send_message(bsread::BSDataMessage &message, zmq::socket_t& sock){
-    const char* header;
     size_t msg_len=0;
     size_t part_len;
 
     //Send main header
-    header = message.get_main_header().c_str();
-    part_len = sock.send(header,strlen(header),ZMQ_SNDMORE|ZMQ_NOBLOCK);
+    const string* mainheader = message.get_main_header();
+    part_len = sock.send(mainheader->c_str(),mainheader->length(),ZMQ_SNDMORE|ZMQ_NOBLOCK);
     if(!part_len) return 0;
     msg_len+=part_len;
 
+
     //Send dataheader
-    header = message.get_data_header().c_str();
-    part_len = sock.send(header,strlen(header),ZMQ_SNDMORE|ZMQ_NOBLOCK);
+    const string* dataheader = message.get_data_header();
+    part_len = sock.send(dataheader->c_str(),dataheader->length(),ZMQ_SNDMORE|ZMQ_NOBLOCK);
     if(!part_len) return 0;
     msg_len+=part_len;
 
@@ -144,12 +144,11 @@ void bsread::BSDataMessage::set(long long pulseid, bsread::timestamp timestamp, 
     m_pulseid = pulseid;
     m_globaltimestamp = timestamp;
 
-
     if(set_enable){
         for(size_t i=0;i<m_channels.size();i++){
             BSDataChannel* c = m_channels[i];
 
-            int modulo = c->m_meta_modulo;            
+            int modulo = c->m_meta_modulo;
 
             int offset = c->m_meta_offset;
 
@@ -166,7 +165,7 @@ void bsread::BSDataMessage::set(long long pulseid, bsread::timestamp timestamp, 
     }
 }
 
-string bsread::BSDataMessage::get_main_header(){
+const string *bsread::BSDataMessage::get_main_header(){
     Json::Value root;
     root["htype"] = BSREAD_MAIN_HEADER_VERSION;
     root["pulse_id"] = static_cast<Json::Int64>(m_pulseid);
@@ -182,22 +181,98 @@ string bsread::BSDataMessage::get_main_header(){
     }
 
     root["hash"]=m_datahash;
-    return m_writer.write(root);;
+    m_mainheader = m_writer.write(root);
+    return &m_mainheader;
 }
 
-string bsread::BSDataMessage::get_data_header(){
+const string* bsread::BSDataMessage::get_data_header(){
     if(m_datahash.empty()){
+
+        m_datasize = 0;
         Json::Value root;
         root["htype"] = BSREAD_DATA_HEADER_VERSION;
 
         for(size_t i=0;i<m_channels.size();i++){
             root["channels"][(int)i]=m_channels[i]->get_data_header();
+            m_datasize += m_channels[i]->get_len() + 2*sizeof(long long); //Size of data + timestamp
         }
 
         m_dataheader = m_writer.write(root);
         m_datahash = md5(m_dataheader);
     }
 
-    return m_dataheader;
+    return &m_dataheader;
 
+}
+#include "bsdata_example/utils.h"
+size_t bsread::BSDataSenderZmqOnepart::send_message(bsread::BSDataMessage &message, zmq::socket_t &sock)
+{
+    size_t msg_len=0;
+    size_t part_len;
+
+    //Send main header
+    const string* mainheader = message.get_main_header();
+    part_len = sock.send(mainheader->c_str(),mainheader->length(),ZMQ_SNDMORE|ZMQ_NOBLOCK);
+    if(!part_len) return 0;
+    msg_len+=part_len;
+
+
+    //Send dataheader
+    const string* dataheader = message.get_data_header();
+    part_len = sock.send(dataheader->c_str(),dataheader->length(),ZMQ_SNDMORE|ZMQ_NOBLOCK);
+    if(!part_len) return 0;
+    msg_len+=part_len;
+
+
+    //Allocate buffer
+    zmq::message_t data_part(message.get_datasize());
+
+    //Copy data into a message
+    size_t offset=0;
+    const vector<BSDataChannel*>* channels = message.get_channels();
+    for(size_t i=0;i<channels->size();i++){
+        BSDataChannel* chan = channels->at(i);
+
+
+        //Only send enabled channels
+        if(chan->get_enabled()){
+
+            //Acquire data
+            const void* data = chan->acquire();
+            size_t len = chan->get_len();
+
+            //Fetch timestamp
+            long long rtimestamp[2];
+            chan->get_timestamp(rtimestamp);
+
+
+
+            double t = dbltime_get();
+            memcpy((void*)((long long)data_part.data()+offset),data,len);
+            t=dbltime_get() - t;
+            printf("%4.4f us, %4.4f Gb/s\n",t*1e6,(len/1024.0/1024.0/1024.0)/t);
+
+            offset+=len;
+            memcpy((void*)((long long)data_part.data()+offset),rtimestamp,2*sizeof(long long));
+            offset+=2*sizeof(long long);
+
+            //Done with sending, release the data
+            chan->release();
+
+        }
+        //Not enabled channels are replaced with empty submessages
+        else{
+//            sock.send((void*)0,0,ZMQ_SNDMORE | ZMQ_NOBLOCK);
+            //?
+        }
+
+
+    }
+
+    //Do the send
+    sock.send(data_part,ZMQ_NOBLOCK);
+    data_part.rebuild();
+
+
+    return msg_len+data_part.size();
 }

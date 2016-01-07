@@ -42,12 +42,12 @@ void lock_record(bsread::BSDataChannel* chan, bool acquire, void* pvt){
     struct dbCommon* precord = static_cast<dbCommon*>(pvt);
 
     if(acquire){
-        dbScanLock(precord);
+//        dbScanLock(precord);
 
         chan->set_timestamp(precord->time.secPastEpoch + 631152000u, precord->time.nsec);
     }
     else{
-        dbScanUnlock(precord);
+//        dbScanUnlock(precord);
     }
 }
 
