@@ -35,13 +35,13 @@ runScript $(bsread_DIR)/bsread_sim.cmd, "SYS=TEST-IOC"
 Parameters that can be passed to the module are:
 
 __mandatory__
-  - SYS: A system prefix (e.g. my IOC0), is expanded to $(SYS)-BSREAD:xx
+  - `SYS` - System prefix (e.g. my IOC0), is expanded to $(SYS)-BSREAD:xx
 
 __optional__
-  - BSREAD_PULSEID Record used to obtain pulse id
-  - BSREAD_TS_SEC Record used to obtain global timestamp sec
-  - BSREAD_TS_NSEC Record used to obtain global timestamp sec
-  - READ_FLNK is a forward link for the :READ record
+  - `BSREAD_PULSEID` -  Record used to obtain pulse id
+  - `BSREAD_TS_SEC` -  Record used to obtain global timestamp sec
+  - `BSREAD_TS_NSEC` -  Record used to obtain global timestamp sec
+  - `READ_FLNK` -  Forward link for the :READ record
 
 There is additional macro used to disable loading of the EVR template. To achieve this, use macro `NO_EVR=#`.
 
@@ -61,14 +61,14 @@ runScript $(bsread_DIR)/bsread_evr.cmd, "SYS=TEST-IOC,EVR=EVR0"
 Parameters that can be passed to the module are:
 
 __mandatory__
-- SYS: A system prefix (e.g. my IOC0), is expanded to $(SYS)-BSREAD:xx
+- `SYS` - System prefix (e.g. my IOC0), is expanded to $(SYS)-BSREAD:xx
 
 __optional__ [default]
-- EVR Id of EVR to be used [EVR0]
-- BSREAD_EVENT timing event that should be used to trigger bsread acquisition
-- BSREAD_PULSEID Record used to obtain pulse id
-- BSREAD_TS_SEC Record used to obtain global timestamp sec
-- BSREAD_TS_NSEC Record used to obtain global timestamp sec
+- `EVR` - Id of EVR to be used [EVR0]
+- `BSREAD_EVENT` - Timing event that should be used to trigger bsread acquisition
+- `BSREAD_PULSEID` - Record used to obtain pulse id
+- `BSREAD_TS_SEC` - Record used to obtain global timestamp sec
+- `BSREAD_TS_NSEC` -  Record used to obtain global timestamp sec
 
 # Advanced Usage
 
