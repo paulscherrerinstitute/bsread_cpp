@@ -1,24 +1,25 @@
 # Overview
-__bsread__ provides the synchronized, fast, IOC based readout functionality for the SwissFEL data acquisition system. It reads configured channels on a trigger and streams out the data via ZMQ.
+__bsread__ provides synchronized, fast, IOC based readout functionality for the SwissFEL data acquisition system. It reads configured channels on a timing system trigger and streams out the data via ZMQ.
 
 The ZMQ data stream is served in a ZMQ PUSH/PULL delivery scheme. The default port is 9999. The stream consists of messages consisting of several sub-messages.
 
-The specification can be be found at [here](https://docs.google.com/document/d/1BynCjz5Ax-onDW0y8PVQnYmSssb6fAyHkdDl1zh21yY/edit#)
+The specification can be be found [here](https://docs.google.com/document/d/1BynCjz5Ax-onDW0y8PVQnYmSssb6fAyHkdDl1zh21yY/edit#)
 
 # Usage
 
-__Currently only installed to fin/devel since usage relies on updated _require_ and *drive.makefile*__
+The __bsread__ module provides all you need to bring beam synchronous data acquisition on your IOC.
 
+It consists of following main parts:
 
-1 module is provided:
+1. Driver
  - __bsread__
     Core bsread libraries and templates.
 
-2 startup scripts are provided:
+2. Startup Scripts
   - __bsread_sim.cmd__ used for simulation and testing
   - __bsread_evr.cmd__ used for production systems with EVR
 
-Also see _examples_ directory.
+Also see [_example_](example) directory.
 
 ## bsread_sim
 
@@ -26,19 +27,21 @@ In order to run bsread without a EVR receiver (e.g. for testing or for use with 
 
 Simply append the following line to startup script:
 
-    require "bsread"
-    runScript $(bsread_DIR)/bsread_sim.cmd, "SYS=SLEJKO-TEST"
+```
+require "bsread"
+runScript $(bsread_DIR)/bsread_sim.cmd, "SYS=TEST-IOC"
+```
 
 Parameters that can be passed to the module are:
 
-    - mandatory
-      - SYS: A system prefix (e.g. my IOC0), is expanded to $(SYS)-BSREAD:xx
+__mandatory__
+  - SYS: A system prefix (e.g. my IOC0), is expanded to $(SYS)-BSREAD:xx
 
-    - optional:
-      - BSREAD_PULSEID Record used to obtain pulse id
-      - BSREAD_TS_SEC Record used to obtain global timestamp sec
-      - BSREAD_TS_NSEC Record used to obtain global timestamp sec
-      - READ_FLNK is a forward link for the :READ record
+__optional__
+  - BSREAD_PULSEID Record used to obtain pulse id
+  - BSREAD_TS_SEC Record used to obtain global timestamp sec
+  - BSREAD_TS_NSEC Record used to obtain global timestamp sec
+  - READ_FLNK is a forward link for the :READ record
 
 There is additional macro used to disable loading of the EVR template. To achieve this, use macro `NO_EVR=#`.
 
@@ -50,26 +53,24 @@ Majority of systems will use bsread in connection with hardware timing receiver 
 
 Simply append the following line to startup script:
 
-    require "bsread"
-    runScript $(bsread_DIR)/bsread_evr.cmd, "SYS=SLEJKO-TEST,EVR=EVR0"
+```
+require "bsread"
+runScript $(bsread_DIR)/bsread_evr.cmd, "SYS=TEST-IOC,EVR=EVR0"
+```
 
 Parameters that can be passed to the module are:
 
-    - mandatory
-      - SYS: A system prefix (e.g. my IOC0), is expanded to $(SYS)-BSREAD:xx
+__mandatory__
+- SYS: A system prefix (e.g. my IOC0), is expanded to $(SYS)-BSREAD:xx
 
-    - optional [default]:
-      - EVR Id of EVR to be used [EVR0]
-      - BSREAD_EVENT timing event that should be used to trigger bsread acquisition
-      - BSREAD_PULSEID Record used to obtain pulse id
-      - BSREAD_TS_SEC Record used to obtain global timestamp sec
-      - BSREAD_TS_NSEC Record used to obtain global timestamp sec
+__optional__ [default]
+- EVR Id of EVR to be used [EVR0]
+- BSREAD_EVENT timing event that should be used to trigger bsread acquisition
+- BSREAD_PULSEID Record used to obtain pulse id
+- BSREAD_TS_SEC Record used to obtain global timestamp sec
+- BSREAD_TS_NSEC Record used to obtain global timestamp sec
 
-
-
-
-
-# Advance Usage
+# Advanced Usage
 
 ## Changing default ZMQ socket options
 
