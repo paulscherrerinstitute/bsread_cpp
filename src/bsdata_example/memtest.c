@@ -16,7 +16,13 @@ double dbltime_get(){
     return t.tv_sec + t.tv_nsec/1e9;
 }
 
+void time_nanosleep(double sec){
+    struct timespec t;
+    t.tv_sec=(int)(sec);
+    t.tv_nsec= (sec-t.tv_sec)*1e9;
 
+    clock_nanosleep(CLOCK_REALTIME,0,&t,0);
+}
 
 int main(int argc, char *argv[])
 {
@@ -27,14 +33,27 @@ int main(int argc, char *argv[])
     double* dest;
 
 
+//    size_t max_len = len;
+
+//    len = 128;
+
     while(1){
         dest = malloc(len*sizeof(double));
         double t = dbltime_get();
         memcpy(src,dest,len);
+
         t=dbltime_get() - t;
         printf("%4.4f us, %4.4f Gb/s [size: %f Mb]\n",t*1e6,(len/1024.0/1024.0/1024.0)/t,len/1024.0/1024.0);
         free(dest);
-        sleep(1);
+
+
+
+//        len = len*2;
+//        if(len > max_len){
+//            break;
+//        }
+
+        time_nanosleep(0.01);
     }
 
     return 0;
