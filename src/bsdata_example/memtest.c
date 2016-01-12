@@ -1,9 +1,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-
-
+#include <stdint.h>
 #include <time.h>
+
 
 /**
  * @brief time_get same as clock_gettime except that it returns time in seconds
@@ -24,36 +24,56 @@ void time_nanosleep(double sec){
     clock_nanosleep(CLOCK_REALTIME,0,&t,0);
 }
 
+
+void dbl_avg_roll(double* avg, double input,int N) {
+    *avg -= *avg/N;
+    *avg += input/N;
+}
+
+void memtest(size_t len,int loops){
+    uint8_t* dest = malloc(len);
+    uint8_t* src = malloc(len);
+
+    double t_avg=0;
+    for(int i=0;i<loops;i++){
+	    double t = dbltime_get();
+
+	    // memcpy(src,dest,len);
+        memcpy(src,dest,len);
+
+	    t=dbltime_get() - t;
+        dbl_avg_roll(&t_avg,t,loops/4);
+        // t_avg=t;        
+    }
+    
+    printf("%4.4f us, %4.4f Gb/s [size: %f Mb]\n",t_avg*1e6,(len/1024.0/1024.0/1024.0)/t_avg,len/1024.0/1024.0);
+
+    free(dest);	
+    free(src);    
+}
+
+void memtest_thread(void* arg){
+    size_t len = *((size_t*)(arg));
+    while(1){
+        memtest(len,10);
+    }
+}
+
 int main(int argc, char *argv[])
 {
     size_t len = strtod(argv[1],0)*1024*1024;
-    len = len * sizeof(double);
-
-    double* src = malloc(len);
-    double* dest;
+    int no_threads = strtol(argv[2],0,10);
 
 
-//    size_t max_len = len;
+    for(int i=0;i<no_threads;i++){
+        pthread_t* t1 = malloc(sizeof(pthread_t));
+        pthread_create(t1, 0, memtest_thread, &len);
+    }
 
-//    len = 128;
+
 
     while(1){
-        dest = malloc(len*sizeof(double));
-        double t = dbltime_get();
-        memcpy(src,dest,len);
-
-        t=dbltime_get() - t;
-        printf("%4.4f us, %4.4f Gb/s [size: %f Mb]\n",t*1e6,(len/1024.0/1024.0/1024.0)/t,len/1024.0/1024.0);
-        free(dest);
-
-
-
-//        len = len*2;
-//        if(len > max_len){
-//            break;
-//        }
-
-        time_nanosleep(0.01);
+         time_nanosleep(1);
     }
 
     return 0;
