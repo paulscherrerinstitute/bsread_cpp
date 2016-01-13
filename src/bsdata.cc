@@ -144,6 +144,7 @@ void bsread::BSDataMessage::set(long long pulseid, bsread::timestamp timestamp, 
     m_pulseid = pulseid;
     m_globaltimestamp = timestamp;
 
+
     if(set_enable){
         for(size_t i=0;i<m_channels.size();i++){
             BSDataChannel* c = m_channels[i];
@@ -204,7 +205,7 @@ const string* bsread::BSDataMessage::get_data_header(){
     return &m_dataheader;
 
 }
-#include "bsdata_example/utils.h"
+
 size_t bsread::BSDataSenderZmqOnepart::send_message(bsread::BSDataMessage &message, zmq::socket_t &sock)
 {
     size_t msg_len=0;
