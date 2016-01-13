@@ -236,7 +236,7 @@ Json::Value BSRead::generate_json_config(){
         return root;
     }
 
-    for(int i=0;i<m_message->get_channels()->size();i++){
+    for(size_t i=0;i<m_message->get_channels()->size();i++){
         BSDataChannel* chan =m_message->get_channels()->at(i);
         Json::Value json_chan;
         json_chan["name"]=chan->get_name();
@@ -327,7 +327,7 @@ void BSRead::zmq_config_thread(void *param)
                         json_response["config"] = self->generate_json_config();
 
                         Json::Value all_channels;
-                        for(int i=0;i<self->m_channels.size();i++){
+                        for(size_t i=0;i<self->m_channels.size();i++){
                                 all_channels.append(self->m_channels[i]->get_name());
                         }
 
