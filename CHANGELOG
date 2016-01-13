@@ -1,0 +1,6 @@
+0.9.8:
+	Added prototype for onepart zmq message serialization. 
+	Added performance evaluation example (bsdata) 
+	Imporved serialzaition performance
+	EVR template priority increase (default -> HIGH) 
+
