@@ -39,17 +39,27 @@ std::map<std::string, bsread::BSRead *> epicsBSRead::g_bsread_inst;
  * timestamp
  */
 void lock_record(bsread::BSDataChannel* chan, bool acquire, void* pvt){
-    struct dbCommon* precord = static_cast<dbCommon*>(pvt);
+    struct dbAddr* rec_address = static_cast<dbAddr*>(pvt);
+    struct dbCommon* precord = rec_address->precord;
 
     if(acquire){
         dbScanLock(precord);
 
         chan->set_timestamp(precord->time.secPastEpoch + 631152000u, precord->time.nsec);
+
+        /* EPICS strings are a bit silly since they are statich char[40]
+         * allocations, so we always need to check the actual length
+         * of the string first... Its a bit of a performance hit, but what can you do...*/
+        if(rec_address->field_type == DBR_STRING){
+            chan->set_data(rec_address->pfield,strlen( static_cast<char*>(rec_address->pfield) ));
+        }
     }
     else{
         dbScanUnlock(precord);
     }
 }
+
+
 
 
 bsread::BSRead *epicsBSRead::get_instance(const char *name)
@@ -135,7 +145,7 @@ long epicsBSRead::bsread_add_epics_records(bsread::BSRead *instance)
             //Add a record to bsread instance
             bsread::BSDataChannel* chan = new bsread::BSDataChannel(pname,type);
             chan->set_data(rec_address.pfield,rec_address.no_elements);
-            chan->set_callback(lock_record,rec_address.precord);
+            chan->set_callback(lock_record,new struct dbAddr(rec_address));
 
             bsread_debug(4,"bsread_add_epics_records: adding channel %s",pname);
             instance->add_channel(chan);
