@@ -1,3 +1,7 @@
+0.9.9:
+	Added support for sending ENUMs (encoded as unsigned short, same as within EPICS base)
+	Added support for EPICS strings. Strings induce a small bit of performance hit as strlen() needs to be invoked before send. 
+
 0.9.8:
 	Added prototype for onepart zmq message serialization. 
 	Added performance evaluation example (bsdata) 
