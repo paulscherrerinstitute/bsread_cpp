@@ -136,6 +136,9 @@ long epicsBSRead::bsread_add_epics_records(bsread::BSRead *instance)
             else if(rec_address.dbr_field_type == DBR_UCHAR){
                 type=bsread::BSDATA_UINT8;
             }
+            else if(rec_address.dbr_field_type == DBR_ENUM){
+                type=bsread::BSDATA_UINT16;
+            }
             else{
                 errlogPrintf("BSREAD: Channel %s has unsuporrted type: %d\n",pname, rec_address.dbr_field_type); // TODO Need to throw exception
                 status = dbNextRecord(pdbentry);
@@ -147,7 +150,7 @@ long epicsBSRead::bsread_add_epics_records(bsread::BSRead *instance)
             chan->set_data(rec_address.pfield,rec_address.no_elements);
             chan->set_callback(lock_record,new struct dbAddr(rec_address));
 
-            bsread_debug(4,"bsread_add_epics_records: adding channel %s",pname);
+            bsread_debug(4,"bsread_add_epics_records: adding channel %s with %d no_elements",pname,rec_address.no_elements);
             instance->add_channel(chan);
 
 
