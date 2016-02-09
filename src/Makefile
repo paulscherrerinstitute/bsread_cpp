@@ -19,6 +19,11 @@ USR_CXXFLAGS_DEFAULT += -fno-operator-names
 DBD += bsread.dbd
 
 # specify all source files to be compiled and added to the library
+INC += bsread.h
+INC += bsdata.h
+INC += zmq.hpp
+INC += json.h
+INC += md5.h
 bsread_SRCS += asub_routines.cc
 bsread_SRCS += bsread.cc
 bsread_SRCS += bsdata.cc

@@ -1,3 +1,7 @@
+#include <dbAccess.h>
+#include <epicsThread.h>
+
+#include <epicsExport.h>
 #include "bsdata.h"
 
 //Simple code to allow runtime detection of system endianess

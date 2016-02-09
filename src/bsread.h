@@ -6,7 +6,7 @@
 #include <vector>
 
 //EPICS includes
-#include <dbAccess.h>
+#include <shareLib.h>
 #include <epicsThread.h>
 
 //External includes
@@ -23,7 +23,7 @@ extern int bsread_debug;
 
 namespace bsread{
 
-class BSRead
+class epicsShareClass BSRead
 {
 
 public:

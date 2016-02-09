@@ -1,5 +1,3 @@
-#include "bsread.h"
-
 #include <stdexcept>
 #include <iostream>
 #include <sstream>
@@ -14,6 +12,9 @@
 #include <epicsTime.h>
 #include <epicsTypes.h>
 #include <epicsEndian.h>
+#include <epicsExport.h>
+
+#include "bsread.h"
 
 #include <zmq.hpp>
 #include "md5.h"

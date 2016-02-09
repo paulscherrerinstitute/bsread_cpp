@@ -6,6 +6,7 @@
 #include <vector>
 #include <stdint.h>
 //#include <epicsTime.h>
+#include <shareLib.h>
 #include <zmq.hpp>
 
 
@@ -59,7 +60,7 @@ static const size_t bsdata_type_size[] = {  1,
                                             8
                                          };
 
-class BSDataChannel;
+class epicsShareClass BSDataChannel;
 typedef void (*BSDataCallaback)(BSDataChannel* chan,bool acquire, void* pvt);
 
 /**
@@ -211,6 +212,7 @@ class BSDataMessage{
 
 public:
 
+	BSDataMessage(){};
     /**
      * @brief add_channel add bsdata channel to the message
      * @param c
