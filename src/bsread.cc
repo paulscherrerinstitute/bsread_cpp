@@ -108,7 +108,7 @@ void BSRead::configure(Json::Value config)
 }
 
 
-void BSRead::send(long pulse_id, bsread::timestamp t)
+void BSRead::send(uint64_t pulse_id, bsread::timestamp t)
 {
     //Startup condition, guard will block here...
     if(!m_sender){
@@ -360,7 +360,7 @@ void BSRead::zmq_config_thread(void *param)
 
 }
 
-unsigned long BSRead::zmq_overflows() const
+uint32_t BSRead::zmq_overflows() const
 {
     return zmq_overflows_;
 }

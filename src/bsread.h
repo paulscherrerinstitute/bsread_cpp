@@ -85,7 +85,7 @@ public:
      * @param pulse_id
      * @param timestamp
      */
-    void send(long pulse_id, timestamp tst);
+    void send(uint64_t pulse_id, timestamp tst);
 
     static BSDataMessage parse_json_config(const vector<BSDataChannel*>& all_channels, Json::Value config);
 
@@ -101,7 +101,7 @@ public:
 
     ~BSRead();
 
-    unsigned long zmq_overflows() const;
+    uint32_t zmq_overflows() const;
 
 
 private:
@@ -119,7 +119,7 @@ private:
     zmq::context_t m_zmq_ctx;
     zmq::socket_t* m_zmq_sock_config;  //Socket for configuration
 
-    unsigned long zmq_overflows_;   //Number of zmq send errors
+    uint32_t zmq_overflows_;   //Number of zmq send errors
 
     epicsMutex m_mutex_config;          //synchornisation between config/read thread
     epicsThreadId m_thread_config_zmq;  //ZMQ remote configuration thread

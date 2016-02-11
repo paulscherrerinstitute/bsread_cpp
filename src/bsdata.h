@@ -72,12 +72,12 @@ struct timestamp{
     /**
      * @brief sec seconds past UNIX epoch (1/1/1970)
      */
-    int64_t sec;
+    uint64_t sec;
 
     /**
      * @brief ns nanosecond offset since last full second
      */
-    int64_t nsec;
+    uint64_t nsec;
 };
 
 class BSDataChannel{
@@ -172,7 +172,7 @@ public:
         return m_timestamp;
     }
 
-    void get_timestamp(long long dest[2]){
+    void get_timestamp(uint64_t dest[2]){
         dest[0] = m_timestamp.sec;
         dest[1] = m_timestamp.nsec;
     }
@@ -197,7 +197,7 @@ public:
 
 class BSDataMessage{
     //Message metadata
-    long        m_pulseid;
+    uint64_t        m_pulseid;
     timestamp   m_globaltimestamp;
     size_t      m_datasize;     //raw size of data
     string      m_datahash;
@@ -229,7 +229,7 @@ public:
      * @param timestamp
      * @param calc_enable
      */
-    void set(long long pulseid, bsread::timestamp tst, bool set_enable=true);
+    void set(uint64_t pulseid, bsread::timestamp tst, bool set_enable=true);
 
     const string* get_main_header();
 
@@ -341,13 +341,13 @@ public:
             const void* data = chan->acquire();
             size_t len = chan->get_len();
 
-            long long rtimestamp[2];
+            uint64_t rtimestamp[2];
             chan->get_timestamp(rtimestamp);
 
             m_os.write(static_cast<const char*>(data),len);
             m_os.put('#');
 
-            m_os.write((char*)(rtimestamp),sizeof(long int)*2);
+            m_os.write((char*)(rtimestamp),sizeof(uint64_t)*2);
 
             chan->release();
 
