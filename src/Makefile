@@ -4,14 +4,19 @@ include $(TOP)/configure/CONFIG
 #----------------------------------------
 #  ADD MACRO DEFINITIONS AFTER THIS LINE
 #=============================
+#-------------------------------------------------------
+# Release Debug Symbols
 
+USR_CFLAGS_WIN32 += /Z7 /Zo
+USR_CXXFLAGS_WIN32 += /Z7 /Zo
+USR_LDFLAGS_WIN32 += /DEBUG /OPT:REF /OPT:ICF
 #==================================================
 # build a support library
 
 LIBRARY_IOC += bsread
 
 ## Fix for NOT
-USR_CXXFLAGS_DEFAULT += -fno-operator-names
+USR_CXXFLAGS_LINUX += -fno-operator-names
 
 # xxxRecord.h will be created from xxxRecord.dbd
 #DBDINC += xxxRecord
@@ -24,6 +29,7 @@ INC += bsdata.h
 INC += zmq.hpp
 INC += json.h
 INC += md5.h
+bsread_SRCS += bsread_registerRecordDeviceDriver.cpp
 bsread_SRCS += asub_routines.cc
 bsread_SRCS += bsread.cc
 bsread_SRCS += bsdata.cc

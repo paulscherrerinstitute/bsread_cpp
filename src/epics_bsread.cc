@@ -246,12 +246,14 @@ static void bsreadConfigFunc(const iocshArgBuf *args)
 
 
 //BSREAD zmq configure
-static int doRegister(void)
+static int bsreadconfigureRegister(void)
 {
     initHookRegister(&epicsBSRead::initHook);
     iocshRegister(&bsreadConfigureFuncDef,bsreadConfigFunc);
     return 1;
 }
-static int done = doRegister();
 
+extern "C" {
+	epicsExportRegistrar(bsreadconfigureRegister);
+}
 
