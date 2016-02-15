@@ -18,6 +18,8 @@ set(CMAKE_BUILD_TYPE Release)
 
 
 INCLUDE_DIRECTORIES(/ioc/modules/ZMQ/404.0.1/R3.14.12/include/)
+INCLUDE_DIRECTORIES(/opt/epics/base/include)
+INCLUDE_DIRECTORIES(/opt/epics/base/include/os/Linux)
 LINK_DIRECTORIES(/ioc/modules/ZMQ/404.0.1/R3.14.12/lib/eldk52-e500v2/)
 
 

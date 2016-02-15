@@ -95,7 +95,7 @@ size_t bsread::BSDataSenderZmq::send_message(bsread::BSDataMessage &message, zmq
             size_t len = chan->get_len();
 
             //Fetch timestamp
-            long long rtimestamp[2];
+            uint64_t rtimestamp[2];
             chan->get_timestamp(rtimestamp);
 
             part_len = sock.send(data,len,ZMQ_SNDMORE | ZMQ_NOBLOCK);
@@ -144,7 +144,7 @@ void bsread::BSDataMessage::clear_channels(){
     m_channels.clear();
 }
 
-void bsread::BSDataMessage::set(long long pulseid, bsread::timestamp timestamp, bool set_enable){
+void bsread::BSDataMessage::set(uint64_t pulseid, bsread::timestamp timestamp, bool set_enable){
     m_pulseid = pulseid;
     m_globaltimestamp = timestamp;
 
@@ -247,7 +247,7 @@ size_t bsread::BSDataSenderZmqOnepart::send_message(bsread::BSDataMessage &messa
             size_t len = chan->get_len();
 
             //Fetch timestamp
-            long long rtimestamp[2];
+            uint64_t rtimestamp[2];
             chan->get_timestamp(rtimestamp);
 
 
