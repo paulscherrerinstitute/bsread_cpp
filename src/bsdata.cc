@@ -178,7 +178,7 @@ const string *bsread::BSDataMessage::get_main_header(){
     Json::Value root;
     root["htype"] = BSREAD_MAIN_HEADER_VERSION;
     root["pulse_id"] = static_cast<Json::Int64>(m_pulseid);
-    root["global_timestamp"]["epoch"] = static_cast<Json::Int64>(m_globaltimestamp.sec);
+    root["global_timestamp"]["sec"] = static_cast<Json::Int64>(m_globaltimestamp.sec);
     root["global_timestamp"]["ns"] = static_cast<Json::Int64>(m_globaltimestamp.nsec);
 
     /* Empty datahash indicates that the data_header was not yet constructed,

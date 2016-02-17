@@ -14,8 +14,8 @@
 
 using namespace std;
 
-#define BSREAD_MAIN_HEADER_VERSION "bsr_m-1.0"
-#define BSREAD_DATA_HEADER_VERSION "bsr_d-1.0"
+#define BSREAD_MAIN_HEADER_VERSION "bsr_m-1.1"
+#define BSREAD_DATA_HEADER_VERSION "bsr_d-1.1"
 
 namespace bsread{
 
