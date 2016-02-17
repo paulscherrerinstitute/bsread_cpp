@@ -1,7 +1,7 @@
-#include <dbAccess.h>
-#include <epicsThread.h>
+//#include <dbAccess.h>
+//#include <epicsThread.h>
 
-#include <epicsExport.h>
+//#include <epicsExport.h>
 #include "bsdata.h"
 
 //Simple code to allow runtime detection of system endianess
@@ -15,7 +15,7 @@ bool isLittleEndian()
 Json::Value bsread::BSDataChannel::get_data_header(){
     Json::Value root;
     root["name"]=m_name;
-    root["type"]=bsdata_type_name[m_type];
+    root["type"]= bsdata_type_name[m_type];
     root["shape"][0]=static_cast<int>(m_len); //shape is array of dimensions, scalar = [1]
     root["encoding"]= m_encoding_le ? "little" : "big";    
 
@@ -32,6 +32,10 @@ inline void bsread::BSDataChannel::set_enabled(bool enabled){
 
 bool bsread::BSDataChannel::get_enabled(){
     return m_enabled;
+}
+
+string bsread::BSDataChannel::get_name(){
+    return m_name;
 }
 
 bsread::BSDataChannel::BSDataChannel(const string &name, bsread::bsdata_type type):
@@ -253,12 +257,12 @@ size_t bsread::BSDataSenderZmqOnepart::send_message(bsread::BSDataMessage &messa
 
 
 //            double t = dbltime_get();
-            memcpy((void*)((long long)data_part.data()+offset),data,len);
+            memcpy((void*)((char*)data_part.data()+offset),data,len);
 //            t=dbltime_get() - t;
 //            printf("%4.4f us, %4.4f Gb/s\n",t*1e6,(len/1024.0/1024.0/1024.0)/t);
 
             offset+=len;
-            memcpy((void*)((long long)data_part.data()+offset),rtimestamp,2*sizeof(long long));
+            memcpy((void*)((char*)data_part.data()+offset),rtimestamp,2*sizeof(long long));
             offset+=2*sizeof(long long);
 
             //Done with sending, release the data

@@ -59,6 +59,18 @@ int main(int argc, char *argv[])
 {
     bsread_debug = 4;
 
+
+    bsread::BSRead* s = new bsread::BSRead();
+    s->confiugre_zmq("tcp://*:9999",ZMQ_PUSH,100);
+    s->confiugre_zmq_config("tcp://*:10000");
+
+    time_nanosleep(1);
+
+    delete s;
+
+    time_nanosleep(4);
+
+
     //DAQ buffer
     size_t buffer_len = 1024*100;
     unsigned int* buffer = new unsigned int[buffer_len];
@@ -90,6 +102,9 @@ int main(int argc, char *argv[])
 
     sender.confiugre_zmq("tcp://*:9999",ZMQ_PUSH,100);
     sender.confiugre_zmq_config("tcp://*:10000");
+
+
+
 
 //    while(1);
 

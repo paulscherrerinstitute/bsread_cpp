@@ -122,8 +122,9 @@ private:
     uint32_t zmq_overflows_;   //Number of zmq send errors
 
     epicsMutex m_mutex_config;          //synchornisation between config/read thread
-    epicsThreadId m_thread_config_zmq;  //ZMQ remote configuration thread
 
+    epicsThreadId   m_thread_rpc;  //ZMQ remote configuration thread
+    epicsMutex      m_thread_rpc_running;   //Held while thread is running
 
 };
 

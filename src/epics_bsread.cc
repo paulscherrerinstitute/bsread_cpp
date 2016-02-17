@@ -153,7 +153,7 @@ long epicsBSRead::bsread_add_epics_records(bsread::BSRead *instance)
             chan->set_data(rec_address.pfield,rec_address.no_elements);
             chan->set_callback(lock_record,new struct dbAddr(rec_address));
 
-            bsread_debug(4,"bsread_add_epics_records: adding channel %s with %d no_elements",pname,rec_address.no_elements);
+            bsread_debug(4,"bsread_add_epics_records: adding channel %s with %ld no_elements",pname,rec_address.no_elements);
             instance->add_channel(chan);
 
 

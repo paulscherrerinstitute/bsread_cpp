@@ -5,7 +5,6 @@
 #include <string>
 #include <vector>
 #include <stdint.h>
-//#include <epicsTime.h>
 #include <shareLib.h>
 #include <zmq.hpp>
 
@@ -33,7 +32,8 @@ enum bsdata_type {BSDATA_STRING,
                   BSDATA_INT64,
                   BSDATA_UINT64};
 
-static const char*bsdata_type_name[] = {"string",
+static const char* const bsdata_type_name[] = {
+                                        "string",
                                         "bool",
                                         "float64",
                                         "float32",
@@ -61,6 +61,15 @@ static const size_t bsdata_type_size[] = {  1,
                                          };
 
 class epicsShareClass BSDataChannel;
+
+
+/**
+ * Callback that is invoked when BSDataChannel.acquire() is called.
+ *
+ * chan     points to BSDataChannel instance
+ * acquire  is 1 if channel is beeing acquired or 0 if its beeing released
+ * pvt      private callback data
+ */
 typedef void (*BSDataCallaback)(BSDataChannel* chan,bool acquire, void* pvt);
 
 /**
@@ -180,9 +189,7 @@ public:
     void set_enabled(bool enabled);
     bool get_enabled();
 
-    string get_name(){
-        return m_name;
-    }
+    string get_name();
 
     string dump_header();
 
@@ -214,7 +221,9 @@ public:
 
 	BSDataMessage(){};
     /**
-     * @brief add_channel add bsdata channel to the message
+     * @brief add_channel add bsdata channel to the message. Note that the channels are not
+     * deleted when message is cleared. It's users application responsibility to deallocate
+     * channels.
      * @param c
      */
     void add_channel(BSDataChannel* c);
@@ -282,6 +291,8 @@ public:
 
     static size_t send_message(BSDataMessage& message, zmq::socket_t &sock);
 
+
+    virtual ~BSDataSenderZmq(){};
 
 protected:
 

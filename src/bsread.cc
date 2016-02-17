@@ -45,7 +45,8 @@ BSRead::BSRead():
 
 
 void BSRead::confiugre_zmq(const char *address, int socket_type, int hwm)
-{
+{    
+
     bsread_debug(1,"Creating new bsread ZMQ context for BSREAD: %s of type %d HWM set to %d messages",address,socket_type,hwm);
     epicsGuard <epicsMutex> guard(m_mutex_config);
     bsread::BSDataSenderZmq* zmq = new bsread::BSDataSenderZmq(m_zmq_ctx,address,hwm,socket_type);
@@ -62,21 +63,18 @@ void BSRead::confiugre_zmq(const char *address, int socket_type, int hwm)
 void BSRead::confiugre_zmq_config(const char *address)
 {
 
-    if(m_thread_config_zmq){
+    if(m_thread_rpc){
         bsread_debug(1,"ZMQ RPC already running! Will not reconfigure...");
     }
 
     bsread_debug(1,"starting bsread ZMQ RPC thread on %s",address);
-//    Configuration socket
+    //Configuration socket
     m_zmq_sock_config = new socket_t(m_zmq_ctx,ZMQ_REP);
     m_zmq_sock_config->bind(address);
 
-   //Start thread
-    m_thread_config_zmq = epicsThreadCreate("bsread_config_thread",epicsThreadPriorityLow,epicsThreadGetStackSize(epicsThreadStackMedium),&BSRead::zmq_config_thread,this);
+   //Start thread    
+    m_thread_rpc = epicsThreadCreate("bsread_config_thread",epicsThreadPriorityLow,epicsThreadGetStackSize(epicsThreadStackMedium),&BSRead::zmq_config_thread,this);
 
-
-//    while(1);
-//    zmq_config_thread(this);
 }
 
 
@@ -154,12 +152,12 @@ void BSRead::send(uint64_t pulse_id, bsread::timestamp t)
     //Set message pulse id and global timestamp
     m_message->set(pulse_id,t);
 
-    bsread_debug(5,"Sending id %ld",pulse_id);
+    bsread_debug(5,"Sending id %lld",(long long)pulse_id);
 
     //Send message
     if(!m_sender->send_message(*m_message)){
         zmq_overflows_++;
-        bsread_debug(5,"not sent :( [%ld]",zmq_overflows_);
+        bsread_debug(5,"not sent :( [%d]",zmq_overflows_);
     }
 
 
@@ -169,7 +167,7 @@ BSDataMessage BSRead::parse_json_config(const vector<BSDataChannel *> &all_chann
     BSDataMessage outMsg;
 
     if(root["grep"]!=Json::nullValue){
-        bsread_debug(4,"Enabling all channels [%d]",all_channels.size());
+        bsread_debug(4,"Enabling all channels [%lld]",(long long)all_channels.size());
         for(size_t i=0;i<all_channels.size();i++){
             outMsg.add_channel(all_channels[i]);
         }
@@ -257,15 +255,26 @@ Json::Value BSRead::generate_json_config(){
 
 
 BSRead::~BSRead(){
-    if(m_message_new) delete m_message_new;
+    //Senders need to be deleted first to release ZMQ sockets
+    if(m_sender) delete m_sender;
     if(m_sender_new) delete m_sender_new;
 
+    //close context, this will cause it to unblock and throw exception
+    //this exception is later used to cleanly terminate the configuration thread...
+    m_zmq_ctx.close();
+
+
+    //Wait until RPC thread terminated
+    m_thread_rpc_running.lock();
+    m_thread_rpc_running.unlock();
+
+    if(m_message_new) delete m_message_new;
     if(m_message) delete m_message;
-    if(m_sender) delete m_sender;
 
     for(size_t i=0;i<m_channels.size();i++){
         delete m_channels[i];
     }
+
 }
 
 /**
@@ -276,6 +285,8 @@ BSRead::~BSRead(){
 void BSRead::zmq_config_thread(void *param)
 {
     BSRead* self = static_cast<BSRead*>(param);
+    //Epics thread does not have join, this emulates it...
+    epicsGuard<epicsMutex> running_guard(self->m_thread_rpc_running);
 
     while(true){
         bsread_debug(3,"ZMQ RPC: waiting for message!");
@@ -285,9 +296,16 @@ void BSRead::zmq_config_thread(void *param)
         Json::Value     json_response;
         Json::Reader    json_reader;
 
-        self->m_zmq_sock_config->recv(&msg);
-        bsread_debug(3,"ZMQ RPC: received message, parsing...!");
+        try{
+            self->m_zmq_sock_config->recv(&msg);
+        }
+        catch(zmq::error_t& err){
+            bsread_debug(1,"ZMQ RPC: terminating configuration thread: %s",err.what());
+            break;
+        }
 
+
+        bsread_debug(3,"ZMQ RPC: received message, parsing...!");
 
         //Try to decode the message
         if(!json_reader.parse(string((char*)(msg.data())),json_request)){
@@ -351,13 +369,23 @@ void BSRead::zmq_config_thread(void *param)
                 json_response["status"]="error";
                 json_response["error"]="Did not understand this JSON, expecting cmd member..";
             }
-        }
+        } //END of while(true)
 
         //Encode JSON to string
         string response = json_response.toStyledString();
-        self->m_zmq_sock_config->send(response.c_str(),response.length());
+
+        try{
+            self->m_zmq_sock_config->send(response.c_str(),response.length());
+        }
+        catch(zmq::error_t& err){
+            bsread_debug(1,"ZMQ RPC: terminating configuration thread: %s",err.what());
+            break;
+        }
+
     }
 
+    self->m_zmq_sock_config->close();
+    bsread_debug(1,"ZMQ RPC: configuration thread terminated!");
 }
 
 uint32_t BSRead::zmq_overflows() const
