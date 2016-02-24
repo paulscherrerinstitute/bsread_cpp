@@ -26,7 +26,7 @@ std::string bsread::BSDataChannel::dump_header(){
     return get_data_header().toStyledString();
 }
 
-inline void bsread::BSDataChannel::set_enabled(bool enabled){
+void bsread::BSDataChannel::set_enabled(bool enabled){
     m_enabled = enabled;
 }
 
