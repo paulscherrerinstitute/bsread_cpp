@@ -78,6 +78,15 @@ typedef void (*BSDataCallaback)(BSDataChannel* chan,bool acquire, void* pvt);
  * platform independant structure for storing timestamps
  */
 struct timestamp{
+
+    /**
+     * Constructor
+     */
+    timestamp(void):
+      sec(0),
+      nsec(0)
+      {};
+
     /**
      * @brief sec seconds past UNIX epoch (1/1/1970)
      */

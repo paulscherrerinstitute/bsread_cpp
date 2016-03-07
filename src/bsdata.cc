@@ -17,7 +17,7 @@ Json::Value bsread::BSDataChannel::get_data_header(){
     root["name"]=m_name;
     root["type"]= bsdata_type_name[m_type];
     root["shape"][0]=static_cast<int>(m_len); //shape is array of dimensions, scalar = [1]
-    root["encoding"]= m_encoding_le ? "little" : "big";    
+    root["encoding"]= m_encoding_le ? "little" : "big";
 
     return root;
 }
@@ -26,7 +26,7 @@ std::string bsread::BSDataChannel::dump_header(){
     return get_data_header().toStyledString();
 }
 
-inline void bsread::BSDataChannel::set_enabled(bool enabled){
+void bsread::BSDataChannel::set_enabled(bool enabled){
     m_enabled = enabled;
 }
 
@@ -41,6 +41,7 @@ string bsread::BSDataChannel::get_name(){
 bsread::BSDataChannel::BSDataChannel(const string &name, bsread::bsdata_type type):
     m_type(type),
     m_data(0),
+    m_timestamp(),
     m_len(0),
     m_name(name),
     m_encoding_le(isLittleEndian()),
