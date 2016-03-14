@@ -18,17 +18,17 @@ set(CMAKE_BUILD_TYPE Release)
 
 
 INCLUDE_DIRECTORIES(/ioc/modules/ZMQ/404.0.1/R3.14.12/include/)
-INCLUDE_DIRECTORIES(/opt/epics/base/include)
-INCLUDE_DIRECTORIES(/opt/epics/base/include/os/Linux)
 LINK_DIRECTORIES(/ioc/modules/ZMQ/404.0.1/R3.14.12/lib/eldk52-e500v2/)
 
 
 add_executable (bsdata_example ./example.cpp ../json.cc ../json.h ../bsdata.h ../bsdata.cc ../md5.cc)
+add_definitions(-DWITHOUT_EPICS)
 target_link_libraries(bsdata_example ZMQ rt)
 include_directories(bsdata_example ..)
 
 
 add_executable (bsdata_perf ./performance_test.cpp ../json.cc ../json.h ../bsdata.h ../bsdata.cc ../md5.cc)
+add_definitions(-DWITHOUT_EPICS)
 target_link_libraries(bsdata_perf ZMQ rt)
 include_directories(bsdata_perf ..)
 

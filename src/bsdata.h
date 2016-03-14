@@ -5,8 +5,18 @@
 #include <string>
 #include <vector>
 #include <stdint.h>
-#include <shareLib.h>
 #include <zmq.hpp>
+
+/**
+  Allow builds without EPICS depenency.
+  Note that this can be used for all builds except
+  for shared libraries on windows systems.
+**/
+#ifndef WITHOUT_EPICS
+    #include <shareLib.h>
+#else
+    #define epicsShareClass
+#endif
 
 
 #include "json.h"
