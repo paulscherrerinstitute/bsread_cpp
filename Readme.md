@@ -1,9 +1,9 @@
 # Overview
-__bsread__ provides synchronized, fast, IOC based readout functionality for the SwissFEL data acquisition system. It reads configured channels on a timing system trigger and streams out the data via ZMQ.
+__bsread__ provides synchronized, fast, IOC based readout functionality for the SwissFEL data acquisition system. It reads configured channels from IOC at timing system provided trigger and streams out the data via ZMQ.
 
 The ZMQ data stream is served in a ZMQ PUSH/PULL delivery scheme. The default port is 9999. The stream consists of messages consisting of several sub-messages.
 
-The specification can be be found [here](https://docs.google.com/document/d/1BynCjz5Ax-onDW0y8PVQnYmSssb6fAyHkdDl1zh21yY/edit#)
+The specification can be be found [here](https://git.psi.ch/sf_daq/bsread_specification)
 
 # Usage
 
@@ -41,9 +41,11 @@ __optional__
   - `BSREAD_PULSEID` -  Record used to obtain pulse id
   - `BSREAD_TS_SEC` -  Record used to obtain global timestamp sec
   - `BSREAD_TS_NSEC` -  Record used to obtain global timestamp sec
+  
   - `READ_FLNK` -  Forward link for the :READ record
 
-There is additional macro used to disable loading of the EVR template. To achieve this, use macro `NO_EVR=#`.
+  - `BSREAD_PORT` - bsread primary port to use (default = 9999), configuration port is always primary + 1
+  - `BSREAD_MODE` - zmq mode of operation (PUSH or PUB)
 
 
 ## bsread_evr
@@ -61,44 +63,118 @@ runScript $(bsread_DIR)/bsread_evr.cmd, "SYS=TEST-IOC,EVR=EVR0"
 Parameters that can be passed to the module are:
 
 __mandatory__
-- `SYS` - System prefix (e.g. my IOC0), is expanded to $(SYS)-BSREAD:xx
+  - `SYS` - System prefix (e.g. my IOC0), is expanded to $(SYS)-BSREAD:xx
 
 __optional__ [default]
-- `EVR` - Id of EVR to be used [EVR0]
-- `BSREAD_EVENT` - Timing event that should be used to trigger bsread acquisition
-- `BSREAD_PULSEID` - Record used to obtain pulse id
-- `BSREAD_TS_SEC` - Record used to obtain global timestamp sec
-- `BSREAD_TS_NSEC` -  Record used to obtain global timestamp sec
+  
+  - `EVR` - Id of EVR to be used [EVR0]
+  - `BSREAD_EVENT` - Timing event that should be used to trigger bsread acquisition
+  
+  - `BSREAD_PULSEID` - Record used to obtain pulse id
+  - `BSREAD_TS_SEC` - Record used to obtain global timestamp sec
+  - `BSREAD_TS_NSEC` -  Record used to obtain global timestamp sec
+  
+  - `READ_FLNK` -  Forward link for the :READ record
 
-# Advanced Usage
+  - `BSREAD_PORT` - bsread primary port to use (default = 9999), configuration port is always primary + 1
+  - `BSREAD_MODE` - zmq mode of operation (PUSH or PUB)
 
-## Changing default ZMQ socket options
+__deprecated__ 
 
-While using the bsreadConfigure iocsh function it is possible to set ZMQ socket parameters:
-
-```
-bsreadConfigure <ZMQ address> <PUSH|PUB> <high watermark>  
-```
-
-e.g.
-
-```
-bsreadConfigure "tcp://*:9090" PUSH 100
-```
-
-Function can be used either on startup (before iocInit) or during operation, in which case the new socket will be opened and prepared in advance and switched at the end of next "read" operation. This allows for seamless handover without data loss.
+  - `NO_EVR` - Set this macro to `#` to disable EVR. This will be replaced with a special startup script 
 
 
+
+# Python client
+
+A python client was developed that allows both a configuration as well as readout of bsread data. See the following 
+GIT page for details: https://git.psi.ch/sf_daq/bsread_commandline
+
+
+# Monitoring bsread operation
 
 There are following channels to configure, control and monitor __bsread__:
 
-  * __$(P):CONFIGURATION__ - Configuration - i.e. channels to be read out
+  * __$(P):CONFIGURATION__ - Configuration - i.e. channels to be read out (supported but deprecated, use ZMQ rpc instead)
 
   * __$(P):READ.FTVA__ - Time in seconds required for last readout (double)
   * __$(P):READ.FTVB__ - Number of times time for read was > 1ms (i.e. FTVA > 1ms) (ulong)
   * __$(P):INHIBIT__ - Inhibits data readouts when set to 1. Normal operation can be resumed by setting record value back to default value 0.
 
-## Using configuration record
+
+# Advanced Usage
+
+## Enabling debug output
+
+A variable `bsread_debug` is provided that, when set to a positive integer enables debug output. 
+To enable debugging append (or prepend) this statement to your startup script: 
+
+    var bsread_debug 6 #Enables full debugging of bsread 
+
+
+Debug levels: 
+
+1. Info
+2. More info
+3. Debug 
+4. More debug 
+5. Periodic debug (careful! Loads of output)
+
+
+## bsreadConfigure IOCSH command.
+
+While using the bsreadConfigure iocsh function creates a new instance of bsread. In general there is no need to have more than one bsread instance on an IOC. To allow future compatibility this instance should be called `default`. Currently the asub is record used to trigger the readout is hardcoded to use `default` bsread instance. 
+
+Additional instances may be created, however they  have to be triggered programatically, trough BSREAD API. 
+
+```
+bsreadConfigure <instance_name> <ZMQ address> <PUSH|PUB> <high watermark>  
+```
+
+e.g.
+
+```
+bsreadConfigure "default" "tcp://*:9090" PUSH 100
+```
+
+Function can be used either on startup (before iocInit) or during operation. Note that the function creates a new bsread instance, so invoking it multiple times with same port is illegal and will raise an exception. 
+
+
+## ZMQ RPC
+
+BSREAD also creates a second ZMQ socket (within EPICS bsread this is always zmq port + 1 [10000 by default]) that can is used to preform a RPC calls.
+Currently only 2 functions are implemented; introspection and configuration.
+
+To use ZMQ RPC an offical [Python client is recommended](https://git.psi.ch/sf_daq/bsread_commandline)
+
+- Configuration:
+
+  request:
+      ```
+      {"cmd":"config","config":<configuration string>}
+      ```
+
+  response:
+      ```
+      {"status":["ok","error"], "error":<error description>}
+      ```
+
+- Introspection:
+
+  request:
+      ```
+      {"cmd":"introspect"}
+      ```
+
+  response:
+      ```
+      {"status": "ok", "channels": [<enumeration of all channels>], "config":<current configuration>}
+      ```
+
+
+
+## Using configuration record (deprecated, use ZMQ RPC instead)
+
 The configuration record (__$(P):CONFIGURATION__) is used to set the channels to be read out together with additional properties for each channel:
 
  * __channel name__ - The name of the channel to read out
@@ -127,33 +203,7 @@ Such configuration can be pushed to the configuration record like so (assume __$
     /usr/local/epics/base/bin/SL6-x86_64/caput -S TEST-BSREAD:CONFIGURATION '{"channels": [{"name":"BSREAD-TEST:TEST_1","offset":0,"modulo":2},{"name":"BSREAD-TEST:TEST_12,"offset":2,"modulo":10} ]}'
 
 
-## ZMQ RPC
-
-BSREAD also creates a second ZMQ socket (within EPICS bsread this is always zmq port + 1 [10000 by default]) that can is used to preform a RPC calls.
-Currently only 2 functions are implemented; introspection and configuration.
-
-- Configuration:
-
-  request:
-
-      {"cmd":"config","config":<configuration string>}
-
-  response:
-
-      {"status":["ok","error"], "error":<error description>}
-
-- Introspection:
-
-  request:
-
-      {"cmd":"introspect"}
-
-  response:
-
-      {"status": "ok", "channels": [<enumeration of all channels>], "config":<current configuration>}
-
-
-# Examples
+### Examples
 Assume that __$(P)__ = _TEST-BSREAD_ is the following examples.
 
 * Clear configuration
@@ -169,41 +219,46 @@ Assume that __$(P)__ = _TEST-BSREAD_ is the following examples.
     /usr/local/epics/base/bin/SL6-x86_64/caput -S TEST-BSREAD:CONFIGURATION '{"channels": [{"name":"BSREAD-TEST:TEST_1"},{"name":"BSREAD-TEST:TEST_2"}]}'
 
 
-
-## Python Client
-
-The most simple client for receiving data you an use following simple Python script. The only requirement is to have the `pyzmq` package installed.
-
-
-```python
-import zmq
-
-context = zmq.Context.instance()
-
-sock = context.socket(zmq.PULL)
-sock.connect('tcp://ioc_hostname:9999')
-
-while True:
-    message = sock.recv()
-    print message
-```
-
-
 # Development
 
-## Templates
-__bsread__ comes with a set of predefined templates (i.e. to be able to easily install it on IOCs). To install/deploy these templates, set your `INSTBASE` variable to desired location (e.g. _/fin/devl_) and run
+## Code organization and components 
+
+A bsread EPICS module consists of 3 parts: 
+  
+
+###BSDATA library:
+
+Dependency free serialization library, used to efficently serialzie data according to BSREAD specification. Libraries only dependency mandatory dependency is libZMQ. By default library depends on EPICS OSI to allow creation of Windows shared libraries. This can be disabled by defining symbol `WITHOUT_EPICS`. 
+
+for example: 
 
 ```
-./install_templates.sh
+g++ xyz.c bsdata.cc -DWITHOUT_EPICS
 ```
 
-## Running test IOC
-When using predefined templates from `ioc/` folder for testing purposes, you should never run the install script (`./install_templates.sh`). One can run an IOC from `ioc/` folder in a standard PSI way. Detailed instructions are available in `ioc/readme.md`.
+or in cmake: 
 
-## Driver
+add_definitions(-DWITHOUT_EPICS)
 
-To compile the _bsread_ driver within the PSI EPICS infrastructure use:
+
+Note that it is recommended to staticaly link the library. See `src/bsdata_example` for more info on use of the bsdata.
+
+
+###BSREAD library: 
+
+A more high level libray built on top of BSDATA and EPICS OSI. Library provides a higher level API and adds a BSREAD RPC protocol that allows remote configuration of the bsread system.
+
+
+See examples in `src/bsread_example`
+
+
+###EPICS_BSREAD
+
+EPICS module (driver) that integrates a bsread library into EPICS ioc. This module consists of ASUB record implementation and BSREAD integration.
+On creation of bsread instances (using iocsh function, see above for details) all IOCs recrods are added to bsread. For each record a thin wrapper is created that performs record locking and data copying. 
+
+
+To compile the _bsread_ module within the PSI EPICS infrastructure use:
 
 ```
 make
@@ -220,8 +275,8 @@ __Note__: For spotting problems easier and quicker it is recommended to prepend 
 
 __Note__: To compile the driver using a vanilla EPICS build system, set the correct parameters (`EPICS_BASE`, etc) in `configure/RELEASE`, change directory to `src` and run `make`. The resulting files will be located in `$TOP/lib/$arch`
 
-## Miscelaneous
-### JSON
+### Miscelaneous
+#### JSON
 The `json.cc` and `json.h` files where generated from the json-cpp project. To generate these these file, download json-cpp from the [project page](https://github.com/open-source-parsers/jsoncpp), enter the json-cpp folder and run:
 
 ```
@@ -230,6 +285,3 @@ python amalgamate.py
 
 This will generate `json.cc` and `json.h` files in `./dist`. See the README in json-cpp sources for more details.
 
-
-## Coding Style
-The code follows the following coding style: http://google-styleguide.googlecode.com/svn/trunk/cppguide.html
