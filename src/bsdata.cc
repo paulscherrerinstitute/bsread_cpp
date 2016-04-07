@@ -12,8 +12,16 @@ Json::Value bsread::BSDataChannel::get_data_header(){
     Json::Value root;
     root["name"]=m_name;
     root["type"]= bsdata_type_name[m_type];
-    root["shape"][0]=static_cast<int>(m_len); //shape is array of dimensions, scalar = [1]
     root["encoding"]= m_encoding_le ? "little" : "big";
+
+    if(m_shape.size()){
+        for(int i=0;i<m_shape.size();i++){
+            root["shape"][i]=m_shape[i];
+        }
+    }
+    else{
+        root["shape"][0]=static_cast<int>(m_len); //shape is array of dimensions, scalar = [1]
+    }
 
     return root;
 }

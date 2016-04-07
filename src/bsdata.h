@@ -116,6 +116,7 @@ class BSDataChannel{
     string          m_name;
     bool            m_encoding_le;
     bool            m_enabled;
+    vector<unsigned int> m_shape;
 
     BSDataCallaback m_callback;
     void* m_callback_pvt;
@@ -207,6 +208,31 @@ public:
 
     void set_enabled(bool enabled);
     bool get_enabled();
+
+    /**
+     * @brief set_shape sets the shape of the channel. If not specified (or if given an empty vector)
+     * than the shape is deducted automatically from size of data. Note that total size must remain
+     * unchanged or else the clients will not be able to parse the data.
+     *
+     * @param shape
+     */
+    void set_shape(const vector<unsigned int>& shape){
+        m_shape = shape;
+    }
+
+
+    /**
+     * @brief set_shape same as set_shape(); but with classic array interface that is more suitable for
+     * static configurations
+     * @param shape
+     * @param ndim
+     */
+    void set_shape(unsigned int shape[], size_t ndim){
+        m_shape.clear();
+        for(size_t i=0;i<ndim;i++){
+            m_shape.push_back(shape[i]);
+        }
+    }
 
     string get_name();
 

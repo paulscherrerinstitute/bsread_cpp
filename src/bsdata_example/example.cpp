@@ -47,8 +47,21 @@ void example(size_t buffer_len, double sleep=0.01){
     //fetched from buffer and sent out.
     daq_channel.set_data(buffer,buffer_len);
 
-    //Lets create a second channel that will hold time needed to send the last message
 
+    //Another channel connected to the same underlying buffer but with different shape set
+    bsread::BSDataChannel daq2d_channel("BSREADTEST:DAQ2D_DATA",bsread::BSDATA_INT32);
+    daq2d_channel.set_data(buffer,buffer_len);
+    // Set the shape from vector
+    vector<unsigned int> shape;
+    shape.push_back(100);
+    shape.push_back(100);
+    daq2d_channel.set_shape(shape);
+
+    // Same shape but via array interface
+    unsigned int test_shape[] = {100,buffer_len/100};
+    daq2d_channel.set_shape(test_shape,2);
+
+    //Lets create a second channel that will hold time needed to send the last message
     double time_spent;
     bsread::BSDataChannel time_channel("BSREADTESTS:TIME_SPENT",bsread::BSDATA_FLOAT64);
     time_channel.set_data(&time_spent,1);
@@ -60,6 +73,7 @@ void example(size_t buffer_len, double sleep=0.01){
     //Add both channels to the message
     message.add_channel(&daq_channel);
     message.add_channel(&time_channel);
+    message.add_channel(&daq2d_channel);
 
 
     zmq::context_t ctx(1);
