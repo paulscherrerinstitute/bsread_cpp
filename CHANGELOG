@@ -1,3 +1,12 @@
+0.9.11:
+	Compiled against ZMQ 414 
+	Added BSDATA API support for changing shapes
+
+0.9.10:
+	Support for m1_1 dataheader added
+	Timestamp bugfixes
+	epicsShareLib support added to bsdata
+	
 0.9.9:
 	Added support for sending ENUMs (encoded as unsigned short, same as within EPICS base)
 	Added support for EPICS strings. Strings induce a small bit of performance hit as strlen() needs to be invoked before send. 
