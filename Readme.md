@@ -285,3 +285,9 @@ python amalgamate.py
 
 This will generate `json.cc` and `json.h` files in `./dist`. See the README in json-cpp sources for more details.
 
+
+
+
+# Authors
+
+- Tom Slejko (tom.slejko@cosylab.com)
