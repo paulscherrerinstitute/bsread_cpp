@@ -70,8 +70,8 @@ bsread::BSDataSenderZmq::BSDataSenderZmq(zmq::context_t &ctx, string address, in
     m_sock(m_ctx,sock_type),
     m_address(address.c_str())
 {
-    m_sock.bind(address.c_str());
     m_sock.setsockopt(ZMQ_SNDHWM, &sndhwm,sizeof(sndhwm));
+    m_sock.bind(address.c_str());
 }
 
 size_t bsread::BSDataSenderZmq::send_message(bsread::BSDataMessage &message, zmq::socket_t& sock){
