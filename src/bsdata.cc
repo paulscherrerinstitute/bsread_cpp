@@ -65,11 +65,12 @@ void bsread::BSDataChannel::set_timestamp(timestamp timestamp){
     m_timestamp = timestamp;
 }
 
-bsread::BSDataSenderZmq::BSDataSenderZmq(zmq::context_t &ctx, string address, int sndhwm, int sock_type):
+bsread::BSDataSenderZmq::BSDataSenderZmq(zmq::context_t &ctx, string address, int sndhwm, int sock_type, int linger):
     m_ctx(ctx),
     m_sock(m_ctx,sock_type),
     m_address(address.c_str())
 {
+    m_sock.setsockopt(ZMQ_LINGER, &linger,sizeof(linger));
     m_sock.setsockopt(ZMQ_SNDHWM, &sndhwm,sizeof(sndhwm));
     m_sock.bind(address.c_str());
 }

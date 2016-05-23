@@ -38,7 +38,7 @@ public:
      * @param socket_type
      * @param hwm
      */
-    void confiugre_zmq(const char* address,int socket_type,int hwm);
+    void confiugre_zmq(const char* address,int socket_type,int hwm,int linger=1000);
 
 
     /**
