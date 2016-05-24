@@ -44,12 +44,12 @@ BSRead::BSRead():
 
 
 
-void BSRead::confiugre_zmq(const char *address, int socket_type, int hwm)
-{    
+void BSRead::confiugre_zmq(const char *address, int socket_type, int hwm, int linger)
+{
 
-    bsread_debug(1,"Creating new bsread ZMQ context for BSREAD: %s of type %d HWM set to %d messages",address,socket_type,hwm);
+    bsread_debug(1,"Creating new bsread ZMQ context for BSREAD: %s of type %d HWM set to %d messages and linger to %d ms",address,socket_type,hwm,linger);
     epicsGuard <epicsMutex> guard(m_mutex_config);
-    bsread::BSDataSenderZmq* zmq = new bsread::BSDataSenderZmq(m_zmq_ctx,address,hwm,socket_type);
+    bsread::BSDataSenderZmq* zmq = new bsread::BSDataSenderZmq(m_zmq_ctx,address,hwm,socket_type,linger);
 
     if(!m_sender) m_sender = zmq;
 
@@ -57,7 +57,6 @@ void BSRead::confiugre_zmq(const char *address, int socket_type, int hwm)
 
 
 }
-
 
 
 void BSRead::confiugre_zmq_config(const char *address)

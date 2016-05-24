@@ -325,8 +325,9 @@ public:
      * @param address
      * @param sndhwm
      * @param sock_type
+     * @param linger
      */
-    BSDataSenderZmq(zmq::context_t& ctx, string address,int sndhwm=10,int sock_type=ZMQ_PUSH);
+    BSDataSenderZmq(zmq::context_t& ctx, string address,int sndhwm=10, int sock_type=ZMQ_PUSH, int linger=1000);
 
 
     virtual size_t send_message(BSDataMessage& message){
