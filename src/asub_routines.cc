@@ -152,7 +152,7 @@ long bsread_read(aSubRecord* prec){
 
     //Extract timestamp
     bsread::timestamp t;
-    t.sec = ((unsigned long*)(prec->b))[0];
+    t.sec = (((unsigned long*)(prec->b))[0])+ 631152000u; //  convert epics to unix epoch
     t.nsec = ((unsigned long*)(prec->c))[0];
 
 
@@ -181,7 +181,7 @@ long bsread_read(aSubRecord* prec){
     }
 
     //Update the overflow count
-    (*(unsigned long*)prec->valc) = sender->zmq_overflows(); 
+    (*(unsigned long*)prec->valc) = sender->zmq_overflows();
     //Check if new configuration is available
     return ret;
 }
