@@ -29,7 +29,7 @@ Simply append the following line to startup script:
 
 ```
 require "bsread"
-runScript $(bsread_DIR)/bsread_sim.cmd, "SYS=TEST-IOC"
+runScript "$(bsread_DIR)/bsread_sim.cmd", "SYS=TEST-IOC"
 ```
 
 Parameters that can be passed to the module are:
@@ -41,7 +41,7 @@ __optional__
   - `BSREAD_PULSEID` -  Record used to obtain pulse id
   - `BSREAD_TS_SEC` -  Record used to obtain global timestamp sec
   - `BSREAD_TS_NSEC` -  Record used to obtain global timestamp sec
-  
+
   - `READ_FLNK` -  Forward link for the :READ record
 
   - `BSREAD_PORT` - bsread primary port to use (default = 9999), configuration port is always primary + 1
@@ -57,7 +57,7 @@ Simply append the following line to startup script:
 
 ```
 require "bsread"
-runScript $(bsread_DIR)/bsread_evr.cmd, "SYS=TEST-IOC,EVR=EVR0"
+runScript "$(bsread_DIR)/bsread_evr.cmd", "SYS=TEST-IOC,EVR=EVR0"
 ```
 
 Parameters that can be passed to the module are:
@@ -66,28 +66,28 @@ __mandatory__
   - `SYS` - System prefix (e.g. my IOC0), is expanded to $(SYS)-BSREAD:xx
 
 __optional__ [default]
-  
+
   - `EVR` - Id of EVR to be used [EVR0]
   - `BSREAD_EVENT` - Timing event that should be used to trigger bsread acquisition
-  
+
   - `BSREAD_PULSEID` - Record used to obtain pulse id
   - `BSREAD_TS_SEC` - Record used to obtain global timestamp sec
   - `BSREAD_TS_NSEC` -  Record used to obtain global timestamp sec
-  
+
   - `READ_FLNK` -  Forward link for the :READ record
 
   - `BSREAD_PORT` - bsread primary port to use (default = 9999), configuration port is always primary + 1
   - `BSREAD_MODE` - zmq mode of operation (PUSH or PUB)
 
-__deprecated__ 
+__deprecated__
 
-  - `NO_EVR` - Set this macro to `#` to disable EVR. This will be replaced with a special startup script 
+  - `NO_EVR` - Set this macro to `#` to disable EVR. This will be replaced with a special startup script
 
 
 
 # Python client
 
-A python client was developed that allows both a configuration as well as readout of bsread data. See the following 
+A python client was developed that allows both a configuration as well as readout of bsread data. See the following
 GIT page for details: https://git.psi.ch/sf_daq/bsread_commandline
 
 
@@ -106,26 +106,26 @@ There are following channels to configure, control and monitor __bsread__:
 
 ## Enabling debug output
 
-A variable `bsread_debug` is provided that, when set to a positive integer enables debug output. 
-To enable debugging append (or prepend) this statement to your startup script: 
+A variable `bsread_debug` is provided that, when set to a positive integer enables debug output.
+To enable debugging append (or prepend) this statement to your startup script:
 
-    var bsread_debug 6 #Enables full debugging of bsread 
+    var bsread_debug 6 #Enables full debugging of bsread
 
 
-Debug levels: 
+Debug levels:
 
 1. Info
 2. More info
-3. Debug 
-4. More debug 
+3. Debug
+4. More debug
 5. Periodic debug (careful! Loads of output)
 
 
 ## bsreadConfigure IOCSH command.
 
-While using the bsreadConfigure iocsh function creates a new instance of bsread. In general there is no need to have more than one bsread instance on an IOC. To allow future compatibility this instance should be called `default`. Currently the asub is record used to trigger the readout is hardcoded to use `default` bsread instance. 
+While using the bsreadConfigure iocsh function creates a new instance of bsread. In general there is no need to have more than one bsread instance on an IOC. To allow future compatibility this instance should be called `default`. Currently the asub is record used to trigger the readout is hardcoded to use `default` bsread instance.
 
-Additional instances may be created, however they  have to be triggered programatically, trough BSREAD API. 
+Additional instances may be created, however they  have to be triggered programatically, trough BSREAD API.
 
 ```
 bsreadConfigure <instance_name> <ZMQ address> <PUSH|PUB> <high watermark>  
@@ -137,7 +137,7 @@ e.g.
 bsreadConfigure "default" "tcp://*:9090" PUSH 100
 ```
 
-Function can be used either on startup (before iocInit) or during operation. Note that the function creates a new bsread instance, so invoking it multiple times with same port is illegal and will raise an exception. 
+Function can be used either on startup (before iocInit) or during operation. Note that the function creates a new bsread instance, so invoking it multiple times with same port is illegal and will raise an exception.
 
 
 ## ZMQ RPC
@@ -221,22 +221,22 @@ Assume that __$(P)__ = _TEST-BSREAD_ is the following examples.
 
 # Development
 
-## Code organization and components 
+## Code organization and components
 
-A bsread EPICS module consists of 3 parts: 
-  
+A bsread EPICS module consists of 3 parts:
+
 
 ###BSDATA library:
 
-Dependency free serialization library, used to efficently serialzie data according to BSREAD specification. Libraries only dependency mandatory dependency is libZMQ. By default library depends on EPICS OSI to allow creation of Windows shared libraries. This can be disabled by defining symbol `WITHOUT_EPICS`. 
+Dependency free serialization library, used to efficently serialzie data according to BSREAD specification. Libraries only dependency mandatory dependency is libZMQ. By default library depends on EPICS OSI to allow creation of Windows shared libraries. This can be disabled by defining symbol `WITHOUT_EPICS`.
 
-for example: 
+for example:
 
 ```
 g++ xyz.c bsdata.cc -DWITHOUT_EPICS
 ```
 
-or in cmake: 
+or in cmake:
 
 add_definitions(-DWITHOUT_EPICS)
 
@@ -244,7 +244,7 @@ add_definitions(-DWITHOUT_EPICS)
 Note that it is recommended to staticaly link the library. See `src/bsdata_example` for more info on use of the bsdata.
 
 
-###BSREAD library: 
+###BSREAD library:
 
 A more high level libray built on top of BSDATA and EPICS OSI. Library provides a higher level API and adds a BSREAD RPC protocol that allows remote configuration of the bsread system.
 
@@ -255,7 +255,7 @@ See examples in `src/bsread_example`
 ###EPICS_BSREAD
 
 EPICS module (driver) that integrates a bsread library into EPICS ioc. This module consists of ASUB record implementation and BSREAD integration.
-On creation of bsread instances (using iocsh function, see above for details) all IOCs recrods are added to bsread. For each record a thin wrapper is created that performs record locking and data copying. 
+On creation of bsread instances (using iocsh function, see above for details) all IOCs recrods are added to bsread. For each record a thin wrapper is created that performs record locking and data copying.
 
 
 To compile the _bsread_ module within the PSI EPICS infrastructure use:
@@ -284,10 +284,3 @@ python amalgamate.py
 ```
 
 This will generate `json.cc` and `json.h` files in `./dist`. See the README in json-cpp sources for more details.
-
-
-
-
-# Authors
-
-- Tom Slejko (tom.slejko@cosylab.com)
