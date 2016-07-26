@@ -30,6 +30,10 @@
 
 #include "epics_bsread.h"
 
+#include <fstream>
+#include <sstream>
+
+
 
 /** Static class member instances **/
 
@@ -187,7 +191,7 @@ extern "C"{
 }
 
 
-//BSREAD configure
+//#### bsreadConfigure #####
 static const iocshArg bsreadConfigureArg0 = { "name",iocshArgString};
 static const iocshArg bsreadConfigureArg1 = { "port",iocshArgInt};
 static const iocshArg bsreadConfigureArg2 = { "type",iocshArgString};
@@ -244,12 +248,106 @@ static void bsreadConfigFunc(const iocshArgBuf *args)
 
 }
 
+//#### bsreadApplyConfig #####
+static const iocshArg bsreadApplyConfigArg0 = { "name",iocshArgString};
+static const iocshArg bsreadApplyConfigArg1 = { "filename",iocshArgString};
+
+static const iocshArg *const bsreadApplyConfigArgs[2] =
+    {&bsreadApplyConfigArg0,&bsreadApplyConfigArg1};
+
+static const iocshFuncDef bbsreadApplyConfigFuncDef =
+    {"bsreadApply",2,bsreadApplyConfigArgs};
+
+static void bsreadApplyConfigFunc(const iocshArgBuf *args)
+{
+
+    if(!args[0].sval | !args[1].sval){
+        printf("not enough arguments\n");
+        return;
+    }
+
+    try{
+
+        string instance_name = std::string(args[0].sval);
+        string filename = string(args[1].sval);
+
+        //Fetch instance
+        bsread::BSRead* inst = epicsBSRead::get_instance(instance_name.c_str());
+
+        //Open file
+        epicsPrintf("BSREAD: Opening file %s\n",filename.c_str());
+        std::ifstream t(filename.c_str());
+        std::stringstream buffer;
+        buffer << t.rdbuf();
+
+        //Parse file
+        inst->configure(buffer.str());
+    }
+     catch(std::runtime_error& e){
+        errlogPrintf("BSREAD: Could not configure BSREAD due to:\n\t %s\n",e.what());
+    }
+
+    epicsPrintf("Successfully applied configuration\n");
+
+}
+
+
+//#### bsreadInfo #####
+static const iocshArg bsreadInfoArg0 = { "name",iocshArgString};
+
+
+static const iocshArg *const bsreadInfoArgs[1] =
+    {&bsreadApplyConfigArg0};
+
+static const iocshFuncDef bsreadInfoFuncDef =
+    {"bsreadInfo",1,bsreadInfoArgs};
+
+static void bsreadInfoFunc(const iocshArgBuf *args)
+{
+
+    if(!args[0].sval | !args[1].sval){
+        printf("not enough arguments\n");
+        return;
+    }
+
+    try{
+
+        string instance_name = std::string(args[0].sval);
+        //Fetch instance
+        bsread::BSRead* inst = epicsBSRead::get_instance(instance_name.c_str());
+
+        Json::Value config = inst->generate_json_config();
+
+        epicsPrintf("Current config:\n");
+        epicsPrintf("%s",config.toStyledString().c_str());
+
+        epicsPrintf("\nCurrent params:\n");
+        epicsPrintf("\tinhibit: %d\n",inst->get_inhibit());
+
+        epicsPrintf("\nCurrent status:\n");
+        epicsPrintf("\tZMQ overflows: %lld\n",inst->zmq_overflows());
+
+
+
+
+
+    }
+     catch(std::runtime_error& e){
+        errlogPrintf("BSREAD: Could not configure BSREAD due to:\n\t %s\n",e.what());
+    }
+
+}
+
+
 
 //BSREAD zmq configure
 static int bsreadconfigureRegister(void)
 {
     initHookRegister(&epicsBSRead::initHook);
     iocshRegister(&bsreadConfigureFuncDef,bsreadConfigFunc);
+    iocshRegister(&bbsreadApplyConfigFuncDef,bsreadApplyConfigFunc);
+    iocshRegister(&bsreadInfoFuncDef,bsreadInfoFunc);
+
     return 1;
 }
 
