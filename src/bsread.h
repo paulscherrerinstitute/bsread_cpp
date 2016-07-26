@@ -71,6 +71,16 @@ public:
     void configure(const string & json_string);
 
 
+    /**
+     * @brief set_inhibit sets inhibit bit
+     * @param inhibit
+     */
+    void set_inhibit(bool inhibit);
+
+
+    bool get_inhibit();
+
+
     //TODO: remove me!
     void enable_all_channels(){
         m_message_new = new BSDataMessage();

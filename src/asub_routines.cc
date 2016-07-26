@@ -139,6 +139,16 @@ long bsread_read_init(aSubRecord* prec){
         errlogPrintf("NOVB must be 1\n");
         return fail_init(prec);
     }
+
+    // VALD = status of inhibit bit
+    if (prec->ftvd != DBF_ULONG) {
+        errlogPrintf("FTVD must be ULONG\n");
+        return fail_init(prec);
+    }
+    if (prec->novd != 1){
+        errlogPrintf("NOVD must be 1\n");
+        return fail_init(prec);
+    }
     return 0;
 }
 
@@ -182,7 +192,10 @@ long bsread_read(aSubRecord* prec){
 
     //Update the overflow count
     (*(unsigned long*)prec->valc) = sender->zmq_overflows();
-    //Check if new configuration is available
+
+    //Update inhibit
+    (*(unsigned long*)prec->vald) = sender->get_inhibit();
+
     return ret;
 }
 

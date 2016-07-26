@@ -15,20 +15,24 @@ record(aSub, "$(P):READ")
 {
     field(INAM,"bsread_read_init")
     field(SNAM,"bsread_read")
-	field(SCAN, "Passive")
-	#Inputs 
-	field(FTA, "ULONG")
-	field(INPA, "$(BSREAD_PULSEID) NPP")	##Pulse ID
-	field(FTB,"ULONG")
-	field(INPB, "$(BSREAD_TS_SEC) NPP")     ##Global TS sec
-	field(FTC, "ULONG")
-	field(INPC, "$(BSREAD_TS_NSEC) NPP") 	##Global TS nsec
+    field(SCAN, "Passive")
+    #Inputs
+    field(FTA, "ULONG")
+    field(INPA, "$(BSREAD_PULSEID) NPP")	##Pulse ID
+    field(FTB,"ULONG")
+    field(INPB, "$(BSREAD_TS_SEC) NPP")     ##Global TS sec
+    field(FTC, "ULONG")
+    field(INPC, "$(BSREAD_TS_NSEC) NPP") 	##Global TS nsec
 
+    #Output
     field(FTVA, "DOUBLE")					# Time in seconds required to take the last snapshot
     field(FTVB, "ULONG")					# Number of snapshot time overruns (FTVA > 1ms)
     field(FTVC, "ULONG")					# Number of ZMQ message overflows
+    field(FTVD, "ULONG")					# Status of inhibit bit
+    field(OUTD, "$(P):INHIBIT PP")
+
     field(DISV, "1")						# If DISV=DISA, then the record will be disabled
-    field(SDIS, "$(P):INHIBIT")				# DISA value is read from here
+    field(SDIS, "0")                    			# DISA value is read from here
     field(PREC,6)
 
     field(FLNK, "$(READ_FLNK=)")			# Allows forward linking to a custom record
@@ -38,7 +42,7 @@ record(aSub, "$(P):READ")
 ## Record to set the inhibit flag that prevents
 ## BSREAD from reading and sending out data when active.
 
-record(bo, "$(P):INHIBIT")
+record(bi, "$(P):INHIBIT")
 {
 	field(PINI, "YES")
 	field(SCAN, "Passive")

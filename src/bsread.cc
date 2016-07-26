@@ -97,6 +97,15 @@ void BSRead::configure(const string & json_string)
 
 }
 
+void BSRead::set_inhibit(bool inhibit){
+    this->m_inhibit = inhibit;
+    bsread_debug(2,"ZMQ RPC: setting inhibit bit to: %d",this->m_inhibit);
+}
+
+bool BSRead::get_inhibit(){
+    return this->m_inhibit;
+}
+
 void BSRead::configure(Json::Value config)
 {
     epicsGuard<epicsMutex> guard(m_mutex_config);
@@ -364,8 +373,7 @@ void BSRead::zmq_config_thread(void *param)
                     if(cmd=="inhibit"){
                         if(json_request.isMember("val")){
                             bool val = json_request["val"].asBool();
-                            bsread_debug(2,"ZMQ RPC: setting inhibit bit to: %d",val);
-                            self->m_inhibit = val;
+                            self->set_inhibit(val);
                         }
                         json_response["inhibit"] = self->m_inhibit;
                     }
