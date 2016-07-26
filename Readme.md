@@ -99,7 +99,7 @@ There are following channels to configure, control and monitor __bsread__:
 
   * __$(P):READ.FTVA__ - Time in seconds required for last readout (double)
   * __$(P):READ.FTVB__ - Number of times time for read was > 1ms (i.e. FTVA > 1ms) (ulong)
-  * __$(P):INHIBIT__ - Inhibits data readouts when set to 1. Normal operation can be resumed by setting record value back to default value 0.
+  * __$(P):INHIBIT__ - Displays the status of inhibit bit.
 
 
 # Advanced Usage
@@ -139,6 +139,27 @@ bsreadConfigure "default" "tcp://*:9090" PUSH 100
 
 Function can be used either on startup (before iocInit) or during operation. Note that the function creates a new bsread instance, so invoking it multiple times with same port is illegal and will raise an exception.
 
+## bsreadApply IOCSH command
+
+```
+bsreadApply <instance_name> <config_file>
+```
+
+bsreadApply load a json configuration file (conating same json message as passed via ZMQ RPC or via configuration record) and apply it to desired bsread instancee.
+
+e.g.
+
+```
+bsreadApply default myConfigFile.json
+```
+
+## bsreadInfo IOCSH command
+```
+bsreadInfo <instance_name>
+```
+
+Prints some debug info into iocsh
+
 
 ## ZMQ RPC
 
@@ -169,6 +190,23 @@ To use ZMQ RPC an offical [Python client is recommended](https://git.psi.ch/sf_d
   response:
       ```
       {"status": "ok", "channels": [<enumeration of all channels>], "config":<current configuration>}
+      ```
+
+- Inhibit:
+
+  set:
+      ```
+      {"cmd":"inhibit","val":true}
+      ```
+
+  clear:
+      ```
+      {"cmd":"inhibit","val":false}
+      ```
+
+  query:
+      ```
+      {"cmd":"inhibit"}
       ```
 
 
