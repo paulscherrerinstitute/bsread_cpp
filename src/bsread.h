@@ -71,6 +71,7 @@ public:
     void configure(const string & json_string);
 
 
+    //TODO: remove me!
     void enable_all_channels(){
         m_message_new = new BSDataMessage();
 
@@ -115,6 +116,15 @@ private:
 
     bsread::BSDataSenderZmq* m_sender;
     bsread::BSDataSenderZmq* m_sender_new; //Used as 1-length sync queue (protced by m_mutex_config)
+
+    volatile bool m_inhibit; /*Setting this member to True will disable any sendout from send method (but will still apply new configurations...)
+                              *
+                              * Bit can be manipulated vial 0RPC interface by sending the following command
+                              * {"cmd":"inhibit","val":<true/false>}
+                              *
+                              *  Bit can be read by sending the following command
+                              * {"cmd":"inhibit"}
+                              */
 
     zmq::context_t m_zmq_ctx;
     zmq::socket_t* m_zmq_sock_config;  //Socket for configuration

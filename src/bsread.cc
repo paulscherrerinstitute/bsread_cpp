@@ -38,6 +38,7 @@ BSRead::BSRead():
     m_sender(0),
     m_sender_new(0),    
     m_zmq_ctx(1),
+    m_inhibit(false),
     zmq_overflows_(0)
 {    
 }
@@ -145,6 +146,12 @@ void BSRead::send(uint64_t pulse_id, bsread::timestamp t)
 
     //Skip read if configuration is not available yet...
     if(!m_message || m_message->get_channels()->empty()){
+        return;
+    }
+
+    //Skip message if inhibit bit is set
+    if(this->m_inhibit){
+        bsread_debug(5,"Skipping message since inhibit is set");
         return;
     }
 
@@ -350,6 +357,17 @@ void BSRead::zmq_config_thread(void *param)
                         }
 
                         json_response["channels"]=all_channels;
+                        json_response["inhibit"]=self->m_inhibit;
+                    }
+
+                    //inhibit
+                    if(cmd=="inhibit"){
+                        if(json_request.isMember("val")){
+                            bool val = json_request["val"].asBool();
+                            bsread_debug(2,"ZMQ RPC: setting inhibit bit to: %d",val);
+                            self->m_inhibit = val;
+                        }
+                        json_response["inhibit"] = self->m_inhibit;
                     }
 
 
