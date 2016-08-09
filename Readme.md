@@ -145,13 +145,28 @@ Function can be used either on startup (before iocInit) or during operation. Not
 bsreadApply <instance_name> <config_file>
 ```
 
-bsreadApply load a json configuration file (conating same json message as passed via ZMQ RPC or via configuration record) and apply it to desired bsread instancee.
+bsreadApply load a Json configuration file (containing same Json message as passed via ZMQ RPC or via configuration record) and apply it to desired bsread instance.
 
 e.g.
 
 ```
 bsreadApply default myConfigFile.json
 ```
+
+The content of the config file looks something like this:
+
+```Json
+{
+ 'channels': [{
+   'name': 'SLGAM-LPLY-AIR1:VAL_GET'
+ }, {
+   'name': 'SLGTV-LADC-TUVPDEO:VAL_GET',
+   'modulo': 1,
+   'offset': 0
+ }]
+}
+```
+
 
 ## bsreadInfo IOCSH command
 ```
