@@ -252,7 +252,7 @@ Json::Value BSRead::generate_json_config(){
 
     for(size_t i=0;i<m_message->get_channels()->size();i++){
         BSDataChannel* chan =m_message->get_channels()->at(i);
-        channels.append(chan->get_data_header());
+        channels.append(chan->get_data_header(true));
 
     }
 
