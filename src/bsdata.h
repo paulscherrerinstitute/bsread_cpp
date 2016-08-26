@@ -240,9 +240,11 @@ public:
 
     /**
      * @brief get_data_header
+     * @param config_only if set to true the data header returend contains
+     *  only configuration fields (name, modulo, offset)
      * @return Json::Value representing data header for this channel
      */
-    Json::Value get_data_header();
+    Json::Value get_data_header(bool config_only=false);
 
 };
 

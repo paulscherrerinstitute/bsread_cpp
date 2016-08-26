@@ -252,14 +252,7 @@ Json::Value BSRead::generate_json_config(){
 
     for(size_t i=0;i<m_message->get_channels()->size();i++){
         BSDataChannel* chan =m_message->get_channels()->at(i);
-        Json::Value json_chan;
-        json_chan["name"]=chan->get_name();
-        json_chan["offset"]=chan->m_meta_offset;
-        json_chan["modulo"]=chan->m_meta_modulo;
-
-        cout << json_chan << endl;
-
-        channels.append(json_chan);
+        channels.append(chan->get_data_header(true));
 
     }
 

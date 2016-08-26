@@ -102,13 +102,24 @@ long bsread_read_init(aSubRecord* prec){
     }
     //INPC is master timestamp nsec
     if (prec->ftc != DBF_ULONG) {
-        errlogPrintf("FTA must be ULONG.\n");
+        errlogPrintf("FTC must be ULONG.\n");
         return fail_init(prec);
     }
     if (prec->noc != 1) {
-        errlogPrintf("INPA must be a scalar.\n");
+        errlogPrintf("INPC must be a scalar.\n");
         return fail_init(prec);
     }
+
+    //INPD is pulseID offset
+    if (prec->ftd != DBF_DOUBLE) {
+        errlogPrintf("FTD must be DOUBLE.\n");
+        return fail_init(prec);
+    }
+    if (prec->nod != 1) {
+        errlogPrintf("INPD must be a scalar.\n");
+        return fail_init(prec);
+    }
+
 
     // VALA = snapshot duration
     if (prec->ftva != DBF_DOUBLE) {
@@ -157,7 +168,9 @@ long bsread_read(aSubRecord* prec){
     bsread_debug(5,"asub bsred read invoked");
     //Extract pulse id
     unsigned long* a = (unsigned long*)(prec->a);
-    unsigned long pulse_id = a[0];
+    double* d = (double*)(prec->d);
+
+    unsigned long pulse_id = a[0]+d[0];
     long ret = 0; //Return value
 
     //Extract timestamp

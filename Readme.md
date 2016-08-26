@@ -38,6 +38,8 @@ __mandatory__
   - `SYS` - System prefix (e.g. my IOC0), is expanded to $(SYS)-BSREAD:xx
 
 __optional__
+  - `PULSEID_OFFSET` - PULSEID offset, can be positive or negative integer (this is usually 0,+1 or -1)
+
   - `BSREAD_PULSEID` -  Record used to obtain pulse id
   - `BSREAD_TS_SEC` -  Record used to obtain global timestamp sec
   - `BSREAD_TS_NSEC` -  Record used to obtain global timestamp sec
@@ -69,6 +71,7 @@ __optional__ [default]
 
   - `EVR` - Id of EVR to be used [EVR0]
   - `BSREAD_EVENT` - Timing event that should be used to trigger bsread acquisition
+  - `PULSEID_OFFSET` - PULSEID offset, can be positive or negative integer (this is usually 0,+1 or -1)
 
   - `BSREAD_PULSEID` - Record used to obtain pulse id
   - `BSREAD_TS_SEC` - Record used to obtain global timestamp sec
@@ -103,6 +106,12 @@ There are following channels to configure, control and monitor __bsread__:
 
 
 # Advanced Usage
+
+## PULSEID_OFFSET
+
+Different systems may provide data to the EPICS records at different points in time relative to the reception of `BSREAD_EVENT` trigger event. Due to this the actual semantic meaning of the data captured by the bsread may have a offset of +,- 1 bunch ids (in case of aperiodic data even more). 
+
+PULSEID_OFFSET can be set as part of startup script via the macro or at runtime (useful for commissioning) by setting the EPICS channel `$(SYS):READ.D` 
 
 ## Enabling debug output
 
@@ -153,19 +162,82 @@ e.g.
 bsreadApply default myConfigFile.json
 ```
 
-The content of the config file looks something like this:
 
-```Json
-{
- 'channels': [{
-   'name': 'SLGAM-LPLY-AIR1:VAL_GET'
- }, {
-   'name': 'SLGTV-LADC-TUVPDEO:VAL_GET',
-   'modulo': 1,
-   'offset': 0
- }]
-}
-```
+###Example: 
+
+Lets say for the sake of example that you are running a system that was configured via `bs` command (e.g. `bs config -a` to enable all channels) and you would now like to persist this configuration so that it is loaded on IOC startup. 
+
+First lets fetch the existing configuration: 
+
+     #In IOCSH
+     bsreadInfo default #default is the name of the instance, it rarely needs be different than default 
+
+This will output some bsread information as well as current configuration json. The output will look similar to this: 
+
+
+    Current config:
+    {
+       "channels" : [
+          {
+             "modulo" : 2,
+             "name" : "sf-lc6-64:ZMQ_VER",
+             "offset" : 0,
+          },
+          {
+             "modulo" : 10,
+             "name" : "sf-lc6-64:bsread_VER",
+             "offset" : 2,
+          }
+       ]
+    }
+
+    Current params:
+            inhibit: 0
+
+    Current status:
+            ZMQ overflows: 31742
+
+
+To create a configuration file simply copy the json part of the output into the file (filename and location is up to you, but for clarity it is recommended to store it in cfg/bsread.json)
+
+
+Contents of cfg/bsread.json: 
+
+    {
+       "channels" : [
+          {
+             "modulo" : 2,
+             "name" : "sf-lc6-64:ZMQ_VER",
+             "offset" : 0,
+          },
+          {
+             "modulo" : 10,
+             "name" : "sf-lc6-64:bsread_VER",
+             "offset" : 2,
+          }
+       ]
+    }
+
+
+
+Now you can restart the ioc and try to apply this configuration using `bsreadApply` command 
+
+    bsreadApply default cfg/bsread.json
+
+
+And confirm that the configuration was applied by running `bsreadInfo default` 
+
+This allows you to change the configurations on the fly, but to load configuration on boot we __cannot__ just insert `bsreadApply default cfg/bsread.json` into the startup script as this needs to happen after ioc is initialized (since only than channels are available). The bsreadApply command needs to be scheduled for execution after init, this can be done `afterInit` command. 
+
+
+Finally the startup script that initializes bsread and loads configuration looks like this: 
+
+
+    runScript $(bsread_DIR)/bsread_sim.cmd, "SYS=SLEJKO,BSREAD_PORT=9999"
+
+    afterInit bsreadApply default cfg/bsread.json
+
+                       
 
 
 ## bsreadInfo IOCSH command
@@ -173,7 +245,7 @@ The content of the config file looks something like this:
 bsreadInfo <instance_name>
 ```
 
-Prints some debug info into iocsh
+Prints some debug info into iocsh. It also includes a current configuration that can be used as starting point for configuration file consumed by bsreadApply
 
 
 ## ZMQ RPC

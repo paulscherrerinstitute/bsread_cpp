@@ -20,9 +20,12 @@ record(aSub, "$(P):READ")
     field(FTA, "ULONG")
     field(INPA, "$(BSREAD_PULSEID) NPP")	##Pulse ID
     field(FTB,"ULONG")
-    field(INPB, "$(BSREAD_TS_SEC) NPP")     ##Global TS sec
+    field(INPB, "$(BSREAD_TS_SEC) NPP")         ##Global TS sec
     field(FTC, "ULONG")
     field(INPC, "$(BSREAD_TS_NSEC) NPP") 	##Global TS nsec
+
+    field(FTD, "DOUBLE")
+    field(INPD, "$(PULSEID_OFFSET)")                     	##PulseID offset
 
     #Output
     field(FTVA, "DOUBLE")					# Time in seconds required to take the last snapshot
@@ -51,43 +54,4 @@ record(bi, "$(P):INHIBIT")
 	field(ONAM, "Inhibit")
 	field(VAL,  "0")
 }
-
-## Record is used to configure the bsread system
-## INPA should point to character waveform record containing
-## JSON configuration. Record state will go into MAJOR
-## alarm (specified by BRSV field) if configuration is invalid.
-##
-## Example JSON configuration:
-## {"channels":
-##    [
-##        {"name":   "BSREAD-TEST:TEST_1",
-##        "offset":1,
-##        "frequency":100 },
-##        {"name":"BSREAD-TEST:TEST_2",
-##        "offset":1,
-##        "frequency":10}
-##    ]}
-
-record(aSub, "$(P):CONFIGURE")
-{
-	field(INAM,"bsread_configure_init")
-	field(SNAM,"bsread_configure")
-	field(SCAN, "Passive")
-	field(NOA, "100000")
-	field(FTA, "CHAR")
-	field(INPA, "$(P):CONFIGURATION.VAL NPP")
-	field(BRSV, "MAJOR")
-}
-
-
-## Waveform holding the configuration of the bsread
-
-record(waveform, "$(P):CONFIGURATION")
-{
-	field(SCAN, "Passive")
-	field(NELM, "10000")	
-	field(FTVL, "CHAR")
-	field(FLNK, "$(P):CONFIGURE")
-}
-
 
