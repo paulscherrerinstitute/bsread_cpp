@@ -38,6 +38,8 @@ __mandatory__
   - `SYS` - System prefix (e.g. my IOC0), is expanded to $(SYS)-BSREAD:xx
 
 __optional__
+  - `PULSEID_OFFSET` - PULSEID offset, can be positive or negative integer (this is usually 0,+1 or -1)
+
   - `BSREAD_PULSEID` -  Record used to obtain pulse id
   - `BSREAD_TS_SEC` -  Record used to obtain global timestamp sec
   - `BSREAD_TS_NSEC` -  Record used to obtain global timestamp sec
@@ -69,6 +71,7 @@ __optional__ [default]
 
   - `EVR` - Id of EVR to be used [EVR0]
   - `BSREAD_EVENT` - Timing event that should be used to trigger bsread acquisition
+  - `PULSEID_OFFSET` - PULSEID offset, can be positive or negative integer (this is usually 0,+1 or -1)
 
   - `BSREAD_PULSEID` - Record used to obtain pulse id
   - `BSREAD_TS_SEC` - Record used to obtain global timestamp sec
@@ -103,6 +106,12 @@ There are following channels to configure, control and monitor __bsread__:
 
 
 # Advanced Usage
+
+## PULSEID_OFFSET
+
+Different systems may provide data to the EPICS records at different points in time relative to the reception of `BSREAD_EVENT` trigger event. Due to this the actual semantic meaning of the data captured by the bsread may have a offset of +,- 1 bunch ids (in case of aperiodic data even more). 
+
+PULSEID_OFFSET can be set as part of startup script via the macro or at runtime (useful for commissioning) by setting the EPICS channel `$(SYS):READ.D` 
 
 ## Enabling debug output
 

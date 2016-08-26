@@ -20,9 +20,12 @@ record(aSub, "$(P):READ")
     field(FTA, "ULONG")
     field(INPA, "$(BSREAD_PULSEID) NPP")	##Pulse ID
     field(FTB,"ULONG")
-    field(INPB, "$(BSREAD_TS_SEC) NPP")     ##Global TS sec
+    field(INPB, "$(BSREAD_TS_SEC) NPP")         ##Global TS sec
     field(FTC, "ULONG")
     field(INPC, "$(BSREAD_TS_NSEC) NPP") 	##Global TS nsec
+
+    field(FTD, "DOUBLE")
+    field(INPD, "$(PULSEID_OFFSET)")                     	##PulseID offset
 
     #Output
     field(FTVA, "DOUBLE")					# Time in seconds required to take the last snapshot
