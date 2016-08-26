@@ -1,3 +1,9 @@
+0.9.16: 
+	iocsh bsreadApply 
+	iocsh bsreadInfo 
+	PULSEID_OFFSET added 
+	CONFIGURE and CONFIGURATION channels removed 
+
 0.9.11:
 	Compiled against ZMQ 414 
 	Added BSDATA API support for changing shapes
