@@ -292,6 +292,7 @@ static void bsreadApplyConfigFunc(const iocshArgBuf *args)
 }
 
 
+
 //#### bsreadInfo #####
 static const iocshArg bsreadInfoArg0 = { "name",iocshArgString};
 
@@ -305,7 +306,7 @@ static const iocshFuncDef bsreadInfoFuncDef =
 static void bsreadInfoFunc(const iocshArgBuf *args)
 {
 
-    if(!args[0].sval | !args[1].sval){
+    if(!args[0].sval){
         printf("not enough arguments\n");
         return;
     }
