@@ -23,6 +23,10 @@ Json::Value bsread::BSDataChannel::get_data_header(){
         root["shape"][0]=static_cast<int>(m_len); //shape is array of dimensions, scalar = [1]
     }
 
+    root["offset"] = this->m_meta_offset;
+    root["modulo"] = this->m_meta_modulo;
+    root["compression"] = "none";
+
     return root;
 }
 
