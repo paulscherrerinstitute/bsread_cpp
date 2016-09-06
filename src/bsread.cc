@@ -328,8 +328,7 @@ void BSRead::zmq_config_thread(void *param)
             if(json_request.isMember("grep") || json_request.isMember("channels")){
                 try{
                     self->configure(json_request);
-                    bsread_debug(2,"ZMQ RPC: new configuration applied!");
-                    json_response["config"] = self->generate_json_config();
+                    bsread_debug(2,"ZMQ RPC: new configuration applied!");                    
                     json_response["status"]="ok";
                 }
                 catch(std::runtime_error& e){
@@ -346,8 +345,7 @@ void BSRead::zmq_config_thread(void *param)
                 try{
                     if(cmd=="config"){
                         self->configure(json_request["config"]);
-                        bsread_debug(2,"ZMQ RPC: new configuration applied!");
-                        json_response["config"] = self->generate_json_config();
+                        bsread_debug(2,"ZMQ RPC: new configuration applied!");                        
                     }
                     //Introspect
                     if(cmd=="introspect"){
