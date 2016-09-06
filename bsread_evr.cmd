@@ -1,22 +1,20 @@
 ##BSREAD USING EVR
-## Mandatory macros:
+## Mandatory parameters/macros:
 ##
 ##	- SYS
 ##
-## Optional macros [default]
+## Optional parameters/macros [default]
 ##  - BSREAD_PORT [9999]
 ##  - BSREAD_MODE [PUSH]
 ##	- EVR [EVR0]
-##      - BSREAD_EVENT
-##	- BSREAD_PULSEID
-##	- BSREAD_TS_SEC
-##	- BSREAD_TS_NSEC
+##  - BSREAD_EVENT [28]
+##	- BSREAD_PULSEID [$(SYS)-$(EVR):RX-PULSEID]
+##	- BSREAD_TS_SEC [$(SYS)-$(EVR):RX-MTS-SEC]
+##	- BSREAD_TS_NSEC [$(SYS)-$(EVR):RX-MTS-NSEC]
 ##  - READ_FLNK []
-##  - PULSEID_OFFSET
+##  - PULSEID_OFFSET [0]
 ##
-## Disable loading of the EVR template by using the following macro: NO_EVR=#
-
-
+## To disable the loading of the EVR template use following parameter/macro: NO_EVR=#
 
 require bsread
 $(NO_EVR=)dbLoadRecords "bsread_evr.template", "P=$(SYS)-BSREAD,EVR=$(EVR=EVR0),BSREAD_EVENT=$(BSREAD_EVENT=28)"

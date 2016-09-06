@@ -1,16 +1,14 @@
 ##BSREAD SIMULATION MODE
-## Mandatory macros:
+## Mandatory parameters/macros:
 ##
 ##	- SYS
 ##
-## Optional macros [default]
+## Optional parameters/macros [default]
 ##  - BSREAD_PORT [9999]
 ##  - BSREAD_MODE [PUSH]
-##	- BSREAD_PULSEID
-##	- BSREAD_TS_SEC
-##	- BSREAD_TS_NSEC
-##	- BSREAD_PORT
-##	- BSREAD_MODE
+##	- BSREAD_PULSEID [$(SYS)-$(EVR):RX-PULSEID]
+##	- BSREAD_TS_SEC [$(SYS)-$(EVR):RX-MTS-SEC]
+##	- BSREAD_TS_NSEC [$(SYS)-$(EVR):RX-MTS-NSEC]
 ##  - PULSEID_OFFSET=$(PULSEID_OFFSET=0)
 
 
