@@ -83,8 +83,8 @@ long bsread_read_init(aSubRecord* prec){
     prec->dpvt = (void*)epicsBSRead::get_instance("default");
 
     // INPA = bunch ID
-    if (prec->fta != DBF_ULONG) {
-        errlogPrintf("FTA must be ULONG.\n");
+    if (prec->fta != DBF_DOUBLE) {
+        errlogPrintf("FTA must be DOUBLE.\n");
         return fail_init(prec);
     }
     if (prec->noa != 1) {
@@ -167,10 +167,10 @@ long bsread_read_init(aSubRecord* prec){
 long bsread_read(aSubRecord* prec){
     bsread_debug(5,"asub bsred read invoked");
     //Extract pulse id
-    unsigned long* a = (unsigned long*)(prec->a);
+    double* a = (double*)(prec->a);
     double* d = (double*)(prec->d);
 
-    unsigned long pulse_id = a[0]+d[0];
+    unsigned long long pulse_id = (unsigned long long)(a[0])+(unsigned long long)(d[0]);
     long ret = 0; //Return value
 
     //Extract timestamp

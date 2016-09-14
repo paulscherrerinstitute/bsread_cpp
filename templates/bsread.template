@@ -17,7 +17,7 @@ record(aSub, "$(P):READ")
     field(SNAM,"bsread_read")
     field(SCAN, "Passive")
     #Inputs
-    field(FTA, "ULONG")
+    field(FTA, "DOUBLE")
     field(INPA, "$(BSREAD_PULSEID) NPP")	##Pulse ID
     field(FTB,"ULONG")
     field(INPB, "$(BSREAD_TS_SEC) NPP")         ##Global TS sec

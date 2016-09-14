@@ -326,7 +326,7 @@ static void bsreadInfoFunc(const iocshArgBuf *args)
         epicsPrintf("\tinhibit: %d\n",inst->get_inhibit());
 
         epicsPrintf("\nCurrent status:\n");
-        epicsPrintf("\tZMQ overflows: %lld\n",inst->zmq_overflows());
+        epicsPrintf("\tZMQ overflows: %u\n",inst->zmq_overflows());
 
 
 
