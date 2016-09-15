@@ -106,6 +106,7 @@ size_t bsread::BSDataSenderZmq::send_message(bsread::BSDataMessage &message, zmq
     const vector<BSDataChannel*>* channels = message.get_channels();
     size_t n = channels->size();
     for(size_t i=0; i<n; i++){
+        int zmq_flags = ZMQ_SNDMORE | ZMQ_NOBLOCK;
         BSDataChannel* chan = channels->at(i);
 
         //Only send enabled channels
@@ -119,15 +120,13 @@ size_t bsread::BSDataSenderZmq::send_message(bsread::BSDataMessage &message, zmq
             uint64_t rtimestamp[2];
             chan->get_timestamp(rtimestamp);
 
-            part_len = sock.send(data,len,ZMQ_SNDMORE | ZMQ_NOBLOCK);
+            part_len = sock.send(data,len,zmq_flags);
             msg_len+=part_len;
 
 
             //Last part
-            if(i==n-1)
-                part_len = sock.send(rtimestamp,sizeof(rtimestamp),ZMQ_NOBLOCK);
-            else
-                part_len = sock.send(rtimestamp,sizeof(rtimestamp),ZMQ_SNDMORE | ZMQ_NOBLOCK);
+            if(i==n-1) zmq_flags &= ~ZMQ_SNDMORE;
+            part_len = sock.send(rtimestamp,sizeof(rtimestamp),zmq_flags);
 
             msg_len+=part_len;
 
@@ -141,10 +140,8 @@ size_t bsread::BSDataSenderZmq::send_message(bsread::BSDataMessage &message, zmq
             sock.send(NULL,0,ZMQ_SNDMORE | ZMQ_NOBLOCK);
 
             //Last part
-            if(i==n-1)
-                part_len = sock.send(NULL,0,ZMQ_NOBLOCK);
-            else
-                part_len = sock.send(NULL,0,ZMQ_SNDMORE | ZMQ_NOBLOCK);
+            if(i==n-1) zmq_flags &= ~ZMQ_SNDMORE;
+            part_len = sock.send(NULL,0,zmq_flags);
 
         }
 
