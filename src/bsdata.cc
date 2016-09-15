@@ -272,12 +272,12 @@ size_t bsread::BSDataSenderZmqOnepart::send_message(bsread::BSDataMessage &messa
 
 
 //            double t = dbltime_get();
-            memcpy((void*)((char*)data_part.data()+offset),data,len);
+            memcpy((char*)data_part.data()+offset,data,len);
 //            t=dbltime_get() - t;
 //            printf("%4.4f us, %4.4f Gb/s\n",t*1e6,(len/1024.0/1024.0/1024.0)/t);
 
             offset+=len;
-            memcpy((void*)((char*)data_part.data()+offset),rtimestamp,sizeof(rtimestamp));
+            memcpy((char*)data_part.data()+offset,rtimestamp,sizeof(rtimestamp));
             offset+=sizeof(rtimestamp);
 
             //Done with sending, release the data
