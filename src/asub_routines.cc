@@ -83,8 +83,8 @@ long bsread_read_init(aSubRecord* prec){
     prec->dpvt = (void*)epicsBSRead::get_instance("default");
 
     // INPA = bunch ID
-    if (prec->fta != DBF_ULONG) {
-        errlogPrintf("FTA must be ULONG.\n");
+    if (prec->fta != DBF_DOUBLE) {
+        errlogPrintf("FTA must be DOUBLE.\n");
         return fail_init(prec);
     }
     if (prec->noa != 1) {
@@ -167,16 +167,16 @@ long bsread_read_init(aSubRecord* prec){
 long bsread_read(aSubRecord* prec){
     bsread_debug(5,"asub bsred read invoked");
     //Extract pulse id
-    unsigned long* a = (unsigned long*)(prec->a);
+    double* a = (double*)(prec->a);
     double* d = (double*)(prec->d);
 
-    unsigned long pulse_id = a[0]+d[0];
+    unsigned long long pulse_id = (unsigned long long)(a[0]+d[0]);
     long ret = 0; //Return value
 
     //Extract timestamp
     bsread::timestamp t;
-    t.sec = (((unsigned long*)(prec->b))[0])+ 631152000u; //  convert epics to unix epoch
-    t.nsec = ((unsigned long*)(prec->c))[0];
+    t.sec = (((epicsUInt32*)(prec->b))[0])+ 631152000u; //  convert epics to unix epoch
+    t.nsec = ((epicsUInt32*)(prec->c))[0];
 
 
     //Serialization performance measurment
@@ -190,8 +190,7 @@ long bsread_read(aSubRecord* prec){
 //    BSRead::get_instance()->read(pulse_id,t);
 
     epicsTimeGetCurrent(&t1);
-    double timeSpan = (t1.secPastEpoch * 1e9 + t1.nsec) - (t0.secPastEpoch * 1e9 + t0.nsec);
-    timeSpan/=1e6; //time in ms
+    double timeSpan = (t1.secPastEpoch - t0.secPastEpoch) * 1e3 + (t1.nsec - t0.nsec) * 1e-6; //time in ms
 
     // Put the serialization time into VALA.
     *(double *)prec->vala = timeSpan;
@@ -199,15 +198,15 @@ long bsread_read(aSubRecord* prec){
 
     //If it takes more than 2 ms to sample the data than we have an error
     if(timeSpan > 2.0){
-        (*(unsigned long*)prec->valb)++; //increase number of "timeouts"
+        (*(epicsUInt32*)prec->valb)++; //increase number of "timeouts"
         ret = -1; //Return -1 to put record in alarm state
     }
 
     //Update the overflow count
-    (*(unsigned long*)prec->valc) = sender->zmq_overflows();
+    (*(epicsUInt32*)prec->valc) = sender->zmq_overflows();
 
     //Update inhibit
-    (*(unsigned long*)prec->vald) = sender->get_inhibit();
+    (*(epicsUInt32*)prec->vald) = sender->get_inhibit();
 
     return ret;
 }
