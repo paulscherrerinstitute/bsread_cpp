@@ -218,7 +218,7 @@ const string* bsread::BSDataMessage::get_data_header(){
 
         for(size_t i=0;i<m_channels.size();i++){
             root["channels"][(int)i]=m_channels[i]->get_data_header();
-            m_datasize += m_channels[i]->get_len() + 2*sizeof(long long); //Size of data + timestamp
+            m_datasize += m_channels[i]->get_len() + sizeof(uint64_t[2]); //Size of data + timestamp
         }
 
         m_dataheader = m_writer.write(root);
@@ -277,8 +277,8 @@ size_t bsread::BSDataSenderZmqOnepart::send_message(bsread::BSDataMessage &messa
 //            printf("%4.4f us, %4.4f Gb/s\n",t*1e6,(len/1024.0/1024.0/1024.0)/t);
 
             offset+=len;
-            memcpy((void*)((char*)data_part.data()+offset),rtimestamp,2*sizeof(long long));
-            offset+=2*sizeof(long long);
+            memcpy((void*)((char*)data_part.data()+offset),rtimestamp,sizeof(rtimestamp));
+            offset+=sizeof(rtimestamp);
 
             //Done with sending, release the data
             chan->release();
