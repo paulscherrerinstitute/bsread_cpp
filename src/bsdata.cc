@@ -138,13 +138,13 @@ size_t bsread::BSDataSenderZmq::send_message(bsread::BSDataMessage &message, zmq
         }
         //Not enabled channels are replaced with empty submessages
         else{
-            sock.send((void*)0,0,ZMQ_SNDMORE | ZMQ_NOBLOCK);
+            sock.send(NULL,0,ZMQ_SNDMORE | ZMQ_NOBLOCK);
 
             //Last part
             if(i==n-1)
-                part_len = sock.send((void*)0,0,ZMQ_NOBLOCK);
+                part_len = sock.send(NULL,0,ZMQ_NOBLOCK);
             else
-                part_len = sock.send((void*)0,0,ZMQ_SNDMORE | ZMQ_NOBLOCK);
+                part_len = sock.send(NULL,0,ZMQ_SNDMORE | ZMQ_NOBLOCK);
 
         }
 
@@ -286,7 +286,7 @@ size_t bsread::BSDataSenderZmqOnepart::send_message(bsread::BSDataMessage &messa
         }
         //Not enabled channels are replaced with empty submessages
         else{
-//            sock.send((void*)0,0,ZMQ_SNDMORE | ZMQ_NOBLOCK);
+//            sock.send(NULL,0,ZMQ_SNDMORE | ZMQ_NOBLOCK);
             //?
         }
 
