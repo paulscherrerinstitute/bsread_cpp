@@ -37,8 +37,8 @@ BSRead::BSRead():
     m_message_new(0),
     m_sender(0),
     m_sender_new(0),    
-    m_zmq_ctx(1),
     m_inhibit(false),
+    m_zmq_ctx(1),
     zmq_overflows_(0)
 {    
 }
