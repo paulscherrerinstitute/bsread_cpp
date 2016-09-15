@@ -104,7 +104,8 @@ size_t bsread::BSDataSenderZmq::send_message(bsread::BSDataMessage &message, zmq
 
     //Send data for each channel
     const vector<BSDataChannel*>* channels = message.get_channels();
-    for(size_t i=0;i<channels->size();i++){
+    size_t n = channels->size();
+    for(size_t i=0; i<n; i++){
         BSDataChannel* chan = channels->at(i);
 
         //Only send enabled channels
@@ -123,7 +124,7 @@ size_t bsread::BSDataSenderZmq::send_message(bsread::BSDataMessage &message, zmq
 
 
             //Last part
-            if(i==channels->size()-1)
+            if(i==n-1)
                 part_len = sock.send(rtimestamp,sizeof(rtimestamp),ZMQ_NOBLOCK);
             else
                 part_len = sock.send(rtimestamp,sizeof(rtimestamp),ZMQ_SNDMORE | ZMQ_NOBLOCK);
@@ -140,14 +141,12 @@ size_t bsread::BSDataSenderZmq::send_message(bsread::BSDataMessage &message, zmq
             sock.send((void*)0,0,ZMQ_SNDMORE | ZMQ_NOBLOCK);
 
             //Last part
-            if(i==channels->size()-1)
+            if(i==n-1)
                 part_len = sock.send((void*)0,0,ZMQ_NOBLOCK);
             else
                 part_len = sock.send((void*)0,0,ZMQ_SNDMORE | ZMQ_NOBLOCK);
 
-
         }
-
 
     }
 
