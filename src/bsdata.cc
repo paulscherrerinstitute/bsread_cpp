@@ -124,9 +124,9 @@ size_t bsread::BSDataSenderZmq::send_message(bsread::BSDataMessage &message, zmq
 
             //Last part
             if(i==channels->size()-1)
-                part_len = sock.send(rtimestamp,2*sizeof(long long),ZMQ_NOBLOCK);
+                part_len = sock.send(rtimestamp,sizeof(rtimestamp),ZMQ_NOBLOCK);
             else
-                part_len = sock.send(rtimestamp,2*sizeof(long long),ZMQ_SNDMORE | ZMQ_NOBLOCK);
+                part_len = sock.send(rtimestamp,sizeof(rtimestamp),ZMQ_SNDMORE | ZMQ_NOBLOCK);
 
             msg_len+=part_len;
 
