@@ -20,7 +20,7 @@ Json::Value bsread::BSDataChannel::get_data_header(bool config_only){
         root["encoding"]= m_encoding_le ? "little" : "big";
 
         if(m_shape.size()){
-            for(int i=0;i<m_shape.size();i++){
+            for(int i=0;i<(int)m_shape.size();i++){
                 root["shape"][i]=m_shape[i];
             }
         }
