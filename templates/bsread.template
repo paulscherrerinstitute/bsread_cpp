@@ -15,7 +15,8 @@ record(aSub, "$(P):READ")
 {
     field(INAM,"bsread_read_init")
     field(SNAM,"bsread_read")
-    field(SCAN, "Passive")
+    field(SCAN, "Event")
+    field(EVNT, "bsread")
     #Inputs
     field(FTA, "DOUBLE")
     field(INPA, "$(BSREAD_PULSEID) NPP")	##Pulse ID
