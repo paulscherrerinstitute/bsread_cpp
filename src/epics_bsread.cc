@@ -230,7 +230,9 @@ static void bsreadConfigFunc(const iocshArgBuf *args)
         epicsSnprintf(zmq_addr_buff,255,"tcp://*:%d",args[1].ival);
         epicsPrintf("BSREAD: Configuring instance %s to ZMQ to %s\n",args[0].sval,zmq_addr_buff);
 
-        bsread_inst->confiugre_zmq(zmq_addr_buff,socket_type,args[3].ival);
+        int hwm = args[3].ival;
+        if (hwm <= 0) hwm = 10;
+        bsread_inst->confiugre_zmq(zmq_addr_buff,socket_type,hwm);
 
 
         epicsSnprintf(zmq_addr_buff,255,"tcp://*:%d",args[1].ival+1);

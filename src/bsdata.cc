@@ -104,7 +104,9 @@ size_t bsread::BSDataSenderZmq::send_message(bsread::BSDataMessage &message, zmq
 
     //Send data for each channel
     const vector<BSDataChannel*>* channels = message.get_channels();
-    for(size_t i=0;i<channels->size();i++){
+    size_t n = channels->size();
+    for(size_t i=0; i<n; i++){
+        int zmq_flags = ZMQ_SNDMORE | ZMQ_NOBLOCK;
         BSDataChannel* chan = channels->at(i);
 
         //Only send enabled channels
@@ -118,15 +120,13 @@ size_t bsread::BSDataSenderZmq::send_message(bsread::BSDataMessage &message, zmq
             uint64_t rtimestamp[2];
             chan->get_timestamp(rtimestamp);
 
-            part_len = sock.send(data,len,ZMQ_SNDMORE | ZMQ_NOBLOCK);
+            part_len = sock.send(data,len,zmq_flags);
             msg_len+=part_len;
 
 
             //Last part
-            if(i==channels->size()-1)
-                part_len = sock.send(rtimestamp,2*sizeof(long long),ZMQ_NOBLOCK);
-            else
-                part_len = sock.send(rtimestamp,2*sizeof(long long),ZMQ_SNDMORE | ZMQ_NOBLOCK);
+            if(i==n-1) zmq_flags &= ~ZMQ_SNDMORE;
+            part_len = sock.send(rtimestamp,sizeof(rtimestamp),zmq_flags);
 
             msg_len+=part_len;
 
@@ -137,17 +137,13 @@ size_t bsread::BSDataSenderZmq::send_message(bsread::BSDataMessage &message, zmq
         }
         //Not enabled channels are replaced with empty submessages
         else{
-            sock.send((void*)0,0,ZMQ_SNDMORE | ZMQ_NOBLOCK);
+            sock.send(NULL,0,ZMQ_SNDMORE | ZMQ_NOBLOCK);
 
             //Last part
-            if(i==channels->size()-1)
-                part_len = sock.send((void*)0,0,ZMQ_NOBLOCK);
-            else
-                part_len = sock.send((void*)0,0,ZMQ_SNDMORE | ZMQ_NOBLOCK);
-
+            if(i==n-1) zmq_flags &= ~ZMQ_SNDMORE;
+            part_len = sock.send(NULL,0,zmq_flags);
 
         }
-
 
     }
 
@@ -220,7 +216,7 @@ const string* bsread::BSDataMessage::get_data_header(){
 
         for(size_t i=0;i<m_channels.size();i++){
             root["channels"][(int)i]=m_channels[i]->get_data_header();
-            m_datasize += m_channels[i]->get_len() + 2*sizeof(long long); //Size of data + timestamp
+            m_datasize += m_channels[i]->get_len() + sizeof(uint64_t[2]); //Size of data + timestamp
         }
 
         m_dataheader = m_writer.write(root);
@@ -274,13 +270,13 @@ size_t bsread::BSDataSenderZmqOnepart::send_message(bsread::BSDataMessage &messa
 
 
 //            double t = dbltime_get();
-            memcpy((void*)((char*)data_part.data()+offset),data,len);
+            memcpy((char*)data_part.data()+offset,data,len);
 //            t=dbltime_get() - t;
 //            printf("%4.4f us, %4.4f Gb/s\n",t*1e6,(len/1024.0/1024.0/1024.0)/t);
 
             offset+=len;
-            memcpy((void*)((char*)data_part.data()+offset),rtimestamp,2*sizeof(long long));
-            offset+=2*sizeof(long long);
+            memcpy((char*)data_part.data()+offset,rtimestamp,sizeof(rtimestamp));
+            offset+=sizeof(rtimestamp);
 
             //Done with sending, release the data
             chan->release();
@@ -288,7 +284,7 @@ size_t bsread::BSDataSenderZmqOnepart::send_message(bsread::BSDataMessage &messa
         }
         //Not enabled channels are replaced with empty submessages
         else{
-//            sock.send((void*)0,0,ZMQ_SNDMORE | ZMQ_NOBLOCK);
+//            sock.send(NULL,0,ZMQ_SNDMORE | ZMQ_NOBLOCK);
             //?
         }
 

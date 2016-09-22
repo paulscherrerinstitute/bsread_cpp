@@ -1,11 +1,10 @@
 ## Trigger record from EVR
 
-record(longout, "$(P):Trig-Event_") {
+record(event, "$(P):Trig-Event_") {
   field(DTYP, "EVR Event")
   field(SCAN, "I/O Intr")
-  field(OUT , "@OBJ=$(EVR),Code=$(BSREAD_EVENT)")
-  field(VAL , "0")
+  field(INP , "@OBJ=$(EVR),Code=$(BSREAD_EVENT)")
+  field(VAL , "bsread")
   field(TSE , "-2") # from device support
-  field(FLNK, "$(P):READ")
   field(PRIO, "HIGH")
 }
