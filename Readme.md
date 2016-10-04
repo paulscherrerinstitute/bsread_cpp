@@ -13,7 +13,7 @@ On an standard IOC with standard EVR configuration, use following code inside th
 
 ```
 require "bsread"
-runScript "$(bsread_DIR)/bsread_evr.cmd", "SYS=TEST-IOC"
+runScript "$(bsread_DIR)/bsread_evr.cmd"
 # afterInit bsreadApply default cfg/bsread_configuration.json  # Apply an initial channel configuration to bsread
 ```
 
@@ -45,7 +45,7 @@ For using bsread with a hardware timing event receiver (EVR) use the provided __
 
 ```
 require "bsread"
-runScript "$(bsread_DIR)/bsread_evr.cmd", "SYS=TEST-IOC"
+runScript "$(bsread_DIR)/bsread_evr.cmd"
 ```
 
 #### Parameters
@@ -53,10 +53,11 @@ runScript "$(bsread_DIR)/bsread_evr.cmd", "SYS=TEST-IOC"
 The configuration script takes several parameters that can be adjusted based on the given IOC and hardware setup.
 
 __mandatory__
-- `SYS` - System prefix (e.g. my IOC0). This parameter gets expanded to $(SYS)-BSREAD:xx.
+
 
 __optional__ *[default]*
 
+- `SYS` *[$(IOC)]* - System prefix (e.g. my IOC0). This parameter gets expanded to $(SYS)-BSREAD:xx.
 - `EVR` *[EVR0]* - Id of EVR to be used.
 - `BSREAD_EVENT` *[28]* - Timing system event to be used to trigger the data readout.
 - `PULSEID_OFFSET` *[0]* - PULSEID offset to be applied to the pulse_id. This number can be positive or negative integer.
@@ -85,11 +86,9 @@ runScript "$(bsread_DIR)/bsread_sim.cmd", "SYS=TEST-IOC"
 #### Parameters
 The configuration script takes several parameters that can be adjusted based on the given IOC and hardware setup.
 
-__mandatory__
-- `SYS` - System prefix (e.g. my IOC0), is expanded to $(SYS)-BSREAD:xx
-
 __optional__ *[default]*
 
+- `SYS` *[$(IOC)]* - System prefix (e.g. my IOC0), is expanded to $(SYS)-BSREAD:xx
 - `PULSEID_OFFSET` *[0]* - PULSEID offset to be applied to the pulse_id. This number can be positive or negative integer.
 - `BSREAD_PULSEID` *[$(SYS)-$(EVR):RX-PULSEID]* - Record used to obtain pulse id.
 - `BSREAD_TS_SEC` *[$(SYS)-$(EVR):RX-MTS-SEC]* - Record used to obtain the global timestamp seconds.
