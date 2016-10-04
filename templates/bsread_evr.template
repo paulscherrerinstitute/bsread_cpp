@@ -5,6 +5,5 @@ record(event, "$(P):Trig-Event_") {
   field(SCAN, "I/O Intr")
   field(INP , "@OBJ=$(EVR),Code=$(BSREAD_EVENT)")
   field(VAL , "bsread")
-  field(TSE , "-2") # from device support
   field(PRIO, "HIGH")
 }
