@@ -49,3 +49,4 @@ include $(TOP)/configure/RULES
 #----------------------------------------
 #  ADD RULES AFTER THIS LINE
 
+vpath %.hpp $(USR_VPATH) $(ALL_SRC_DIRS)
