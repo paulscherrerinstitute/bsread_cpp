@@ -289,7 +289,7 @@ public:
 
     const string* get_main_header();
 
-    const string* get_data_header();
+    const string* get_data_header(bool force_build_header = false);
 
     const vector<BSDataChannel*>* get_channels(){
         return &m_channels;

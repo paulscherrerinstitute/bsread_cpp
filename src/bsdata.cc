@@ -207,8 +207,8 @@ const string *bsread::BSDataMessage::get_main_header(){
     return &m_mainheader;
 }
 
-const string* bsread::BSDataMessage::get_data_header(){
-    if(m_datahash.empty()){
+const string* bsread::BSDataMessage::get_data_header(bool force_build_header){
+    if(m_datahash.empty() || force_build_header){
 
         m_datasize = 0;
         Json::Value root;
