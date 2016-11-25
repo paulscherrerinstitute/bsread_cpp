@@ -160,10 +160,11 @@ void bsread::BSDataMessage::clear_channels(){
     m_channels.clear();
 }
 
-void bsread::BSDataMessage::set(uint64_t pulseid, bsread::timestamp timestamp, bool set_enable){
+bool bsread::BSDataMessage::set(uint64_t pulseid, bsread::timestamp timestamp, bool set_enable){
     m_pulseid = pulseid;
     m_globaltimestamp = timestamp;
 
+    bool any_channels_enabled = false;
 
     if(set_enable){
         for(size_t i=0;i<m_channels.size();i++){
@@ -177,6 +178,7 @@ void bsread::BSDataMessage::set(uint64_t pulseid, bsread::timestamp timestamp, b
             if (modulo > 0) {
                 if ( ((pulseid-offset) % modulo ) == 0) {
                     c->set_enabled(true);
+                    any_channels_enabled = true;
                 }
                 else{
                     c->set_enabled(false);
@@ -184,6 +186,8 @@ void bsread::BSDataMessage::set(uint64_t pulseid, bsread::timestamp timestamp, b
             }
         }
     }
+
+    return any_channels_enabled;
 }
 
 const string *bsread::BSDataMessage::get_main_header(){
@@ -225,6 +229,32 @@ const string* bsread::BSDataMessage::get_data_header(bool force_build_header){
 
     return &m_dataheader;
 
+}
+
+const bool bsread::BSDataMessage::is_empty(){
+    const vector<BSDataChannel*>* channels = this->get_channels();
+    vector<BSDataChannel*>::const_iterator iter;
+
+    for(iter=channels->begin();iter != channels->end();iter++){
+        if((*iter)->get_enabled()){
+            return false;
+        }
+    }
+    return true;
+
+}
+
+bsread::BSDataChannel *bsread::BSDataMessage::find_channel(const string &name){
+    for(size_t i=0;i<m_channels.size();i++){
+        if(m_channels[i]->get_name() == name) return m_channels[i];
+    }
+
+    return NULL;
+}
+
+size_t bsread::BSDataMessage::get_datasize(){
+    get_data_header();
+    return m_datasize;
 }
 
 size_t bsread::BSDataSenderZmqOnepart::send_message(bsread::BSDataMessage &message, zmq::socket_t &sock)

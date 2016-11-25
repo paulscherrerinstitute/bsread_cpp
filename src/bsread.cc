@@ -154,18 +154,22 @@ void BSRead::send(uint64_t pulse_id, bsread::timestamp t)
     }
 
     //Skip read if configuration is not available yet...
-    if(!m_message || m_message->get_channels()->empty()){
+    if(!m_message ||
+        m_message->get_channels()->empty() ||
+        this->m_inhibit){
+
+        bsread_debug(5,"Skipping message");
         return;
     }
 
-    //Skip message if inhibit bit is set
-    if(this->m_inhibit){
-        bsread_debug(5,"Skipping message since inhibit is set");
-        return;
-    }
 
     //Set message pulse id and global timestamp
-    m_message->set(pulse_id,t);
+    bool empty_message = !m_message->set(pulse_id,t);
+
+    if(empty_message){
+        bsread_debug(5,"Skipping message since no channels are enabled\n");
+        return;
+    }
 
     bsread_debug(5,"Sending id %lld",(long long)pulse_id);
 
