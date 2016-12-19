@@ -186,8 +186,9 @@ Contents of cfg/bsread_configuration.json:
 ## Channels
 bsread provides following Epics channels for debugging purpose:
 
-* __$(P):READ.FTVA__ - Time in seconds required for last readout (double)
-* __$(P):READ.FTVB__ - Number of times time for read was > 1ms (i.e. FTVA > 1ms) (ulong)
+* __$(P):READ.VALA__ - Time in milliseconds required for last readout (double)
+* __$(P):READ.VALB__ - Number of times time for read was > 1ms (i.e. FTVA > 1ms) (ulong)
+* __$(P):READ.VALC__ - Number of ZMQ buffer overflows (ulong)
 * __$(P):INHIBIT__ - Displays the status of inhibit bit.
 
 Where __$(P)__ resolves to __$(SYS)-BSREAD__.
