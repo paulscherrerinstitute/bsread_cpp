@@ -284,8 +284,10 @@ public:
      * @param pulseid
      * @param timestamp
      * @param calc_enable
+     * @return true if at least one channel was enabled, false otherwise. If
+     * set_enable is false than false is always returned
      */
-    void set(uint64_t pulseid, bsread::timestamp tst, bool set_enable=true);
+    bool set(uint64_t pulseid, bsread::timestamp tst, bool set_enable=true);
 
     const string* get_main_header();
 
@@ -295,18 +297,16 @@ public:
         return &m_channels;
     }
 
-    BSDataChannel* find_channel(const string& name){
-        for(size_t i=0;i<m_channels.size();i++){
-            if(m_channels[i]->get_name() == name) return m_channels[i];
-        }
 
-        return NULL;
-    }
+    /**
+     * @brief is_empty checks if any of the channels within this message are enabled
+     * @return true if no channels are enabled, false otherwise
+     */
+    const bool is_empty();
 
-    size_t get_datasize(){
-        get_data_header();
-        return m_datasize;
-    }
+    BSDataChannel* find_channel(const string& name);
+
+    size_t get_datasize();
 };
 
 
