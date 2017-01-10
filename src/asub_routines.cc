@@ -40,47 +40,20 @@ static long fail_process(aSubRecord *prec)
     return -1;
 }
 
-long bsread_configure_init(aSubRecord* prec){
-    bsread_debug(3,"configure init");
-
-    //Fetch bsread instance
-    prec->dpvt = (void*)epicsBSRead::get_instance("default");
-
-
-    if (prec->fta != DBF_CHAR) {
-        errlogPrintf("FTA has invalid type. Must be a CHAR");
-        return fail_init(prec);
-    }
-
-  return 0;
-}
-
-
-long bsread_configure(aSubRecord* prec){
-    bsread_debug(3,"bsread config via asub");
-    /* Reading from a string waveform */
-    char const *configuration = (char const *) prec->a;
-        if (strnlen(configuration, prec->noa) == prec->noa) {
-            errlogPrintf("Config is not null terminated!\n");
-            return fail_process(prec);
-        }
-    try{
-        ((bsread::BSRead*)(prec->dpvt))->configure(string(configuration));
-    }
-    catch(runtime_error & e){
-        errlogPrintf("Problem parsing BSDAQ configuration: %s\n", e.what());
-        return fail_process(prec);
-    }
-
-    return 0;
-}
-
-
 long bsread_read_init(aSubRecord* prec){
     bsread_debug(3,"read init");
 
+    if(prec->fte != DBF_ULONG){
+        errlogPrintf("FTE must be ULONG");
+        return fail_init(prec);
+    }
+
+    char instnace_name[32];
+
+    snprintf(instnace_name,32,"%d",*(uint32_t*)(prec->e));
+
     //Fetch bsread instance
-    prec->dpvt = (void*)epicsBSRead::get_instance("default");
+    prec->dpvt = (void*)epicsBSRead::get_instance(instnace_name);
 
     // INPA = bunch ID
     if (prec->fta != DBF_DOUBLE) {
@@ -214,8 +187,6 @@ long bsread_read(aSubRecord* prec){
 
 
 extern "C"{
-    epicsRegisterFunction(bsread_configure_init);
-    epicsRegisterFunction(bsread_configure);
     epicsRegisterFunction(bsread_read_init);
     epicsRegisterFunction(bsread_read);
 }

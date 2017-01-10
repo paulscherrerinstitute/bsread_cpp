@@ -1,5 +1,3 @@
-function("bsread_configure_init")
-function("bsread_configure")
 function("bsread_read_init")
 function("bsread_read")
 variable("bsread_debug",int)

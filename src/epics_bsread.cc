@@ -211,6 +211,8 @@ static void bsreadConfigFunc(const iocshArgBuf *args)
         return;
     }
 
+    char* name = args[0].sval;
+
     int socket_type=-1;
     if(!strcmp(args[2].sval,"PUSH")) socket_type = ZMQ_PUSH;
     if(!strcmp(args[2].sval,"PUB")) socket_type = ZMQ_PUB;
@@ -228,7 +230,7 @@ static void bsreadConfigFunc(const iocshArgBuf *args)
 //        epicsBSRead::bsread_add_epics_records(bsread_inst);
 
         epicsSnprintf(zmq_addr_buff,255,"tcp://*:%d",args[1].ival);
-        epicsPrintf("BSREAD: Configuring instance %s to ZMQ to %s\n",args[0].sval,zmq_addr_buff);
+        epicsPrintf("BSREAD[%s]: Configuring ZMQ to %s\n",name,zmq_addr_buff);
 
         int hwm = args[3].ival;
         if (hwm <= 0) hwm = 10;
@@ -236,14 +238,14 @@ static void bsreadConfigFunc(const iocshArgBuf *args)
 
 
         epicsSnprintf(zmq_addr_buff,255,"tcp://*:%d",args[1].ival+1);
-        epicsPrintf("BSREAD: Configuring instance %s ZMQ RPC to %s\n",args[0].sval,zmq_addr_buff);
+        epicsPrintf("BSREAD[%s]: Configuring ZMQ RPC to %s\n",name,zmq_addr_buff);
         bsread_inst->confiugre_zmq_config(zmq_addr_buff);
 
-        epicsBSRead::register_instance(args[0].sval,bsread_inst);
+        epicsBSRead::register_instance(name,bsread_inst);
     }
     catch(std::runtime_error& e){
         delete bsread_inst;
-        errlogPrintf("BSREAD: Could not configure BSREAD: %s due to %s\nBSREAD: Aborting!\n",args[0].sval,e.what());
+        errlogPrintf("BSREAD: Could not configure BSREAD: %s due to %s\nBSREAD: Aborting!\n",name,e.what());
     }    
 
 //    bsread->enable_all_channels();

@@ -26,7 +26,10 @@ record(aSub, "$(P):READ")
     field(INPC, "$(BSREAD_TS_NSEC) NPP") 	##Global TS nsec
 
     field(FTD, "DOUBLE")
-    field(INPD, "$(PULSEID_OFFSET)")                     	##PulseID offset
+    field(INPD, "$(PULSEID_OFFSET)")           	##PulseID offset
+
+    field(FTE, "ULONG")                          ##bsread instnace name
+    field(INPE, "$(BSREAD_PORT)")
 
     #Output
     field(FTVA, "DOUBLE")					# Time in seconds required to take the last snapshot
