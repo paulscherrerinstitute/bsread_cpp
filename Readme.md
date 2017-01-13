@@ -180,6 +180,20 @@ Contents of cfg/bsread_configuration.json:
 }
 ```
 
+## Multiple BSREAD Instances on one IOC
+There can be multiple bsread instance configured for one IOC. This can be done as follows:
+
+```
+require bsread
+runScript "$(bsread_DIR)/bsread_plain.cmd", "BSREAD_PORT=9000, EVENT_NAME=bsread1, BSREAD_PULSEID=MTEST-VME-DIAG17:SLOT4-SFP1-EVR-BUNCH-ID, BSREAD_TS_SEC=MTEST-VME-DIAG17:SLOT4-SFP1-SEC-VME-EVR, BSREAD_TS_NSEC=MTEST-VME-DIAG17:SLOT4-SFP1-NSEC-VME-EVR"
+runScript "$(bsread_DIR)/bsread_plain.cmd", "BSREAD_PORT=9002, EVENT_NAME=bsread2, BSREAD_PULSEID=MTEST-VME-DIAG17:SLOT4-SFP2-EVR-BUNCH-ID, BSREAD_TS_SEC=MTEST-VME-DIAG17:SLOT4-SFP2-SEC-VME-EVR, BSREAD_TS_NSEC=MTEST-VME-DIAG17:SLOT4-SFP2-NSEC-VME-EVR"
+
+afterInit bsreadApply 9000 cfg/bsread1.json
+afterInit bsreadApply 9002 cfg/bsread2.json
+```
+
+However, if configuring multiple instances you have to take care that the triggering and the pulse_id and timestamp records are linked and wired correctly. Also make sure that the events triggering the readout are configured and fired correctly.
+
 
 # Debugging
 
