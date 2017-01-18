@@ -34,11 +34,6 @@ static long fail_init(aSubRecord *prec)
     return -1;
 }
 
-static long fail_process(aSubRecord *prec)
-{
-    prec->brsv = 1;
-    return -1;
-}
 
 long bsread_read_init(aSubRecord* prec){
     bsread_debug(3,"read init");
