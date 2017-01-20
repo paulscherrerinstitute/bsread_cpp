@@ -14,7 +14,7 @@ On an standard IOC with standard EVR configuration, use following code inside th
 ```
 require "bsread"
 runScript "$(bsread_DIR)/bsread_evr.cmd"
-# afterInit bsreadApply default cfg/bsread_configuration.json  # Apply an initial channel configuration to bsread
+# afterInit bsreadApply 9999 cfg/bsread_configuration.json  # Apply an initial channel configuration to bsread
 ```
 
 ## Client
@@ -232,10 +232,10 @@ __bsread_info__ prints the actual configuration and status of bsread on the IOC 
 bsreadInfo <instance_name>
 ```
 
-While having no special bsread setup __instance_name__ need to be set to __"default"__.
+While having no special bsread setup __instance_name__ need to be set to __"9999"__.
 
 ```
-bsreadInfo "default"
+bsreadInfo "9999"
 ```
 
 
@@ -359,7 +359,7 @@ bsreadConfigure <instance_name> <ZMQ address> <PUSH|PUB> <high watermark>
 
 However additional instances need to be triggered "manually" through the bsread api.
 
-_Note:_ The default instance should be called `default`. Currently the module provided default templates and asub record used to trigger the readout of channels is hardcoded to use `default` bsread instance.
+_Note:_ The default instance should be called `9999`. Currently the module provided default templates and asub record used to trigger the readout of channels is hardcoded to use `9999` bsread instance.
 
 _Note:_ The function can be used either on startup (before iocInit) or during operation. Note that the function will always create a new bsread instance, so invoking it multiple times with same port is illegal and will raise an exception.
 
