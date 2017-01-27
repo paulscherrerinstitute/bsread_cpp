@@ -18,7 +18,7 @@ runScript "$(bsread_DIR)/bsread_evr.cmd"
 ```
 
 ## Client
-To interact and to receive data in a point to point fasion from an bsread IOC, a Python/Command Line client is available. It is installed on all SwissFEL machines. The documentation on it can be found [here](https://git.psi.ch/sf_daq/bsread_commandline).
+To interact and to receive data in a point to point fasion from an bsread IOC, a Python/Command Line client is available. It is installed on all SwissFEL machines. The documentation on it can be found [here](https://github.com/paulscherrerinstitute/bsread_python/blob/master/ReadmeCLI.md).
 
 
 # Installation
@@ -124,7 +124,7 @@ The bsread configuration file (ideally named __bsread_configuration.json__) shou
 
 #### Creating the Configuration File
 
-Once your IOC is up and running with bsread, you can configure it via the `bs` command described in https://git.psi.ch/sf_daq/bsread_commandline.
+Once your IOC is up and running with bsread, you can configure it via the `bs` command described in [here](https://github.com/paulscherrerinstitute/bsread_python/blob/master/ReadmeCLI.md).
 
 After the initial configuration you can use the __bsreadInfo__ command to print the current bsread configuration and status on the IOC shell.
 
@@ -346,7 +346,7 @@ Request - query:
 {"cmd": "inhibit"}
 ```
 
-To use the ZMQ RPC it is recommended to use the official [Python Client](https://git.psi.ch/sf_daq/bsread_commandline).
+To use the ZMQ RPC it is recommended to use the official [Python Client](https://github.com/paulscherrerinstitute/bsread_python/blob/master/ReadmeCLI.md).
 
 
 ## bsreadConfigure IOC Shell Command.
