@@ -129,7 +129,7 @@ Once your IOC is up and running with bsread, you can configure it via the `bs` c
 After the initial configuration you can use the __bsreadInfo__ command to print the current bsread configuration and status on the IOC shell.
 
 ```
-bsreadInfo default # default is the name of the instance, it rarely needs be different than default
+bsreadInfo 9999 # 9999 is the name of the instance, it rarely needs be different than 9999
 ```
 
 This command will output something like this (your output will look similar):
