@@ -197,6 +197,56 @@ However, if configuring multiple instances you have to take care that the trigge
 
 # Debugging
 
+If bsread is not working as expected use following steps can be used to detect the issue.
+
+* Check current configuration of the IOC
+
+```
+bs config <IOC>
+```
+
+* Change configuration of IOC and see whether update gets applied
+
+```
+bs config -u <IOC>
+# your update
+```
+   * If the update does not get applied bsread does not get a trigger. __Updates are only applied upon the next readout trigger__
+
+* Check debugging channels of bsread
+```
+export SYSTEM=<your IOC>
+echo 'Time in milliseconds required for last readout'
+caget ${SYSTEM}:READ.VALA
+echo 'Number of times time for read was > 1ms'
+caget ${SYSTEM}:READ.VALB
+echo 'Number of ZMQ buffer overflows:'
+caget ${SYSTEM}:READ.VALC
+echo 'Check inhibit status:'
+caget ${SYSTEM}:INHIBIT
+```
+
+* Check whether pulse id is updating as expected
+
+```
+camon <SYS>-EVR0:RX-PULSEID
+```
+
+* Check for broken links. Bsread does not work if references records (for pulse-id and global timestamp) are not available
+   * Channels to check can be found by querying following channels:
+   ```
+   export SYSTEM=<your IOC>
+   echo 'Check what pulse-id record is configured'
+   caget ${SYSTEM}:READ.INPA
+   echo 'Check what record is configured for global timestamp seconds'
+   caget ${SYSTEM}:READ.INPB
+   echo 'Check what record is configured for global timestamp nanoseconds'
+   caget ${SYSTEM}:READ.INPC
+   ```
+
+__There is a test script available in this repo [bsread_test.sh] that checks all the above items__
+
+
 ## Channels
 bsread provides following Epics channels for debugging purpose:
 
@@ -205,7 +255,7 @@ bsread provides following Epics channels for debugging purpose:
 * __$(P):READ.VALC__ - Number of ZMQ buffer overflows (ulong)
 * __$(P):INHIBIT__ - Displays the status of inhibit bit.
 
-Where __$(P)__ resolves to __$(SYS)-BSREAD__.
+Where __$(P)__ resolves to __$(SYS)-BSREAD<instance>__ (<instance> is usually 9999).
 
 
 ## Enabling Debug Output on the IOC Shell - bsread_debug
