@@ -244,7 +244,7 @@ camon <SYS>-EVR0:RX-PULSEID
    caget ${SYSTEM}:READ.INPC
    ```
 
-__There is a test script available in this repo [bsread_test.sh] that checks all the above items__
+__There is a test script available in this repo [bsread_test.sh](bsread_test.sh) that checks all the above items__
 
 
 ## Channels
