@@ -115,7 +115,7 @@ afterInit bsreadApply <instance_name> <config_file>
 In a standard bsread setup this will result to a call similar to this:
 
 ```
-afterInit bsreadApply default cfg/bsread_configuration.json
+afterInit bsreadApply 9999 cfg/bsread_configuration.json
 ```
 
 The bsread configuration file (ideally named __bsread_configuration.json__) should be placed inside the IOC project in the __cfg__ folder. The file can be generated as described below.
