@@ -22,5 +22,6 @@ PROJECT = bsread
 TEMPLATES += templates/bsread.template
 TEMPLATES += templates/bsread_sim.template
 TEMPLATES += templates/bsread_evr.template
+TEMPLATES += templates/bsread_storesend.template
 
 

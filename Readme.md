@@ -57,7 +57,7 @@ __mandatory__
 
 __optional__ *[default]*
 
-- `SYS` *[$(IOC)]* - System prefix (e.g. my IOC0). This parameter gets expanded to $(SYS)-BSREAD:xx.
+- `SYS` *[$(IOC)]* - System prefix (e.g. my IOC0). This parameter gets expanded to $(SYS)-BSREAD$(BSREAD_PORT):xx.
 - `EVR` *[EVR0]* - Id of EVR to be used.
 - `BSREAD_EVENT` *[28]* - Timing system event to be used to trigger the data readout.
 - `PULSEID_OFFSET` *[0]* - PULSEID offset to be applied to the pulse_id. This number can be positive or negative integer.
@@ -72,6 +72,39 @@ __optional__ *[default]*
 
 - `READ_FLNK` *[]* - Forward link for the :READ record. This link can be used to trigger records that needs to be executed whenever data is read out.
 - `NO_EVR` - Set this macro to `#` to disable the usage of the EVR.
+
+### Store and Send EVR Setup - bsread_storesend.cmd
+
+For special cases where the data might be ready only after some processing time, we migh want to store the pulse id and master timestamp until the data is ready to be sent out. Be sure that you know what you are doing when you are using this template. This script copies the pulse id and master timestamp from standard RX records to separate records at the time of selected (hardware) timing event. Once the data is ready we have to trigger bsread sendout processing (FLNK-ing) the `:SEND` record `($(SYS)-BSREAD($BSREAD_PORT):SEND)`. This will send the bsread data out.
+
+```
+require "bsread"
+runScript "$(bsread_DIR)/bsread_storesend.cmd" "STORE_EVENT=XX"
+```
+
+#### Parameters
+
+The configuration script takes several parameters that can be adjusted based on the given IOC and hardware setup.
+
+__mandatory__
+- `STORE_EVENT` - Timing system event to be used to copy the Pulse ID and Master Timestam to another set of records.
+
+__optional__ *[default]*
+
+- `SYS` *[$(IOC)]* - System prefix (e.g. my IOC0). This parameter gets expanded to $(SYS)-BSREAD$(BSREAD_PORT):xx.
+- `EVR` *[EVR0]* - Id of EVR to be used.
+- `PULSEID_OFFSET` *[0]* - PULSEID offset to be applied to the pulse_id. This number can be positive or negative integer.
+- `BSREAD_PULSEID` *[$(SYS)-$(EVR):RX-PULSEID]* - Record used to obtain pulse id.
+- `BSREAD_TS_SEC` *[$(SYS)-$(EVR):RX-MTS-SEC]* - Record used to obtain the global timestamp seconds.
+- `BSREAD_TS_NSEC` *[$(SYS)-$(EVR):RX-MTS-NSEC]* - Record used to obtain global timestamp nanoseconds.
+
+
+- `BSREAD_PORT` *[9999]* - bsread primary port to use for sending data, the bsread configuration port is always primary + 1.
+- `BSREAD_MODE` *[PUSH]* - zmq mode used for delivering messages (PUSH or PUB).
+
+
+- `READ_FLNK` *[]* - Forward link for the :READ record. This link can be used to trigger records that needs to be executed whenever data is read out.
+- `STORE_FLNK` *[]* - Forward link for the :STORE record. This link can be used to trigger records that needs to be executed whenever Pulse ID and master timestamp are copied.
 
 
 ### Simulation Setup - bsread_sim.cmd
@@ -88,7 +121,7 @@ The configuration script takes several parameters that can be adjusted based on 
 
 __optional__ *[default]*
 
-- `SYS` *[$(IOC)]* - System prefix (e.g. my IOC0), is expanded to $(SYS)-BSREAD:xx
+- `SYS` *[$(IOC)]* - System prefix (e.g. my IOC0), is expanded to $(SYS)-BSREAD$(BSREAD_PORT):xx
 - `PULSEID_OFFSET` *[0]* - PULSEID offset to be applied to the pulse_id. This number can be positive or negative integer.
 - `BSREAD_PULSEID` *[$(SYS)-$(EVR):RX-PULSEID]* - Record used to obtain pulse id.
 - `BSREAD_TS_SEC` *[$(SYS)-$(EVR):RX-MTS-SEC]* - Record used to obtain the global timestamp seconds.

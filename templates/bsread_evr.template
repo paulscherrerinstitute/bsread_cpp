@@ -4,6 +4,6 @@ record(event, "$(P):Trig-Event_") {
   field(DTYP, "EVR Event")
   field(SCAN, "I/O Intr")
   field(INP , "@OBJ=$(EVR),Code=$(BSREAD_EVENT)")
-  field(VAL , "bsread")
+  field(VAL , "$(EVENT_NAME=bsread)")
   field(PRIO, "HIGH")
 }
