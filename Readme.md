@@ -71,6 +71,7 @@ __optional__ *[default]*
 
 
 - `READ_FLNK` *[]* - Forward link for the :READ record. This link can be used to trigger records that needs to be executed whenever data is read out.
+- `EVENT_NAME` *[$(EVENT_NAME=bsread$(BSREAD_PORT=9999))]* - name of the epics event that triggers :READ record
 - `NO_EVR` - Set this macro to `#` to disable the usage of the EVR.
 
 ### Store and Send EVR Setup - bsread_storesend.cmd
@@ -105,7 +106,7 @@ __optional__ *[default]*
 
 - `READ_FLNK` *[]* - Forward link for the :READ record. This link can be used to trigger records that needs to be executed whenever data is read out.
 - `STORE_FLNK` *[]* - Forward link for the :STORE record. This link can be used to trigger records that needs to be executed whenever Pulse ID and master timestamp are copied.
-
+- `EVENT_NAME` *[$(EVENT_NAME=bsread$(BSREAD_PORT=9999))]* - name of the epics event that triggers :READ record
 
 ### Simulation Setup - bsread_sim.cmd
 
@@ -131,8 +132,9 @@ __optional__ *[default]*
 - `BSREAD_PORT` *[9999]* - bsread primary port to use for sending data, the bsread configuration port is always primary + 1.
 - `BSREAD_MODE` *[PUSH]* - zmq mode used for delivering messages (PUSH or PUB).
 
-
 - `READ_FLNK` *[]* - Forward link for the :READ record. This link can be used to trigger records that needs to be executed whenever data is read out.
+
+- `EVENT_NAME` *[$(EVENT_NAME=bsread$(BSREAD_PORT=9999))]* - name of the epics event that triggers :READ record.
 
 
 ## Advanced Module Configuration

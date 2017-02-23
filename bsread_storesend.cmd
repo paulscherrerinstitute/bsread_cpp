@@ -14,6 +14,7 @@
 ##  - READ_FLNK []
 ##  - STORE_FLNK []
 ##  - PULSEID_OFFSET [0]
+##  - EVENT_NAME [$(EVENT_NAME=bsread$(BSREAD_PORT=9999))]
 
 require bsread
 
