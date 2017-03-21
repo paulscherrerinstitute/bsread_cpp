@@ -32,7 +32,7 @@ record(aSub, "$(P):READ")
     field(INPE, "$(BSREAD_PORT)")
 
     #Output
-    field(FTVA, "DOUBLE")					# Time in seconds required to take the last snapshot
+    field(FTVA, "DOUBLE")					# Time in milliseconds required to take the last snapshot
     field(FTVB, "ULONG")					# Number of snapshot time overruns (FTVA > 1ms)
     field(FTVC, "ULONG")					# Number of ZMQ message overflows
     field(FTVD, "ULONG")					# Status of inhibit bit
