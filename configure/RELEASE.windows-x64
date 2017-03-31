@@ -33,21 +33,7 @@ TEMPLATE_TOP=$(EPICS_BASE)/templates/makeBaseApp/top
 ## Required Modules ##
 
 # PCI and VME64x support library
-ifndef DEVLIB2
-DEVLIB2=$(TOP)/../devlib2
-endif
-
-ifeq ($(OS),Windows_NT)
 DEVLIB2=$(TOP)/../Package_beta/SOFTIOCWIN32
-else
-DEVLIB2=/opt/epics/extensions/devlib2
-endif
 
 # EPICS_BASE usually appears last so other apps can override stuff:
 EPICS_BASE=$(TOP)/../Package_beta/base
-
-ifeq ($(OS),Windows_NT)
- EPICS_BASE=$(TOP)/../Package_beta/base
-else
- EPICS_BASE=/opt/epics/base
-endif
