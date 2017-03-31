@@ -11,6 +11,10 @@
 #include <errlog.h>
 #include <recSup.h>
 
+#if defined(_MSC_VER)
+ #define snprintf _snprintf
+#endif
+
 #include "epics_bsread.h"
 #include <stdlib.h>
 
