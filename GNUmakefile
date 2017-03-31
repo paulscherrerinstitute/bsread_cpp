@@ -1,3 +1,7 @@
+ifeq ($(wildcard /ioc/tools/driver.makefile),)
+$(warning It seems you do not have the PSI build environment. Remove GNUmakefile.)
+include Makefile
+else
 include /ioc/tools/driver.makefile
 
 BUILDCLASSES=Linux
@@ -24,4 +28,4 @@ TEMPLATES += templates/bsread_sim.template
 TEMPLATES += templates/bsread_evr.template
 TEMPLATES += templates/bsread_storesend.template
 
-
+endif
