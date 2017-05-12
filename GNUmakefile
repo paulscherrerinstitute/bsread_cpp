@@ -14,6 +14,7 @@ SOURCES += src/bsdata.cc
 SOURCES += src/epics_bsread.cc
 SOURCES += src/json.cc
 SOURCES += src/md5.cc
+SOURCES += src/lz4.c
 
 DBDS += src/bsread.dbd
 
