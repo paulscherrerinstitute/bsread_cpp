@@ -321,6 +321,10 @@ public:
     BSDataChannel* find_channel(const string& name);
 
     size_t get_datasize();
+
+    void set_dh_compression(BSDataChannel::compression_type type){
+        this->m_dh_compression = type;
+    }
 };
 
 

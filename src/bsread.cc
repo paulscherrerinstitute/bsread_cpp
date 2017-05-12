@@ -194,6 +194,26 @@ BSDataMessage BSRead::parse_json_config(const vector<BSDataChannel *> &all_chann
         return outMsg;
     }
 
+
+    if(root["dh_compression"] != Json::nullValue){
+        string compression_type = root["dh_compression"].asString();
+
+        if(compression_type == "lz4"){
+            outMsg.set_dh_compression(BSDataChannel::compression_lz4);
+        }
+        else if(compression_type == "bitshuffle_lz4"){
+            outMsg.set_dh_compression(BSDataChannel::compression_bslz4);
+        }
+        else if(compression_type == "none"){
+            outMsg.set_dh_compression(BSDataChannel::compression_none);
+        }
+        else{
+            throw runtime_error("Invalid configuration - unkown dh_compression");
+        }
+
+    }
+
+
     const Json::Value channels = root["channels"];
     if (channels.isNull()) {    // Only throw error if attribute 'channels' is not found in the JSON root. It might be empty, which is OK.
         throw runtime_error("Invalid configuration - missing mandatory channels attribute.");

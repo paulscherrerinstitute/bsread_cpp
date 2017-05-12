@@ -203,6 +203,13 @@ const string *bsread::BSDataMessage::get_main_header(){
     root["global_timestamp"]["sec"] = static_cast<Json::Int64>(m_globaltimestamp.sec);
     root["global_timestamp"]["ns"] = static_cast<Json::Int64>(m_globaltimestamp.nsec);
 
+    string compression = "none";
+    if(m_dh_compression == BSDataChannel::compression_lz4) compression = "lz4";
+    if(m_dh_compression == BSDataChannel::compression_bslz4) compression = "bitshuffle_lz4";
+
+
+    root["dh_compression"] = compression;
+
     /* Empty datahash indicates that the data_header was not yet constructed,
      * which is needed to calculate datahash. m_datahash is updated whenever a
      * new dataheader needs to be constructed. Here we simply overcome the lazy loading...
@@ -231,15 +238,20 @@ const string* bsread::BSDataMessage::get_data_header(bool force_build_header){
 
         m_dataheader = m_writer.write(root);
 
-        // Add compression
+        // Compress data header with LZ4
         if(m_dh_compression == BSDataChannel::compression_lz4){
-            //Compresssing data header
-            printf("//Compresssing data header\n");
+            //Compresssing data header            
             size_t header_len = m_dataheader.length();
-            char* compressed = new char[header_len];
+            char* compressed = new char[LZ4_compressBound(header_len)]; //Temporary compression buffer
             int compressed_len = LZ4_compress_default(m_dataheader.c_str(),compressed,header_len,header_len);
 
+            if(!compressed_len){
+                throw runtime_error("Could not compress data header...\n");
+            }
+
             m_dataheader = string(compressed,compressed_len);
+            delete compressed;
+            printf("dataheader: %d %d %d\n",header_len, compressed_len,m_dataheader.length());
         }
 
         m_datahash = md5(m_dataheader);
