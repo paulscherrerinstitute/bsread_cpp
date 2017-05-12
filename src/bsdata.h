@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include <zmq.hpp>
 
+
 /**
   Allow builds without EPICS depenency.
   Note that this can be used for all builds except
@@ -21,6 +22,10 @@
 
 #include "json.h"
 #include "md5.h"
+
+extern "C"{
+#include "lz4.h"
+}
 
 using namespace std;
 
@@ -124,9 +129,17 @@ class BSDataChannel{
 
 public:
 
+    enum compression_type{
+        compression_none,
+        compression_lz4,
+        compression_bslz4
+    };
+
     /* standard meta data variables */
     int             m_meta_modulo;
     int             m_meta_offset;
+    compression_type    m_compression;
+
 
     /* extra metadata variables */
     Json::Value     m_meta;
@@ -167,7 +180,7 @@ public:
     }
 
     /**
-     * @brief acquire function has to be called before attempting to access data
+     * @brief acquire function has to be called before attempting to access data,
      */
     const void* acquire(){
         if(m_callback) m_callback(this,true,m_callback_pvt);
@@ -257,6 +270,7 @@ class BSDataMessage{
     string      m_datahash;
     string      m_dataheader;    //Copy of dataheader JSON string (to avoid reconstructing JSON on every iteration)
     string      m_mainheader;
+    BSDataChannel::compression_type m_dh_compression; //Data header compression
 
     //Actual members
     vector<BSDataChannel*> m_channels;

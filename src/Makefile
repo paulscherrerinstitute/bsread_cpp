@@ -29,6 +29,7 @@ INC += bsdata.h
 INC += zmq.hpp
 INC += json.h
 INC += md5.h
+INC += lz4.h
 bsread_SRCS += bsread_registerRecordDeviceDriver.cpp
 bsread_SRCS += asub_routines.cc
 bsread_SRCS += bsread.cc
@@ -36,6 +37,7 @@ bsread_SRCS += bsdata.cc
 bsread_SRCS += epics_bsread.cc
 bsread_SRCS += json.cc
 bsread_SRCS += md5.cc
+bsread_SRCS += lz4.c
 
 bsread_LIBS += $(EPICS_BASE_IOC_LIBS)
 bsread_SYS_LIBS_Linux += zmq

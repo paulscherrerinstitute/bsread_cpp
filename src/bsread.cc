@@ -220,6 +220,7 @@ BSDataMessage BSRead::parse_json_config(const vector<BSDataChannel *> &all_chann
 
         int offset=0;   //Default offset
         int modulo=1;   //Default modulo
+        BSDataChannel::compression_type compression=BSDataChannel::compression_none; //Default compression
 
         if (current_channel["offset"] != Json::Value::null) {
             offset = current_channel["offset"].asInt();
@@ -233,9 +234,28 @@ BSDataMessage BSRead::parse_json_config(const vector<BSDataChannel *> &all_chann
             }
         }
 
+        if (current_channel["compression"] != Json::Value::null) {
+            string comp_string = current_channel["compression"].asString();
+
+            if(comp_string == "none"){
+                compression = BSDataChannel::compression_none;
+            }
+            else if(comp_string == "lz4"){
+                compression = BSDataChannel::compression_lz4;
+            }
+            else if(comp_string == "bitshuffle_lz4"){
+                compression = BSDataChannel::compression_bslz4;
+            }
+            else{
+                throw runtime_error("Invalid compression specified for channel: "+name);
+            }
+
+        }
+
 
         chan->m_meta_modulo = modulo;
         chan->m_meta_offset = offset;
+        chan->m_compression = compression;
         outMsg.add_channel(chan);
     }
 

@@ -28,8 +28,13 @@ Json::Value bsread::BSDataChannel::get_data_header(bool config_only){
             root["shape"][0]=static_cast<int>(m_len); //shape is array of dimensions, scalar = [1]
         }
 
+        string compression = "none";
 
-        root["compression"] = "none";
+        if(m_compression == compression_lz4) compression = "lz4";
+        if(m_compression == compression_bslz4) compression = "bitshuffle_lz4";
+
+
+        root["compression"] = compression;
 
     }
 
@@ -62,7 +67,8 @@ bsread::BSDataChannel::BSDataChannel(const string &name, bsread::bsdata_type typ
     m_enabled(true),
     m_callback(0),
     m_meta_modulo(1),
-    m_meta_offset(0)
+    m_meta_offset(0),
+    m_compression(compression_none)
 {}
 
 size_t bsread::BSDataChannel::set_data(void *data, size_t len){
@@ -224,8 +230,20 @@ const string* bsread::BSDataMessage::get_data_header(bool force_build_header){
         }
 
         m_dataheader = m_writer.write(root);
+
+        // Add compression
+        if(m_dh_compression == BSDataChannel::compression_lz4){
+            //Compresssing data header
+            printf("//Compresssing data header\n");
+            size_t header_len = m_dataheader.length();
+            char* compressed = new char[header_len];
+            int compressed_len = LZ4_compress_default(m_dataheader.c_str(),compressed,header_len,header_len);
+
+            m_dataheader = string(compressed,compressed_len);
+        }
+
         m_datahash = md5(m_dataheader);
-    }
+    }       
 
     return &m_dataheader;
 
