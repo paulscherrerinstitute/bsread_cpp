@@ -1,4 +1,5 @@
 #include "bsdata.h"
+#include <arpa/inet.h>
 
 //Simple code to allow runtime detection of system endianess
 bool isLittleEndian()
@@ -240,18 +241,18 @@ const string* bsread::BSDataMessage::get_data_header(bool force_build_header){
 
         // Compress data header with LZ4
         if(m_dh_compression == BSDataChannel::compression_lz4){
-            //Compresssing data header            
-            size_t header_len = m_dataheader.length();
+
+            int32_t header_len = m_dataheader.length(); //Original length (used to prefix)
             char* compressed = new char[LZ4_compressBound(header_len)]; //Temporary compression buffer
-            int compressed_len = LZ4_compress_default(m_dataheader.c_str(),compressed,header_len,header_len);
+            int compressed_len = LZ4_compress_default(m_dataheader.c_str(),compressed,header_len,header_len); //Compresssing data header
 
             if(!compressed_len){
                 throw runtime_error("Could not compress data header...\n");
             }
 
-            m_dataheader = string(compressed,compressed_len);
-            delete compressed;
-            printf("dataheader: %d %d %d\n",header_len, compressed_len,m_dataheader.length());
+            header_len = htonl(header_len); //Original (uncompressed) length in network endianess
+            m_dataheader = string((const char*)&header_len,sizeof(header_len)) + string(compressed,compressed_len); //Prepend compressed binary blob with original length
+            delete compressed;            
         }
 
         m_datahash = md5(m_dataheader);
