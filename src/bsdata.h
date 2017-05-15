@@ -188,6 +188,19 @@ public:
     }
 
     /**
+     * @brief acquire function has to be called before attempting to access data
+     * @param temp_buffer; temporary buffer to use for compression. If temp_buffer
+     * is not nullptr than existing buffer is used and the result of compression is
+     * placed in it. Note that if buffer is too small it will be silently resized by
+     * realloc.
+     *
+     * If temp_buffer is nullptr than new buffer is allocated. It is responsiblity of
+     * the caller to free this buffer.
+     *
+     */
+    size_t acquire_compressed(char *&buffer, size_t &buffer_size);
+
+    /**
      * @brief release has to be called when consumer no longer requires the data
      */
     void release(){
@@ -352,16 +365,19 @@ public:
 
     virtual size_t send_message(BSDataMessage& message){
         //TODO: add stats
-        return send_message(message,m_sock);
+        return send_message(message,m_sock,m_compress_buffer,m_compress_buffer_size);
     }
 
-    static size_t send_message(BSDataMessage& message, zmq::socket_t &sock);
+    static size_t send_message(BSDataMessage& message, zmq::socket_t &sock, char*& compress_buffer, size_t &compress_buffer_size);
 
 
-    virtual ~BSDataSenderZmq(){};
+    virtual ~BSDataSenderZmq(){
+        if(m_compress_buffer_size) free(m_compress_buffer);
+    };
 
 protected:
-
+    char*           m_compress_buffer;
+    size_t          m_compress_buffer_size;
     zmq::context_t&  m_ctx;
     zmq::socket_t   m_sock;
     string          m_address;

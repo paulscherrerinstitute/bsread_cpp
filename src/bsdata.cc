@@ -78,11 +78,71 @@ size_t bsread::BSDataChannel::set_data(void *data, size_t len){
     return get_len();
 }
 
+/**
+ * @brief compress auxilary function that wraps different compression routines so that they are bs compatible (prepends length, etc..)
+ *
+ * The routine accepts uncompressed data and lvalue pointing to buffer pointer. If buffer_size is 0 than new buffer is alocated. If not,
+ * the buffer will be reuesed if possible, otherwise it will be replaced by a larger buffer.
+ *
+ * @param type
+ * @param uncompressed_data
+ * @param uncompressed_data_len
+ * @param buffer
+ * @param buffer_size
+ * @param network_order
+ * @return
+ */
+size_t compress(bsread::BSDataChannel::compression_type type, const char* uncompressed_data, int32_t uncompressed_data_len, char*& buffer, size_t& buffer_size, bool network_order){
+
+    size_t compressed_size;
+
+    if(type==bsread::BSDataChannel::compression_lz4){
+        // Ensure output buffer is large enough
+        if(buffer_size < (LZ4_compressBound(uncompressed_data_len)+4) ){
+            // Free existing buffer if it exists
+            if(buffer_size) free(buffer);
+            //New output buffer
+            buffer_size = LZ4_compressBound(uncompressed_data_len)+4;
+            buffer = (char*) malloc(buffer_size);
+        }
+
+        //Set the uncompressed blob length
+        if(network_order){
+            *(int32_t*)buffer = htonl(uncompressed_data_len);
+        }
+        else{
+            *(int32_t*)buffer = uncompressed_data_len;
+        }
+
+        //Compress the data
+        compressed_size = LZ4_compress_default((const char*)uncompressed_data,&buffer[4],uncompressed_data_len,buffer_size-4);
+
+        if(!compressed_size) throw runtime_error("Error while compressing [LZ4] channel:");
+        return compressed_size+4;
+    }
+
+    return 0;
+}
+
+
+size_t bsread::BSDataChannel::acquire_compressed(char*& buffer, size_t& buffer_size){
+    if(m_compression==compression_none) return 0;
+
+    const void* uncompressed_data = acquire(); //Do not forget to release before exiting this function
+    int32_t uncompressed_data_len = get_len();
+
+    size_t compressed_size=compress(m_compression,(const char*)uncompressed_data,uncompressed_data_len,buffer,buffer_size,false);
+
+    release();
+    return compressed_size;
+}
+
 void bsread::BSDataChannel::set_timestamp(timestamp timestamp){
     m_timestamp = timestamp;
 }
 
 bsread::BSDataSenderZmq::BSDataSenderZmq(zmq::context_t &ctx, string address, int sndhwm, int sock_type, int linger):
+    m_compress_buffer_size(0),
     m_ctx(ctx),
     m_sock(m_ctx,sock_type),
     m_address(address.c_str())
@@ -92,7 +152,7 @@ bsread::BSDataSenderZmq::BSDataSenderZmq(zmq::context_t &ctx, string address, in
     m_sock.bind(address.c_str());
 }
 
-size_t bsread::BSDataSenderZmq::send_message(bsread::BSDataMessage &message, zmq::socket_t& sock){
+size_t bsread::BSDataSenderZmq::send_message(bsread::BSDataMessage &message, zmq::socket_t& sock,char*& compress_buffer, size_t &compress_buffer_size){
     size_t msg_len=0;
     size_t part_len;
 
@@ -118,28 +178,45 @@ size_t bsread::BSDataSenderZmq::send_message(bsread::BSDataMessage &message, zmq
 
         //Only send enabled channels
         if(chan->get_enabled()){
-
-            //Acquire data
-            const void* data = chan->acquire();
-            size_t len = chan->get_len();
-
+            const void* data;
+            size_t data_len;
             //Fetch timestamp
             uint64_t rtimestamp[2];
             chan->get_timestamp(rtimestamp);
 
-            part_len = sock.send(data,len,zmq_flags);
-            msg_len+=part_len;
+
+            //Acquire and send data
+
+            //Check if compressing is enabled
+            /* When sending compressed data we are sending from our buffer (acquire_compressed makes a
+             * compressed copy of the source data. As such it does not require unlocking of channel.
+             * This is the reason for different handling of compressed vs uncompressed data here */
+            data_len = chan->acquire_compressed(compress_buffer,compress_buffer_size);
+            if(data_len){
+                part_len = sock.send(compress_buffer,data_len,zmq_flags);
+                msg_len+=part_len;
+//                printf("Compressed data! new buffer size %d, data sent %d/%d, header: %d, orig: %d \n",
+//                       compress_buffer_size,
+//                       data_len,
+//                       part_len,
+//                       ntohl(*(int32_t*)compress_buffer),
+//                       chan->get_len());
+            }
+            else{ //Compressing disabled
+                data = chan->acquire();
+                data_len = chan->get_len();
+
+                part_len = sock.send(data,data_len,zmq_flags);
+                msg_len+=part_len;
+                chan->release();
+            }
 
 
-            //Last part
+            //Send timestamp, take care of last part
             if(i==n-1) zmq_flags &= ~ZMQ_SNDMORE;
             part_len = sock.send(rtimestamp,sizeof(rtimestamp),zmq_flags);
 
             msg_len+=part_len;
-
-
-            //Done with sending, release the data
-            chan->release();
 
         }
         //Not enabled channels are replaced with empty submessages
@@ -242,16 +319,11 @@ const string* bsread::BSDataMessage::get_data_header(bool force_build_header){
         // Compress data header with LZ4
         if(m_dh_compression == BSDataChannel::compression_lz4){
 
-            int32_t header_len = m_dataheader.length(); //Original length (used to prefix)
-            char* compressed = new char[LZ4_compressBound(header_len)]; //Temporary compression buffer
-            int compressed_len = LZ4_compress_default(m_dataheader.c_str(),compressed,header_len,header_len); //Compresssing data header
+            char* compressed=0;
+            size_t compressed_buf_size=0;
+            size_t compressed_len = compress(BSDataChannel::compression_lz4,m_dataheader.c_str(),m_dataheader.length(),compressed,compressed_buf_size,true);
+            m_dataheader = string(compressed,compressed_len);
 
-            if(!compressed_len){
-                throw runtime_error("Could not compress data header...\n");
-            }
-
-            header_len = htonl(header_len); //Original (uncompressed) length in network endianess
-            m_dataheader = string((const char*)&header_len,sizeof(header_len)) + string(compressed,compressed_len); //Prepend compressed binary blob with original length
             delete compressed;            
         }
 
