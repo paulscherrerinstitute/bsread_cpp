@@ -92,11 +92,11 @@ size_t bsread::BSDataChannel::set_data(void *data, size_t len){
  * @param network_order
  * @return
  */
-size_t compress(bsread::BSDataChannel::compression_type type, const char* uncompressed_data, int32_t uncompressed_data_len, char*& buffer, size_t& buffer_size, bool network_order){
+size_t compress(bsread::bsdata_compression_type type , const char* uncompressed_data, int32_t uncompressed_data_len, char*& buffer, size_t& buffer_size, bool network_order){
 
     size_t compressed_size;
 
-    if(type==bsread::BSDataChannel::compression_lz4){
+    if(type==bsread::compression_lz4){
         // Ensure output buffer is large enough
         if(buffer_size < (LZ4_compressBound(uncompressed_data_len)+4) ){
             // Free existing buffer if it exists
@@ -282,8 +282,8 @@ const string *bsread::BSDataMessage::get_main_header(){
     root["global_timestamp"]["ns"] = static_cast<Json::Int64>(m_globaltimestamp.nsec);
 
     string compression = "none";
-    if(m_dh_compression == BSDataChannel::compression_lz4) compression = "lz4";
-    if(m_dh_compression == BSDataChannel::compression_bslz4) compression = "bitshuffle_lz4";
+    if(m_dh_compression == compression_lz4) compression = "lz4";
+    if(m_dh_compression == compression_bslz4) compression = "bitshuffle_lz4";
 
 
     root["dh_compression"] = compression;
@@ -317,11 +317,11 @@ const string* bsread::BSDataMessage::get_data_header(bool force_build_header){
         m_dataheader = m_writer.write(root);
 
         // Compress data header with LZ4
-        if(m_dh_compression == BSDataChannel::compression_lz4){
+        if(m_dh_compression == compression_lz4){
 
             char* compressed=0;
             size_t compressed_buf_size=0;
-            size_t compressed_len = compress(BSDataChannel::compression_lz4,m_dataheader.c_str(),m_dataheader.length(),compressed,compressed_buf_size,true);
+            size_t compressed_len = compress(compression_lz4,m_dataheader.c_str(),m_dataheader.length(),compressed,compressed_buf_size,true);
             m_dataheader = string(compressed,compressed_len);
 
             delete compressed;            

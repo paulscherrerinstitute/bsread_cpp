@@ -199,13 +199,13 @@ BSDataMessage BSRead::parse_json_config(const vector<BSDataChannel *> &all_chann
         string compression_type = root["dh_compression"].asString();
 
         if(compression_type == "lz4"){
-            outMsg.set_dh_compression(BSDataChannel::compression_lz4);
+            outMsg.set_dh_compression(compression_lz4);
         }
         else if(compression_type == "bitshuffle_lz4"){
-            outMsg.set_dh_compression(BSDataChannel::compression_bslz4);
+            outMsg.set_dh_compression(compression_bslz4);
         }
         else if(compression_type == "none"){
-            outMsg.set_dh_compression(BSDataChannel::compression_none);
+            outMsg.set_dh_compression(compression_none);
         }
         else{
             throw runtime_error("Invalid configuration - unkown dh_compression");
@@ -240,7 +240,7 @@ BSDataMessage BSRead::parse_json_config(const vector<BSDataChannel *> &all_chann
 
         int offset=0;   //Default offset
         int modulo=1;   //Default modulo
-        BSDataChannel::compression_type compression=BSDataChannel::compression_none; //Default compression
+        bsdata_compression_type compression=compression_none; //Default compression
 
         if (current_channel["offset"] != Json::Value::null) {
             offset = current_channel["offset"].asInt();
@@ -258,13 +258,13 @@ BSDataMessage BSRead::parse_json_config(const vector<BSDataChannel *> &all_chann
             string comp_string = current_channel["compression"].asString();
 
             if(comp_string == "none"){
-                compression = BSDataChannel::compression_none;
+                compression = compression_none;
             }
             else if(comp_string == "lz4"){
-                compression = BSDataChannel::compression_lz4;
+                compression = compression_lz4;
             }
             else if(comp_string == "bitshuffle_lz4"){
-                compression = BSDataChannel::compression_bslz4;
+                compression = compression_bslz4;
             }
             else{
                 throw runtime_error("Invalid compression specified for channel: "+name);

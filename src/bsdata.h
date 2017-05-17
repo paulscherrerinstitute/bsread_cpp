@@ -77,6 +77,12 @@ static const size_t bsdata_type_size[] = {  1,
 
 class epicsShareClass BSDataChannel;
 
+enum bsdata_compression_type{
+    compression_none,
+    compression_lz4,
+    compression_bslz4
+};
+
 
 /**
  * Callback that is invoked when BSDataChannel.acquire() is called.
@@ -129,16 +135,12 @@ class BSDataChannel{
 
 public:
 
-    enum compression_type{
-        compression_none,
-        compression_lz4,
-        compression_bslz4
-    };
+
 
     /* standard meta data variables */
     int             m_meta_modulo;
     int             m_meta_offset;
-    compression_type    m_compression;
+    bsdata_compression_type    m_compression;
 
 
     /* extra metadata variables */
@@ -283,7 +285,7 @@ class BSDataMessage{
     string      m_datahash;
     string      m_dataheader;    //Copy of dataheader JSON string (to avoid reconstructing JSON on every iteration)
     string      m_mainheader;
-    BSDataChannel::compression_type m_dh_compression; //Data header compression
+    bsdata_compression_type m_dh_compression; //Data header compression
 
     //Actual members
     vector<BSDataChannel*> m_channels;
@@ -335,7 +337,7 @@ public:
 
     size_t get_datasize();
 
-    void set_dh_compression(BSDataChannel::compression_type type){
+    void set_dh_compression(bsdata_compression_type type){
         this->m_dh_compression = type;
     }
 };

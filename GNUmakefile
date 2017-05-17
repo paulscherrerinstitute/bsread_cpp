@@ -15,6 +15,11 @@ SOURCES += src/epics_bsread.cc
 SOURCES += src/json.cc
 SOURCES += src/md5.cc
 SOURCES += src/lz4.c
+SOURCES += src/bitshuffle/bitshuffle.c
+SOURCES += src/bitshuffle/bitshuffle_core.c
+SOURCES += src/bitshuffle/iochain.c
+
+
 
 DBDS += src/bsread.dbd
 
