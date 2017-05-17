@@ -1,6 +1,12 @@
 #include "bsdata.h"
 #include <arpa/inet.h>
 
+extern "C"{
+#include "lz4.h"
+#include "bitshuffle/bitshuffle.h"
+}
+
+
 //Simple code to allow runtime detection of system endianess
 bool isLittleEndian()
 {
@@ -92,34 +98,64 @@ size_t bsread::BSDataChannel::set_data(void *data, size_t len){
  * @param network_order
  * @return
  */
-size_t compress(bsread::bsdata_compression_type type , const char* uncompressed_data, int32_t uncompressed_data_len, char*& buffer, size_t& buffer_size, bool network_order){
+size_t compress_lz4(const char* uncompressed_data, int32_t uncompressed_data_len, char*& buffer, size_t& buffer_size, bool network_order){
 
     size_t compressed_size;
 
-    if(type==bsread::compression_lz4){
-        // Ensure output buffer is large enough
-        if(buffer_size < (LZ4_compressBound(uncompressed_data_len)+4) ){
-            // Free existing buffer if it exists
-            if(buffer_size) free(buffer);
-            //New output buffer
-            buffer_size = LZ4_compressBound(uncompressed_data_len)+4;
-            buffer = (char*) malloc(buffer_size);
-        }
-
-        //Set the uncompressed blob length
-        if(network_order){
-            *(int32_t*)buffer = htonl(uncompressed_data_len);
-        }
-        else{
-            *(int32_t*)buffer = uncompressed_data_len;
-        }
-
-        //Compress the data
-        compressed_size = LZ4_compress_default((const char*)uncompressed_data,&buffer[4],uncompressed_data_len,buffer_size-4);
-
-        if(!compressed_size) throw runtime_error("Error while compressing [LZ4] channel:");
-        return compressed_size+4;
+    // Ensure output buffer is large enough
+    if(buffer_size < (LZ4_compressBound(uncompressed_data_len)+4) ){
+        // Free existing buffer if it exists
+        if(buffer_size) free(buffer);
+        //New output buffer
+        buffer_size = LZ4_compressBound(uncompressed_data_len)+4;
+        buffer = (char*) malloc(buffer_size);
     }
+
+    //Set the uncompressed blob length
+    if(network_order){
+        ((int32_t*)buffer)[0] = htonl(uncompressed_data_len);
+    }
+    else{
+        ((int32_t*)buffer)[0] = uncompressed_data_len;
+    }
+
+    //Compress the data
+    compressed_size = LZ4_compress_default((const char*)uncompressed_data,&buffer[4],uncompressed_data_len,buffer_size-4);
+
+    if(!compressed_size) throw runtime_error("Error while compressing [LZ4] channel:");
+    return compressed_size+4;
+
+}
+
+size_t compress_bitshuffle(const char* uncompressed_data, size_t nelm, size_t elm_size, char*& buffer, size_t& buffer_size){
+
+    size_t compressed_size;
+    size_t block_size = bshuf_default_block_size(elm_size);
+    size_t buf_min_size=bshuf_compress_lz4_bound(nelm,elm_size,0)+12;
+
+    // Ensure output buffer is large enough
+    if(buffer_size < buf_min_size ){
+        // Free existing buffer if it exists
+        if(buffer_size) free(buffer);
+        //New output buffer
+        buffer_size = buf_min_size;
+        buffer = (char*) malloc(buffer_size);
+    }
+
+    //Set the uncompressed blob length
+    ((int64_t*)buffer)[0] = htonl(nelm*elm_size);
+    //Set the subblock size length
+    ((int32_t*)buffer)[2] = htonl(block_size);
+
+
+
+    //Compress the data
+    compressed_size = bshuf_compress_lz4((const char*)uncompressed_data,&buffer[12],nelm,elm_size,block_size);
+
+    if(!compressed_size) throw runtime_error("Error while compressing [LZ4] channel:");
+    return compressed_size+12;
+
+
 
     return 0;
 }
@@ -130,8 +166,14 @@ size_t bsread::BSDataChannel::acquire_compressed(char*& buffer, size_t& buffer_s
 
     const void* uncompressed_data = acquire(); //Do not forget to release before exiting this function
     int32_t uncompressed_data_len = get_len();
+    size_t compressed_size=0;
 
-    size_t compressed_size=compress(m_compression,(const char*)uncompressed_data,uncompressed_data_len,buffer,buffer_size,false);
+    if(m_compression==compression_lz4){
+        compressed_size=compress_lz4((const char*)uncompressed_data,uncompressed_data_len,buffer,buffer_size,false);
+    }
+    if(m_compression==compression_bslz4){
+        compressed_size=compress_bitshuffle((const char*)uncompressed_data,get_nelm(),get_elem_size(),buffer,buffer_size);
+    }
 
     release();
     return compressed_size;
@@ -321,11 +363,12 @@ const string* bsread::BSDataMessage::get_data_header(bool force_build_header){
 
             char* compressed=0;
             size_t compressed_buf_size=0;
-            size_t compressed_len = compress(compression_lz4,m_dataheader.c_str(),m_dataheader.length(),compressed,compressed_buf_size,true);
+            size_t compressed_len = compress_lz4(m_dataheader.c_str(),m_dataheader.length(),compressed,compressed_buf_size,true);
             m_dataheader = string(compressed,compressed_len);
 
             delete compressed;            
         }
+
 
         m_datahash = md5(m_dataheader);
     }       

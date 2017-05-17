@@ -23,9 +23,6 @@
 #include "json.h"
 #include "md5.h"
 
-extern "C"{
-#include "lz4.h"
-}
 
 using namespace std;
 
@@ -213,8 +210,24 @@ public:
      * @brief get_len
      * @return size of data returned by acquire in bytes
      */
-    size_t get_len(){
-        return m_len*bsdata_type_size[m_type];
+    inline size_t get_len(){
+        return get_nelm()*get_elem_size();
+    }
+
+    /**
+     * @brief get_nelm
+     * @return number of elements in the channel
+     */
+    inline size_t get_nelm(){
+        return m_len;
+    }
+
+    /**
+     * @brief get_elem_size
+     * @return size of each element in bytes
+     */
+    inline size_t get_elem_size(){
+        return bsdata_type_size[m_type];
     }
 
     void set_timestamp(timestamp timestamp);
