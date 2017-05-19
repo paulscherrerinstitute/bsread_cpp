@@ -272,10 +272,11 @@ BSDataMessage BSRead::parse_json_config(const vector<BSDataChannel *> &all_chann
 
         }
 
+        chan->set_compression(compression);
 
         chan->m_meta_modulo = modulo;
         chan->m_meta_offset = offset;
-        chan->m_compression = compression;
+
         outMsg.add_channel(chan);
     }
 

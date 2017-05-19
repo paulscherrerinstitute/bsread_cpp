@@ -85,12 +85,11 @@ size_t bsread::BSDataChannel::set_data(void *data, size_t len){
 }
 
 /**
- * @brief compress auxilary function that wraps different compression routines so that they are bs compatible (prepends length, etc..)
+ * @brief compress auxilary function that wraps lz4 so that they are bs compatible (prepends length, etc..)
  *
  * The routine accepts uncompressed data and lvalue pointing to buffer pointer. If buffer_size is 0 than new buffer is alocated. If not,
  * the buffer will be reuesed if possible, otherwise it will be replaced by a larger buffer.
  *
- * @param type
  * @param uncompressed_data
  * @param uncompressed_data_len
  * @param buffer
@@ -131,7 +130,7 @@ size_t compress_bitshuffle(const char* uncompressed_data, size_t nelm, size_t el
 
     size_t compressed_size;
     size_t block_size = bshuf_default_block_size(elm_size);
-    size_t buf_min_size=bshuf_compress_lz4_bound(nelm,elm_size,0)+12;
+    size_t buf_min_size=bshuf_compress_lz4_bound(nelm,elm_size,0)+12; //12byte header at the start
 
     // Ensure output buffer is large enough
     if(buffer_size < buf_min_size ){

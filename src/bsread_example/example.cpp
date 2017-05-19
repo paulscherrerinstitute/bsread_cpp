@@ -60,13 +60,7 @@ int main(int argc, char *argv[])
     bsread_debug = 4;
 
 
-    bsread::BSRead* s = new bsread::BSRead();
-    s->confiugre_zmq("tcp://*:9999",ZMQ_PUSH,100);
-    s->confiugre_zmq_config("tcp://*:10000");
 
-    time_nanosleep(1);
-
-    delete s;
 
     time_nanosleep(4);
 
@@ -77,6 +71,7 @@ int main(int argc, char *argv[])
 
     //Create a channel for this buffer, 4byte long unsigned int data
     bsread::BSDataChannel daq_channel("BSREADTEST:DAQ_DATA",bsread::BSDATA_INT32);
+    daq_channel.set_compression(bsread::compression_bslz4);
 
     //Since the daq_channel data and the bsread sending is preformed from the same
     //thread no locking of data is needed, we only need to set the channels data.
@@ -93,6 +88,7 @@ int main(int argc, char *argv[])
 
     //Now we need to create a bsdata message that will capture our channels
     bsread::BSDataMessage message;
+    message.set_dh_compression(bsread::compression_lz4);
 
     bsread::BSRead sender;
     sender.add_channel(&daq_channel);
@@ -100,8 +96,8 @@ int main(int argc, char *argv[])
 
     sender.enable_all_channels();
 
-    sender.confiugre_zmq("tcp://*:9999",ZMQ_PUSH,100);
-    sender.confiugre_zmq_config("tcp://*:10000");
+    sender.confiugre_zmq("tcp://*:9090",ZMQ_PUSH,100);
+    sender.confiugre_zmq_config("tcp://*:9091");
 
 
 

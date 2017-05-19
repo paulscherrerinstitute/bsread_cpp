@@ -123,6 +123,7 @@ class BSDataChannel{
     size_t          m_len;
     string          m_name;
     bool            m_encoding_le;
+    bsdata_compression_type    m_compression;
     bool            m_enabled;
     vector<unsigned int> m_shape;
 
@@ -137,7 +138,6 @@ public:
     /* standard meta data variables */
     int             m_meta_modulo;
     int             m_meta_offset;
-    bsdata_compression_type    m_compression;
 
 
     /* extra metadata variables */
@@ -184,6 +184,10 @@ public:
     const void* acquire(){
         if(m_callback) m_callback(this,true,m_callback_pvt);
         return m_data;
+    }
+
+    void set_compression(bsdata_compression_type type){
+        m_compression=type;
     }
 
     /**

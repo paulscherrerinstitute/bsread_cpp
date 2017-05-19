@@ -18,7 +18,18 @@ set(EPICS_ARCH_OS Linux)
 
 LINK_DIRECTORIES(/opt/epics/base/lib/linux-x86_64)
 
-add_executable (bsread_example ./example.cpp ../json.cc ../json.h ../bsread.cc ../bsdata.cc ../md5.cc)
+add_executable (bsread_example
+    ./example.cpp
+    ../json.cc
+    ../json.h
+    ../bsread.cc
+    ../bsdata.cc
+    ../md5.cc
+    ../lz4.c
+    ../bitshuffle/bitshuffle.c
+    ../bitshuffle/bitshuffle_core.c
+    ../bitshuffle/iochain.c)
+
 target_link_libraries(bsread_example zmq Com)
 
 include_directories(bsread_example .. ${EPICS_BASE}/include ${EPICS_BASE}/include/os/${EPICS_ARCH_OS})
