@@ -2,8 +2,8 @@
 #include <arpa/inet.h>
 
 extern "C"{
-#include "lz4.h"
-#include "bitshuffle/bitshuffle.h"
+#include "compression/lz4.h"
+#include "compression/bitshuffle.h"
 }
 
 
@@ -71,11 +71,11 @@ bsread::BSDataChannel::BSDataChannel(const string &name, bsread::bsdata_type typ
     m_len(0),
     m_name(name),
     m_encoding_le(isLittleEndian()),
+    m_compression(compression_none),
     m_enabled(true),
     m_callback(0),
     m_meta_modulo(1),
-    m_meta_offset(0),
-    m_compression(compression_none)
+    m_meta_offset(0)
 {}
 
 size_t bsread::BSDataChannel::set_data(void *data, size_t len){
@@ -102,7 +102,7 @@ size_t compress_lz4(const char* uncompressed_data, int32_t uncompressed_data_len
     size_t compressed_size;
 
     // Ensure output buffer is large enough
-    if(buffer_size < (LZ4_compressBound(uncompressed_data_len)+4) ){
+    if(buffer_size < (size_t)(LZ4_compressBound(uncompressed_data_len)+4) ){
         // Free existing buffer if it exists
         if(buffer_size) free(buffer);
         //New output buffer
@@ -367,6 +367,18 @@ const string* bsread::BSDataMessage::get_data_header(bool force_build_header){
 
             delete compressed;            
         }
+
+        // Compress data header with LZ4 bitshuffle
+        if(m_dh_compression == compression_bslz4){
+
+            char* compressed=0;
+            size_t compressed_buf_size=0;
+            size_t compressed_len = compress_bitshuffle(m_dataheader.c_str(),m_dataheader.length(),sizeof(char),compressed,compressed_buf_size);
+            m_dataheader = string(compressed,compressed_len);
+
+            delete compressed;
+        }
+
 
 
         m_datahash = md5(m_dataheader);

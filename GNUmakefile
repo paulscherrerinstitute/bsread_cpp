@@ -14,10 +14,10 @@ SOURCES += src/bsdata.cc
 SOURCES += src/epics_bsread.cc
 SOURCES += src/json.cc
 SOURCES += src/md5.cc
-SOURCES += src/lz4.c
-SOURCES += src/bitshuffle/bitshuffle.c
-SOURCES += src/bitshuffle/bitshuffle_core.c
-SOURCES += src/bitshuffle/iochain.c
+SOURCES += src/compression/lz4.c
+SOURCES += src/compression/bitshuffle.c
+SOURCES += src/compression/bitshuffle_core.c
+SOURCES += src/compression/iochain.c
 
 
 
