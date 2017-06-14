@@ -1,5 +1,10 @@
 #include "bsdata.h"
-#include <arpa/inet.h>
+
+#if defined(_MSC_VER)
+ #include <winsock2.h>
+#else
+ #include <arpa/inet.h>
+#endif
 
 extern "C"{
 #include "compression/lz4.h"
