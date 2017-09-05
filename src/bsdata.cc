@@ -344,7 +344,7 @@ const string *bsread::BSDataMessage::get_main_header(){
      * which is needed to calculate datahash. m_datahash is updated whenever a
      * new dataheader needs to be constructed. Here we simply overcome the lazy loading...
      */
-    if(!m_datahash.empty()){
+    if(m_datahash.empty()){
         this->get_data_header();
     }
 
