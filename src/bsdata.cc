@@ -146,11 +146,19 @@ size_t compress_bitshuffle(const char* uncompressed_data, size_t nelm, size_t el
         buffer = (char*) malloc(buffer_size);
     }
 
+    uint64_t uncompressed_data_len = (uint64_t) nelm*elm_size;
+
+    // The system is little endian, convert the 64bit value to big endian (network order).
+    if (htonl(1) != 1) {
+        uint32_t high_bytes = htonl((uint32_t)(uncompressed_data_len >> 32));
+        uint32_t low_bytes = htonl((uint32_t)(uncompressed_data_len & 0xFFFFFFFFLL));
+        uncompressed_data_len = (((uint64_t)low_bytes) << 32) | high_bytes;
+    }
+
     //Set the uncompressed blob length
-    ((int64_t*)buffer)[0] = htonl(nelm*elm_size);
+    ((int64_t*)buffer)[0] = uncompressed_data_len;
     //Set the subblock size length
     ((int32_t*)buffer)[2] = htonl(block_size);
-
 
 
     //Compress the data
@@ -158,8 +166,6 @@ size_t compress_bitshuffle(const char* uncompressed_data, size_t nelm, size_t el
 
     if(!compressed_size) throw runtime_error("Error while compressing [LZ4] channel:");
     return compressed_size+12;
-
-
 
     return 0;
 }
