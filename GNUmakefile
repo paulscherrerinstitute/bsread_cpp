@@ -14,6 +14,12 @@ SOURCES += src/bsdata.cc
 SOURCES += src/epics_bsread.cc
 SOURCES += src/json.cc
 SOURCES += src/md5.cc
+SOURCES += src/compression/lz4.c
+SOURCES += src/compression/bitshuffle.c
+SOURCES += src/compression/bitshuffle_core.c
+SOURCES += src/compression/iochain.c
+
+
 
 DBDS += src/bsread.dbd
 

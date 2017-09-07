@@ -194,6 +194,26 @@ BSDataMessage BSRead::parse_json_config(const vector<BSDataChannel *> &all_chann
         return outMsg;
     }
 
+
+    if(root["dh_compression"] != Json::nullValue){
+        string compression_type = root["dh_compression"].asString();
+
+        if(compression_type == "lz4"){
+            outMsg.set_dh_compression(compression_lz4);
+        }
+        else if(compression_type == "bitshuffle_lz4"){
+            outMsg.set_dh_compression(compression_bslz4);
+        }
+        else if(compression_type == "none"){
+            outMsg.set_dh_compression(compression_none);
+        }
+        else{
+            throw runtime_error("Invalid configuration - unkown dh_compression");
+        }
+
+    }
+
+
     const Json::Value channels = root["channels"];
     if (channels.isNull()) {    // Only throw error if attribute 'channels' is not found in the JSON root. It might be empty, which is OK.
         throw runtime_error("Invalid configuration - missing mandatory channels attribute.");
@@ -220,6 +240,7 @@ BSDataMessage BSRead::parse_json_config(const vector<BSDataChannel *> &all_chann
 
         int offset=0;   //Default offset
         int modulo=1;   //Default modulo
+        bsdata_compression_type compression=compression_none; //Default compression
 
         if (current_channel["offset"] != Json::Value::null) {
             offset = current_channel["offset"].asInt();
@@ -233,9 +254,29 @@ BSDataMessage BSRead::parse_json_config(const vector<BSDataChannel *> &all_chann
             }
         }
 
+        if (current_channel["compression"] != Json::Value::null) {
+            string comp_string = current_channel["compression"].asString();
+
+            if(comp_string == "none"){
+                compression = compression_none;
+            }
+            else if(comp_string == "lz4"){
+                compression = compression_lz4;
+            }
+            else if(comp_string == "bitshuffle_lz4"){
+                compression = compression_bslz4;
+            }
+            else{
+                throw runtime_error("Invalid compression specified for channel: "+name);
+            }
+
+        }
+
+        chan->set_compression(compression);
 
         chan->m_meta_modulo = modulo;
         chan->m_meta_offset = offset;
+
         outMsg.add_channel(chan);
     }
 

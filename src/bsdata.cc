@@ -1,5 +1,17 @@
 #include "bsdata.h"
 
+#if defined(_MSC_VER)
+ #include <winsock2.h>
+#else
+ #include <arpa/inet.h>
+#endif
+
+extern "C"{
+#include "compression/lz4.h"
+#include "compression/bitshuffle.h"
+}
+
+
 //Simple code to allow runtime detection of system endianess
 bool isLittleEndian()
 {
@@ -28,8 +40,13 @@ Json::Value bsread::BSDataChannel::get_data_header(bool config_only){
             root["shape"][0]=static_cast<int>(m_len); //shape is array of dimensions, scalar = [1]
         }
 
+        string compression = "none";
 
-        root["compression"] = "none";
+        if(m_compression == compression_lz4) compression = "lz4";
+        if(m_compression == compression_bslz4) compression = "bitshuffle_lz4";
+
+
+        root["compression"] = compression;
 
     }
 
@@ -59,6 +76,7 @@ bsread::BSDataChannel::BSDataChannel(const string &name, bsread::bsdata_type typ
     m_len(0),
     m_name(name),
     m_encoding_le(isLittleEndian()),
+    m_compression(compression_none),
     m_enabled(true),
     m_callback(0),
     m_meta_modulo(1),
@@ -71,11 +89,112 @@ size_t bsread::BSDataChannel::set_data(void *data, size_t len){
     return get_len();
 }
 
+/**
+ * @brief compress auxilary function that wraps lz4 so that they are bs compatible (prepends length, etc..)
+ *
+ * The routine accepts uncompressed data and lvalue pointing to buffer pointer. If buffer_size is 0 than new buffer is alocated. If not,
+ * the buffer will be reuesed if possible, otherwise it will be replaced by a larger buffer.
+ *
+ * @param uncompressed_data
+ * @param uncompressed_data_len
+ * @param buffer
+ * @param buffer_size
+ * @param network_order
+ * @return
+ */
+size_t compress_lz4(const char* uncompressed_data, int32_t uncompressed_data_len, char*& buffer, size_t& buffer_size, bool network_order){
+
+    size_t compressed_size;
+
+    // Ensure output buffer is large enough
+    if(buffer_size < (size_t)(LZ4_compressBound(uncompressed_data_len)+4) ){
+        // Free existing buffer if it exists
+        if(buffer_size) free(buffer);
+        //New output buffer
+        buffer_size = LZ4_compressBound(uncompressed_data_len)+4;
+        buffer = (char*) malloc(buffer_size);
+    }
+
+    //Set the uncompressed blob length
+    if(network_order){
+        ((int32_t*)buffer)[0] = htonl(uncompressed_data_len);
+    }
+    else{
+        ((int32_t*)buffer)[0] = uncompressed_data_len;
+    }
+
+    //Compress the data
+    compressed_size = LZ4_compress_default((const char*)uncompressed_data,&buffer[4],uncompressed_data_len,buffer_size-4);
+
+    if(!compressed_size) throw runtime_error("Error while compressing [LZ4] channel:");
+    return compressed_size+4;
+
+}
+
+size_t compress_bitshuffle(const char* uncompressed_data, size_t nelm, size_t elm_size, char*& buffer, size_t& buffer_size){
+
+    size_t compressed_size;
+    size_t block_size = bshuf_default_block_size(elm_size);
+    size_t buf_min_size=bshuf_compress_lz4_bound(nelm,elm_size,0)+12; //12byte header at the start
+
+    // Ensure output buffer is large enough
+    if(buffer_size < buf_min_size ){
+        // Free existing buffer if it exists
+        if(buffer_size) free(buffer);
+        //New output buffer
+        buffer_size = buf_min_size;
+        buffer = (char*) malloc(buffer_size);
+    }
+
+    uint64_t uncompressed_data_len = (uint64_t) nelm*elm_size;
+
+    // The system is little endian, convert the 64bit value to big endian (network order).
+    if (htonl(1) != 1) {
+        uint32_t high_bytes = htonl((uint32_t)(uncompressed_data_len >> 32));
+        uint32_t low_bytes = htonl((uint32_t)(uncompressed_data_len & 0xFFFFFFFFLL));
+        uncompressed_data_len = (((uint64_t)low_bytes) << 32) | high_bytes;
+    }
+
+    //Set the uncompressed blob length
+    ((int64_t*)buffer)[0] = uncompressed_data_len;
+    //Set the subblock size length
+    ((int32_t*)buffer)[2] = htonl(block_size);
+
+
+    //Compress the data
+    compressed_size = bshuf_compress_lz4((const char*)uncompressed_data,&buffer[12],nelm,elm_size,block_size);
+
+    if(!compressed_size) throw runtime_error("Error while compressing [LZ4] channel:");
+    return compressed_size+12;
+
+    return 0;
+}
+
+
+size_t bsread::BSDataChannel::acquire_compressed(char*& buffer, size_t& buffer_size){
+    if(m_compression==compression_none) return 0;
+
+    const void* uncompressed_data = acquire(); //Do not forget to release before exiting this function
+    int32_t uncompressed_data_len = get_len();
+    size_t compressed_size=0;
+
+    if(m_compression==compression_lz4){
+        compressed_size=compress_lz4((const char*)uncompressed_data,uncompressed_data_len,buffer,buffer_size,false);
+    }
+    if(m_compression==compression_bslz4){
+        compressed_size=compress_bitshuffle((const char*)uncompressed_data,get_nelm(),get_elem_size(),buffer,buffer_size);
+    }
+
+    release();
+    return compressed_size;
+}
+
 void bsread::BSDataChannel::set_timestamp(timestamp timestamp){
     m_timestamp = timestamp;
 }
 
 bsread::BSDataSenderZmq::BSDataSenderZmq(zmq::context_t &ctx, string address, int sndhwm, int sock_type, int linger):
+    m_compress_buffer_size(0),
     m_ctx(ctx),
     m_sock(m_ctx,sock_type),
     m_address(address.c_str())
@@ -85,7 +204,7 @@ bsread::BSDataSenderZmq::BSDataSenderZmq(zmq::context_t &ctx, string address, in
     m_sock.bind(address.c_str());
 }
 
-size_t bsread::BSDataSenderZmq::send_message(bsread::BSDataMessage &message, zmq::socket_t& sock){
+size_t bsread::BSDataSenderZmq::send_message(bsread::BSDataMessage &message, zmq::socket_t& sock,char*& compress_buffer, size_t &compress_buffer_size){
     size_t msg_len=0;
     size_t part_len;
 
@@ -111,28 +230,45 @@ size_t bsread::BSDataSenderZmq::send_message(bsread::BSDataMessage &message, zmq
 
         //Only send enabled channels
         if(chan->get_enabled()){
-
-            //Acquire data
-            const void* data = chan->acquire();
-            size_t len = chan->get_len();
-
+            const void* data;
+            size_t data_len;
             //Fetch timestamp
             uint64_t rtimestamp[2];
             chan->get_timestamp(rtimestamp);
 
-            part_len = sock.send(data,len,zmq_flags);
-            msg_len+=part_len;
+
+            //Acquire and send data
+
+            //Check if compressing is enabled
+            /* When sending compressed data we are sending from our buffer (acquire_compressed makes a
+             * compressed copy of the source data. As such it does not require unlocking of channel.
+             * This is the reason for different handling of compressed vs uncompressed data here */
+            data_len = chan->acquire_compressed(compress_buffer,compress_buffer_size);
+            if(data_len){
+                part_len = sock.send(compress_buffer,data_len,zmq_flags);
+                msg_len+=part_len;
+//                printf("Compressed data! new buffer size %d, data sent %d/%d, header: %d, orig: %d \n",
+//                       compress_buffer_size,
+//                       data_len,
+//                       part_len,
+//                       ntohl(*(int32_t*)compress_buffer),
+//                       chan->get_len());
+            }
+            else{ //Compressing disabled
+                data = chan->acquire();
+                data_len = chan->get_len();
+
+                part_len = sock.send(data,data_len,zmq_flags);
+                msg_len+=part_len;
+                chan->release();
+            }
 
 
-            //Last part
+            //Send timestamp, take care of last part
             if(i==n-1) zmq_flags &= ~ZMQ_SNDMORE;
             part_len = sock.send(rtimestamp,sizeof(rtimestamp),zmq_flags);
 
             msg_len+=part_len;
-
-
-            //Done with sending, release the data
-            chan->release();
 
         }
         //Not enabled channels are replaced with empty submessages
@@ -197,11 +333,18 @@ const string *bsread::BSDataMessage::get_main_header(){
     root["global_timestamp"]["sec"] = static_cast<Json::Int64>(m_globaltimestamp.sec);
     root["global_timestamp"]["ns"] = static_cast<Json::Int64>(m_globaltimestamp.nsec);
 
+    string compression = "none";
+    if(m_dh_compression == compression_lz4) compression = "lz4";
+    if(m_dh_compression == compression_bslz4) compression = "bitshuffle_lz4";
+
+
+    root["dh_compression"] = compression;
+
     /* Empty datahash indicates that the data_header was not yet constructed,
      * which is needed to calculate datahash. m_datahash is updated whenever a
      * new dataheader needs to be constructed. Here we simply overcome the lazy loading...
      */
-    if(!m_datahash.empty()){
+    if(m_datahash.empty()){
         this->get_data_header();
     }
 
@@ -224,8 +367,33 @@ const string* bsread::BSDataMessage::get_data_header(bool force_build_header){
         }
 
         m_dataheader = m_writer.write(root);
+
+        // Compress data header with LZ4
+        if(m_dh_compression == compression_lz4){
+
+            char* compressed=0;
+            size_t compressed_buf_size=0;
+            size_t compressed_len = compress_lz4(m_dataheader.c_str(),m_dataheader.length(),compressed,compressed_buf_size,true);
+            m_dataheader = string(compressed,compressed_len);
+
+            delete compressed;            
+        }
+
+        // Compress data header with LZ4 bitshuffle
+        if(m_dh_compression == compression_bslz4){
+
+            char* compressed=0;
+            size_t compressed_buf_size=0;
+            size_t compressed_len = compress_bitshuffle(m_dataheader.c_str(),m_dataheader.length(),sizeof(char),compressed,compressed_buf_size);
+            m_dataheader = string(compressed,compressed_len);
+
+            delete compressed;
+        }
+
+
+
         m_datahash = md5(m_dataheader);
-    }
+    }       
 
     return &m_dataheader;
 

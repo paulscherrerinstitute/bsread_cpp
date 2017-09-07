@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include <zmq.hpp>
 
+
 /**
   Allow builds without EPICS depenency.
   Note that this can be used for all builds except
@@ -21,6 +22,7 @@
 
 #include "json.h"
 #include "md5.h"
+
 
 using namespace std;
 
@@ -72,6 +74,12 @@ static const size_t bsdata_type_size[] = {  1,
 
 class epicsShareClass BSDataChannel;
 
+enum bsdata_compression_type{
+    compression_none,
+    compression_lz4,
+    compression_bslz4
+};
+
 
 /**
  * Callback that is invoked when BSDataChannel.acquire() is called.
@@ -115,6 +123,7 @@ class BSDataChannel{
     size_t          m_len;
     string          m_name;
     bool            m_encoding_le;
+    bsdata_compression_type    m_compression;
     bool            m_enabled;
     vector<unsigned int> m_shape;
 
@@ -124,9 +133,12 @@ class BSDataChannel{
 
 public:
 
+
+
     /* standard meta data variables */
     int             m_meta_modulo;
     int             m_meta_offset;
+
 
     /* extra metadata variables */
     Json::Value     m_meta;
@@ -167,12 +179,29 @@ public:
     }
 
     /**
-     * @brief acquire function has to be called before attempting to access data
+     * @brief acquire function has to be called before attempting to access data,
      */
     const void* acquire(){
         if(m_callback) m_callback(this,true,m_callback_pvt);
         return m_data;
     }
+
+    void set_compression(bsdata_compression_type type){
+        m_compression=type;
+    }
+
+    /**
+     * @brief acquire function has to be called before attempting to access data
+     * @param temp_buffer; temporary buffer to use for compression. If temp_buffer
+     * is not nullptr than existing buffer is used and the result of compression is
+     * placed in it. Note that if buffer is too small it will be silently resized by
+     * realloc.
+     *
+     * If temp_buffer is nullptr than new buffer is allocated. It is responsiblity of
+     * the caller to free this buffer.
+     *
+     */
+    size_t acquire_compressed(char *&buffer, size_t &buffer_size);
 
     /**
      * @brief release has to be called when consumer no longer requires the data
@@ -185,8 +214,24 @@ public:
      * @brief get_len
      * @return size of data returned by acquire in bytes
      */
-    size_t get_len(){
-        return m_len*bsdata_type_size[m_type];
+    inline size_t get_len(){
+        return get_nelm()*get_elem_size();
+    }
+
+    /**
+     * @brief get_nelm
+     * @return number of elements in the channel
+     */
+    inline size_t get_nelm(){
+        return m_len;
+    }
+
+    /**
+     * @brief get_elem_size
+     * @return size of each element in bytes
+     */
+    inline size_t get_elem_size(){
+        return bsdata_type_size[m_type];
     }
 
     void set_timestamp(timestamp timestamp);
@@ -257,6 +302,7 @@ class BSDataMessage{
     string      m_datahash;
     string      m_dataheader;    //Copy of dataheader JSON string (to avoid reconstructing JSON on every iteration)
     string      m_mainheader;
+    bsdata_compression_type m_dh_compression; //Data header compression
 
     //Actual members
     vector<BSDataChannel*> m_channels;
@@ -307,6 +353,10 @@ public:
     BSDataChannel* find_channel(const string& name);
 
     size_t get_datasize();
+
+    void set_dh_compression(bsdata_compression_type type){
+        this->m_dh_compression = type;
+    }
 };
 
 
@@ -334,16 +384,19 @@ public:
 
     virtual size_t send_message(BSDataMessage& message){
         //TODO: add stats
-        return send_message(message,m_sock);
+        return send_message(message,m_sock,m_compress_buffer,m_compress_buffer_size);
     }
 
-    static size_t send_message(BSDataMessage& message, zmq::socket_t &sock);
+    static size_t send_message(BSDataMessage& message, zmq::socket_t &sock, char*& compress_buffer, size_t &compress_buffer_size);
 
 
-    virtual ~BSDataSenderZmq(){};
+    virtual ~BSDataSenderZmq(){
+        if(m_compress_buffer_size) free(m_compress_buffer);
+    };
 
 protected:
-
+    char*           m_compress_buffer;
+    size_t          m_compress_buffer_size;
     zmq::context_t&  m_ctx;
     zmq::socket_t   m_sock;
     string          m_address;
