@@ -216,7 +216,7 @@ size_t bsread::BSDataSenderZmq::send_message(bsread::BSDataMessage &message, zmq
 
 
     //Send dataheader
-    const string* dataheader = message.get_data_header();
+    const string* dataheader = message.get_data_header(true);
     part_len = sock.send(dataheader->c_str(),dataheader->length(),ZMQ_SNDMORE|ZMQ_NOBLOCK);
     if(!part_len) return 0;
     msg_len+=part_len;
@@ -376,7 +376,7 @@ const string* bsread::BSDataMessage::get_data_header(bool force_build_header){
             size_t compressed_len = compress_lz4(m_dataheader.c_str(),m_dataheader.length(),compressed,compressed_buf_size,true);
             m_dataheader = string(compressed,compressed_len);
 
-            delete compressed;            
+            delete compressed;
         }
 
         // Compress data header with LZ4 bitshuffle
@@ -393,7 +393,7 @@ const string* bsread::BSDataMessage::get_data_header(bool force_build_header){
 
 
         m_datahash = md5(m_dataheader);
-    }       
+    }
 
     return &m_dataheader;
 
@@ -438,7 +438,7 @@ size_t bsread::BSDataSenderZmqOnepart::send_message(bsread::BSDataMessage &messa
 
 
     //Send dataheader
-    const string* dataheader = message.get_data_header();
+    const string* dataheader = message.get_data_header(true);
     part_len = sock.send(dataheader->c_str(),dataheader->length(),ZMQ_SNDMORE|ZMQ_NOBLOCK);
     if(!part_len) return 0;
     msg_len+=part_len;
