@@ -56,8 +56,8 @@ bsread_SRCS += lz4.c
 
 bsread_LIBS += $(EPICS_BASE_IOC_LIBS)
 bsread_SYS_LIBS_Linux += zmq
-bsread_LIBS_WIN32 += libzmq
-
+bsread_LIBS_WIN32 += libzmq 
+bsread_SYS_LIBS_WIN32 += Ws2_32
 
 
 #===========================
