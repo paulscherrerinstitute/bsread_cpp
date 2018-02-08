@@ -399,7 +399,7 @@ const string* bsread::BSDataMessage::get_data_header(bool force_build_header){
 
 }
 
-const bool bsread::BSDataMessage::is_empty(){
+bool bsread::BSDataMessage::is_empty(){
     const vector<BSDataChannel*>* channels = this->get_channels();
     vector<BSDataChannel*>::const_iterator iter;
 

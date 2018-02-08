@@ -348,7 +348,7 @@ public:
      * @brief is_empty checks if any of the channels within this message are enabled
      * @return true if no channels are enabled, false otherwise
      */
-    const bool is_empty();
+    bool is_empty();
 
     BSDataChannel* find_channel(const string& name);
 
