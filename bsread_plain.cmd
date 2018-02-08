@@ -9,7 +9,6 @@
 ##	- BSREAD_PULSEID [$(SYS=$(IOC))-$(EVR):RX-PULSEID]
 ##	- BSREAD_TS_SEC [$(SYS=$(IOC))-$(EVR):RX-MTS-SEC]
 ##	- BSREAD_TS_NSEC [$(SYS=$(IOC))-$(EVR):RX-MTS-NSEC]
-##  - READ_FLNK []
 ##  - PULSEID_OFFSET [0]
 ##
 ## To disable the loading of the EVR template use following parameter/macro: NO_EVR=#
