@@ -154,12 +154,16 @@ size_t compress_bitshuffle(const char* uncompressed_data, size_t nelm, size_t el
         uint32_t low_bytes = htonl((uint32_t)(uncompressed_data_len & 0xFFFFFFFFLL));
         uncompressed_data_len = (((uint64_t)low_bytes) << 32) | high_bytes;
     }
-
+    
     //Set the uncompressed blob length
     ((int64_t*)buffer)[0] = uncompressed_data_len;
-    //Set the subblock size length
-    ((int32_t*)buffer)[2] = htonl(block_size);
 
+    //The block size has to be multiplied by the elm_size before inserting it into the binary header.
+    //https://github.com/kiyo-masui/bitshuffle/blob/04e58bd553304ec26e222654f1d9b6ff64e97d10/src/bshuf_h5filter.c#L167
+    uint32_t header_block_size = (uint32_t) block_size * elm_size;
+
+    //Set the subblock size length
+    ((int32_t*)buffer)[2] = htonl(header_block_size);
 
     //Compress the data
     compressed_size = bshuf_compress_lz4((const char*)uncompressed_data,&buffer[12],nelm,elm_size,block_size);
