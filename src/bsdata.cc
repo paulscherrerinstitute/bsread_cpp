@@ -189,7 +189,6 @@ size_t bsread::BSDataChannel::acquire_compressed(char*& buffer, size_t& buffer_s
         compressed_size=compress_bitshuffle((const char*)uncompressed_data,get_nelm(),get_elem_size(),buffer,buffer_size);
     }
 
-    release();
     return compressed_size;
 }
 
@@ -264,7 +263,6 @@ size_t bsread::BSDataSenderZmq::send_message(bsread::BSDataMessage &message, zmq
 
                 part_len = sock.send(data,data_len,zmq_flags);
                 msg_len+=part_len;
-                chan->release();
             }
 
 
@@ -479,9 +477,6 @@ size_t bsread::BSDataSenderZmqOnepart::send_message(bsread::BSDataMessage &messa
             offset+=len;
             memcpy((char*)data_part.data()+offset,rtimestamp,sizeof(rtimestamp));
             offset+=sizeof(rtimestamp);
-
-            //Done with sending, release the data
-            chan->release();
 
         }
         //Not enabled channels are replaced with empty submessages

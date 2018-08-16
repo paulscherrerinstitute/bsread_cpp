@@ -130,6 +130,7 @@ class BSDataChannel{
     BSDataCallaback m_callback;
     void* m_callback_pvt;
 
+    unique_ptr<char> data_buffer;
 
 public:
 
@@ -183,7 +184,13 @@ public:
      */
     const void* acquire(){
         if(m_callback) m_callback(this,true,m_callback_pvt);
-        return m_data;
+
+        // TODO: Check if bsread does not use the buffer anymore.
+        memcopy(data_buffer.get(), m_data, get_len())
+
+        if(m_callback) m_callback(this,false,m_callback_pvt);
+
+        return data_buffer.get();
     }
 
     void set_compression(bsdata_compression_type type){
@@ -202,13 +209,6 @@ public:
      *
      */
     size_t acquire_compressed(char *&buffer, size_t &buffer_size);
-
-    /**
-     * @brief release has to be called when consumer no longer requires the data
-     */
-    void release(){
-        if(m_callback) m_callback(this,false,m_callback_pvt);
-    }
 
     /**
      * @brief get_len
@@ -460,8 +460,6 @@ public:
             m_os.put('#');
 
             m_os.write((char*)(rtimestamp),sizeof(uint64_t)*2);
-
-            chan->release();
 
             m_os << "END" << endl;
         }
