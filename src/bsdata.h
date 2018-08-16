@@ -131,6 +131,7 @@ class BSDataChannel{
     void* m_callback_pvt;
 
     unique_ptr<char> data_buffer;
+    size_t data_buffer_length = 0;
 
 public:
 

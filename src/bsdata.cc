@@ -86,7 +86,16 @@ bsread::BSDataChannel::BSDataChannel(const string &name, bsread::bsdata_type typ
 size_t bsread::BSDataChannel::set_data(void *data, size_t len){
     m_data=data;
     m_len=len;
-    return get_len();
+
+    size_t n_bytes = get_len();
+
+    // TODO: Lock the buffer.
+    if ( data_buffer.get() == nullptr || n_bytes > data_buffer_length ) {
+        data_buffer.reset(new char[n_bytes]);
+        data_buffer_length = n_bytes;
+    }
+
+    return n_bytes;
 }
 
 /**
