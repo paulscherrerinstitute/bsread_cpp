@@ -115,6 +115,8 @@ long epicsBSRead::bsread_add_epics_records(bsread::BSRead *instance)
 
             dbNameToAddr(pname, &(rec_address));
 
+            size_t n_elements = rec_address.no_elements;
+
             // determine if the DBR type is supported
             if(rec_address.dbr_field_type == DBR_DOUBLE){
                 type=bsread::BSDATA_FLOAT64;
@@ -124,6 +126,8 @@ long epicsBSRead::bsread_add_epics_records(bsread::BSRead *instance)
             }
             else if(rec_address.dbr_field_type == DBR_STRING){
                 type=bsread::BSDATA_STRING;
+                // Epics strings are fixed, 40 character arrays.
+                n_elements = 40;
             }
             else if(rec_address.dbr_field_type == DBR_LONG){
                 type=bsread::BSDATA_INT32;
@@ -154,7 +158,7 @@ long epicsBSRead::bsread_add_epics_records(bsread::BSRead *instance)
 
             //Add a record to bsread instance
             bsread::BSDataChannel* chan = new bsread::BSDataChannel(pname,type);
-            chan->set_data(rec_address.pfield,rec_address.no_elements);
+            chan->set_data(rec_address.pfield, n_elements);
             chan->set_callback(lock_record,new struct dbAddr(rec_address));
 
             bsread_debug(4,"bsread_add_epics_records: adding channel %s with %ld no_elements",pname,rec_address.no_elements);
