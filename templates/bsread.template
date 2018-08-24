@@ -15,7 +15,7 @@ record(aSub, "$(P):READ")
 {
     field(INAM,"bsread_read_init")
     field(SNAM,"bsread_read")
-    field(SCAN, "Event")
+    field(SCAN, "$(SCAN=Event)")
     field(EVNT, "$(EVENT_NAME)")
     #Inputs
     field(FTA, "DOUBLE")
