@@ -6,8 +6,9 @@
 #include <cstddef>
 #include <string>
 
-#include "constants.h"
 #include "json.h"
+#include "constants.h"
+
 
 namespace bsread {
 
