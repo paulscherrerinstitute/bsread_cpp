@@ -1,8 +1,18 @@
 cmake_minimum_required(VERSION 3.10)
-project(lib_bsread)
-
+project(bsread)
 set(CMAKE_CXX_STANDARD 11)
 
-include_directories("//anaconda/include")
+if(testing_enabled)
+    add_subdirectory(tests)
+endif()
 
-add_library(lib_bsread SHARED src/BSDataSenderZmq.cpp src/BSDataSenderZmq.h src/BSDataMessage.cpp src/BSDataMessage.h src/constants.h)
+file(GLOB SOURCES src/*.cpp)
+file(GLOB EXTERNAL_SOURCES external/*.c*)
+
+include_directories("//anaconda/include")
+include_directories("external")
+
+add_library(external STATIC ${EXTERNAL_SOURCES})
+
+add_library(${PROJECT_NAME} SHARED ${SOURCES})
+target_link_libraries(${PROJECT_NAME} external zmq)
