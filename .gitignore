@@ -17,5 +17,4 @@ BSREAD.iml
 # results from make
 O.*
 
-# AppCode
-cmake-build-debug/
+cmake-build-*
