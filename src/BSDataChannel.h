@@ -85,7 +85,7 @@ namespace bsread {
             if(m_callback) m_callback(this,true,m_callback_pvt);
 
             // TODO: Check if bsread does not use the buffer anymore.
-            memcpy(data_buffer.get(), m_data, get_len())
+            memcpy(data_buffer.get(), m_data, get_len());
 
             if(m_callback) m_callback(this,false,m_callback_pvt);
 
