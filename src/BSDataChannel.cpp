@@ -2,6 +2,14 @@
 
 using namespace std;
 
+//Simple code to allow runtime detection of system endianess
+bool isLittleEndian()
+{
+    short int number = 0x1;
+    char *numPtr = (char*)&number;
+    return (numPtr[0] == 1);
+}
+
 string bsread::BSDataChannel::dump_header(){
     return get_data_header().toStyledString();
 }
