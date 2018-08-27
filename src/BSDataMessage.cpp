@@ -1,5 +1,8 @@
 #include "BSDataMessage.h"
+
 #include "md5.h"
+#include "compression.h"
+
 
 using namespace std;
 
@@ -107,8 +110,6 @@ const string* bsread::BSDataMessage::get_data_header(bool force_build_header){
 
             delete compressed;
         }
-
-
 
         m_datahash = md5(m_dataheader);
     }

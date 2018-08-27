@@ -8,6 +8,7 @@
 
 #include "json.h"
 #include "constants.h"
+#include "BSDataChannel.h"
 
 
 namespace bsread {
@@ -23,7 +24,7 @@ namespace bsread {
         bsdata_compression_type m_dh_compression; //Data header compression
 
         //Actual members
-        vector<BSDataChannel*> m_channels;
+        std::vector<BSDataChannel*> m_channels;
 
         Json::FastWriter m_writer;   //Json writer instance used for generating data headers
 
@@ -57,7 +58,7 @@ namespace bsread {
 
         const std::string* get_data_header(bool force_build_header = false);
 
-        const vector<BSDataChannel*>* get_channels(){
+        const std::vector<BSDataChannel*>* get_channels(){
             return &m_channels;
         }
 
@@ -68,7 +69,7 @@ namespace bsread {
          */
         bool is_empty();
 
-        BSDataChannel* find_channel(const string& name);
+        BSDataChannel* find_channel(const std::string& name);
 
         size_t get_datasize();
 
