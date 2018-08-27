@@ -1,8 +1,8 @@
-#include "BSDataSenderZmq.h"
+#include "Sender.h"
 
 using namespace std;
 
-bsread::BSDataSenderZmq::BSDataSenderZmq(zmq::context_t &ctx, string address, int sndhwm, int sock_type, int linger):
+bsread::Sender::Sender(zmq::context_t &ctx, string address, int sndhwm, int sock_type, int linger):
         m_compress_buffer_size(0),
         m_ctx(ctx),
         m_sock(m_ctx, sock_type),
@@ -13,9 +13,9 @@ bsread::BSDataSenderZmq::BSDataSenderZmq(zmq::context_t &ctx, string address, in
     m_sock.bind(address.c_str());
 }
 
-bsread::BSDataSenderZmq::~BSDataSenderZmq() {}
+bsread::Sender::~Sender() {}
 
-size_t bsread::BSDataSenderZmq::send_message(bsread::BSDataMessage &message){
+size_t bsread::Sender::send_message(bsread::Message &message){
     size_t msg_len=0;
     size_t part_len;
 
@@ -33,11 +33,11 @@ size_t bsread::BSDataSenderZmq::send_message(bsread::BSDataMessage &message){
     msg_len+=part_len;
 
     //Send data for each channel
-    const vector<BSDataChannel*>* channels = message.get_channels();
+    const vector<Channel*>* channels = message.get_channels();
     size_t n = channels->size();
     for(size_t i=0; i<n; i++){
         int zmq_flags = ZMQ_SNDMORE | ZMQ_NOBLOCK;
-        BSDataChannel* chan = channels->at(i);
+        Channel* chan = channels->at(i);
 
         //Only send enabled channels
         if(chan->get_enabled()){

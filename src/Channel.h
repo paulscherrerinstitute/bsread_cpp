@@ -12,10 +12,10 @@
 
 namespace bsread {
 
-    class BSDataChannel;
-    typedef void (*BSDataCallaback)(BSDataChannel* chan,bool acquire, void* pvt);
+    class Channel;
+    typedef void (*BSDataCallaback)(Channel* chan,bool acquire, void* pvt);
 
-    class BSDataChannel {
+    class Channel {
 
         bsdata_type     m_type;
         void*           m_data;
@@ -43,7 +43,7 @@ namespace bsread {
         /* extra metadata variables */
         Json::Value     m_meta;
 
-        BSDataChannel(const std::string& name,bsdata_type type);
+        Channel(const std::string& name,bsdata_type type);
 
         /**
          * @brief set_data set message data. length is specified in number of

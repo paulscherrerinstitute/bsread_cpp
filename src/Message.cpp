@@ -1,4 +1,4 @@
-#include "BSDataMessage.h"
+#include "Message.h"
 
 #include "md5.h"
 #include "compression.h"
@@ -7,17 +7,17 @@
 using namespace std;
 
 
-void bsread::BSDataMessage::add_channel(bsread::BSDataChannel *c){
+void bsread::Message::add_channel(bsread::Channel *c){
     m_channels.push_back(c);
     //Update MD5 datahash since data header has changed
     m_datahash.clear();
 }
 
-void bsread::BSDataMessage::clear_channels(){
+void bsread::Message::clear_channels(){
     m_channels.clear();
 }
 
-bool bsread::BSDataMessage::set(uint64_t pulseid, bsread::timestamp timestamp, bool set_enable){
+bool bsread::Message::set(uint64_t pulseid, bsread::timestamp timestamp, bool set_enable){
     m_pulseid = pulseid;
     m_globaltimestamp = timestamp;
 
@@ -25,7 +25,7 @@ bool bsread::BSDataMessage::set(uint64_t pulseid, bsread::timestamp timestamp, b
 
     if(set_enable){
         for(size_t i=0;i<m_channels.size();i++){
-            BSDataChannel* c = m_channels[i];
+            Channel* c = m_channels[i];
 
             int modulo = c->m_meta_modulo;
 
@@ -47,7 +47,7 @@ bool bsread::BSDataMessage::set(uint64_t pulseid, bsread::timestamp timestamp, b
     return any_channels_enabled;
 }
 
-const string *bsread::BSDataMessage::get_main_header(){
+const string *bsread::Message::get_main_header(){
     Json::Value root;
     root["htype"] = BSREAD_MAIN_HEADER_VERSION;
     root["pulse_id"] = static_cast<Json::Int64>(m_pulseid);
@@ -75,7 +75,7 @@ const string *bsread::BSDataMessage::get_main_header(){
     return &m_mainheader;
 }
 
-const string* bsread::BSDataMessage::get_data_header(bool force_build_header){
+const string* bsread::Message::get_data_header(bool force_build_header){
     if(m_datahash.empty() || force_build_header){
 
         m_datasize = 0;
@@ -118,9 +118,9 @@ const string* bsread::BSDataMessage::get_data_header(bool force_build_header){
 
 }
 
-bool bsread::BSDataMessage::is_empty(){
-    const vector<BSDataChannel*>* channels = this->get_channels();
-    vector<BSDataChannel*>::const_iterator iter;
+bool bsread::Message::is_empty(){
+    const vector<Channel*>* channels = this->get_channels();
+    vector<Channel*>::const_iterator iter;
 
     for(iter=channels->begin();iter != channels->end();iter++){
         if((*iter)->get_enabled()){
@@ -131,7 +131,7 @@ bool bsread::BSDataMessage::is_empty(){
 
 }
 
-bsread::BSDataChannel *bsread::BSDataMessage::find_channel(const string &name){
+bsread::Channel *bsread::Message::find_channel(const string &name){
     for(size_t i=0;i<m_channels.size();i++){
         if(m_channels[i]->get_name() == name) return m_channels[i];
     }
@@ -139,7 +139,7 @@ bsread::BSDataChannel *bsread::BSDataMessage::find_channel(const string &name){
     return NULL;
 }
 
-size_t bsread::BSDataMessage::get_datasize(){
+size_t bsread::Message::get_datasize(){
     get_data_header();
     return m_datasize;
 }

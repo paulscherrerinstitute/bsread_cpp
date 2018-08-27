@@ -5,7 +5,7 @@
 #include <string>
 #include <zmq.hpp>
 
-#include "BSDataMessage.h"
+#include "Message.h"
 
 namespace bsread{
     /**
@@ -15,7 +15,7 @@ namespace bsread{
      * By default the class will create its own context and socket. A static
      * method exists that perorms the same, but requires ZMQ socket to be passed
      */
-    class BSDataSenderZmq{
+    class Sender{
 
     protected:
         char* m_compress_buffer;
@@ -34,12 +34,12 @@ namespace bsread{
          * @param sock_type
          * @param linger
          */
-        BSDataSenderZmq(zmq::context_t& ctx, std::string address,
+        Sender(zmq::context_t& ctx, std::string address,
                         int sndhwm=10, int sock_type=ZMQ_PUSH, int linger=1000);
 
-        virtual ~BSDataSenderZmq();
+        virtual ~Sender();
 
-        virtual size_t send_message(BSDataMessage& message);
+        virtual size_t send_message(Message& message);
     };
 }
 

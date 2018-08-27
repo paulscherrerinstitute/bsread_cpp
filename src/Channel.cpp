@@ -1,4 +1,4 @@
-#include "BSDataChannel.h"
+#include "Channel.h"
 
 #include "compression.h"
 
@@ -12,7 +12,7 @@ bool isLittleEndian()
     return (numPtr[0] == 1);
 }
 
-Json::Value bsread::BSDataChannel::get_data_header(bool config_only){
+Json::Value bsread::Channel::get_data_header(bool config_only){
     Json::Value root;
     root["name"]=m_name;
     root["offset"] = this->m_meta_offset;
@@ -45,7 +45,7 @@ Json::Value bsread::BSDataChannel::get_data_header(bool config_only){
     return root;
 }
 
-size_t bsread::BSDataChannel::acquire_compressed(char*& buffer, size_t& buffer_size){
+size_t bsread::Channel::acquire_compressed(char*& buffer, size_t& buffer_size){
     if(m_compression==compression_none) return 0;
 
     const void* uncompressed_data = acquire(); //Do not forget to release before exiting this function
@@ -62,23 +62,23 @@ size_t bsread::BSDataChannel::acquire_compressed(char*& buffer, size_t& buffer_s
     return compressed_size;
 }
 
-string bsread::BSDataChannel::dump_header(){
+string bsread::Channel::dump_header(){
     return get_data_header().toStyledString();
 }
 
-void bsread::BSDataChannel::set_enabled(bool enabled){
+void bsread::Channel::set_enabled(bool enabled){
     m_enabled = enabled;
 }
 
-bool bsread::BSDataChannel::get_enabled(){
+bool bsread::Channel::get_enabled(){
     return m_enabled;
 }
 
-string bsread::BSDataChannel::get_name(){
+string bsread::Channel::get_name(){
     return m_name;
 }
 
-bsread::BSDataChannel::BSDataChannel(const string &name, bsread::bsdata_type type):
+bsread::Channel::Channel(const string &name, bsread::bsdata_type type):
         m_type(type),
         m_data(0),
         m_timestamp(),
@@ -92,7 +92,7 @@ bsread::BSDataChannel::BSDataChannel(const string &name, bsread::bsdata_type typ
         m_meta_offset(0)
 {}
 
-size_t bsread::BSDataChannel::set_data(void *data, size_t len){
+size_t bsread::Channel::set_data(void *data, size_t len){
     m_data=data;
     m_len=len;
 

@@ -8,12 +8,12 @@
 
 #include "json.h"
 #include "constants.h"
-#include "BSDataChannel.h"
+#include "Channel.h"
 
 
 namespace bsread {
 
-    class BSDataMessage{
+    class Message {
         //Message metadata
         uint64_t  m_pulseid;
         timestamp m_globaltimestamp;
@@ -24,21 +24,21 @@ namespace bsread {
         bsdata_compression_type m_dh_compression; //Data header compression
 
         //Actual members
-        std::vector<BSDataChannel*> m_channels;
+        std::vector<Channel*> m_channels;
 
         Json::FastWriter m_writer;   //Json writer instance used for generating data headers
 
 
     public:
 
-        BSDataMessage(){};
+        Message(){};
         /**
          * @brief add_channel add bsdata channel to the message. Note that the channels are not
          * deleted when message is cleared. It's users application responsibility to deallocate
          * channels.
          * @param c
          */
-        void add_channel(BSDataChannel* c);
+        void add_channel(Channel* c);
 
         void clear_channels();
 
@@ -58,7 +58,7 @@ namespace bsread {
 
         const std::string* get_data_header(bool force_build_header = false);
 
-        const std::vector<BSDataChannel*>* get_channels(){
+        const std::vector<Channel*>* get_channels(){
             return &m_channels;
         }
 
@@ -69,7 +69,7 @@ namespace bsread {
          */
         bool is_empty();
 
-        BSDataChannel* find_channel(const std::string& name);
+        Channel* find_channel(const std::string& name);
 
         size_t get_datasize();
 
