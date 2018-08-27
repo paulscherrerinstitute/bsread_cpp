@@ -39,8 +39,7 @@ namespace bsread{
 
         virtual ~BSDataSenderZmq();
 
-        virtual size_t send_message(BSDataMessage& message, zmq::socket_t &sock, char*& compress_buffer,
-                                    size_t &compress_buffer_size);
+        virtual size_t send_message(BSDataMessage& message);
     };
 }
 
