@@ -8,7 +8,13 @@
 #include "json.h"
 #include "constants.h"
 
+
+
 namespace bsread {
+
+    class BSDataChannel;
+    typedef void (*BSDataCallaback)(BSDataChannel* chan,bool acquire, void* pvt);
+
     class BSDataChannel {
 
         bsdata_type     m_type;
