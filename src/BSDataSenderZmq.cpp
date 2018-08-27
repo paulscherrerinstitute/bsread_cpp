@@ -58,6 +58,12 @@ size_t bsread::BSDataSenderZmq::send_message(bsread::BSDataMessage &message, zmq
             if(data_len){
                 part_len = sock.send(compress_buffer,data_len,zmq_flags);
                 msg_len+=part_len;
+//                printf("Compressed data! new buffer size %d, data sent %d/%d, header: %d, orig: %d \n",
+//                       compress_buffer_size,
+//                       data_len,
+//                       part_len,
+//                       ntohl(*(int32_t*)compress_buffer),
+//                       chan->get_len());
             }
             else{ //Compressing disabled
                 data = chan->acquire();
