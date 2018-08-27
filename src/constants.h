@@ -59,6 +59,20 @@ namespace bsread {
                                                 8,
                                                 8
     };
+
+    static const char* const bsdata_type_name[] = {
+            "string",
+            "bool",
+            "float64",
+            "float32",
+            "int8",
+            "uint8",
+            "int16",
+            "uint16",
+            "int32",
+            "uint32",
+            "int64",
+            "uint64"};
 }
 
 
