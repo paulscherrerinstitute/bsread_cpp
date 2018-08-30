@@ -39,6 +39,8 @@ namespace bsread {
         int             m_meta_modulo;
         int             m_meta_offset;
 
+        bool is_enabled_for_pulse_id(uint64_t pulse_id);
+
 
         /* extra metadata variables */
         Json::Value     m_meta;

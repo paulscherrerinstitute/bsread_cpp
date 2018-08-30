@@ -19,31 +19,19 @@ bsread::Sender::Sender(zmq::context_t &ctx, string address, int sndhwm, int sock
 bsread::Sender::~Sender() {}
 
 size_t bsread::Sender::send_channel(Channel* channel, bool last_channel) {
-    const void* data;
-    size_t data_len;
-    //Fetch timestamp
+
+    // TODO: This 3 operations are not synchronous.
+    auto data = channel->get_data();
+    auto data_len = channel->get_len();
     uint64_t rtimestamp[2];
     channel->get_timestamp(rtimestamp);
 
-    //Acquire and send data
+    size_t msg_len=0;
+    size_t part_len=0;
 
-    //Check if compressing is enabled
-    /* When sending compressed data we are sending from our buffer (acquire_compressed makes a
-     * compressed copy of the source data. As such it does not require unlocking of channel.
-     * This is the reason for different handling of compressed vs uncompressed data here */
-    data_len = channel->acquire_compressed(m_compress_buffer,m_compress_buffer_size);
-    if(data_len){
-        part_len = m_sock.send(m_compress_buffer,data_len, ZMQ_SNDMORE|ZMQ_NOBLOCK);
-        if (!part_len) return 0;
-        msg_len += part_len;
-    }
-    else{ //Compressing disabled
-        data = channel->acquire();
-        data_len = channel->get_len();
-
-        part_len = m_sock.send(data,data_len, ZMQ_SNDMORE|ZMQ_NOBLOCK);
-        msg_len+=part_len;
-    }
+    part_len = m_sock.send(data, data_len, ZMQ_SNDMORE|ZMQ_NOBLOCK);
+    if (!part_len) return 0;
+    msg_len += part_len;
 
     if (last_channel) {
         part_len = m_sock.send(rtimestamp, sizeof(rtimestamp), ZMQ_NOBLOCK);
@@ -51,7 +39,10 @@ size_t bsread::Sender::send_channel(Channel* channel, bool last_channel) {
         part_len = m_sock.send(rtimestamp, sizeof(rtimestamp), ZMQ_SNDMORE | ZMQ_NOBLOCK);
     }
 
-    msg_len+=part_len;
+    if (!part_len) return 0;
+    msg_len += part_len;
+
+    return msg_len;
 }
 
 size_t bsread::Sender::send_message(const uint64_t pulse_id, const bsread::timestamp global_timestamp){
@@ -59,7 +50,7 @@ size_t bsread::Sender::send_message(const uint64_t pulse_id, const bsread::times
     lock_guard<std::recursive_mutex> lock(m_data_lock);
 
     size_t msg_len=0;
-    size_t part_len;
+    size_t part_len=0;
 
     // We have to construct the main header each time, because it contains the pulse_id and global timestamp.
     auto mainheader = get_main_header(pulse_id, global_timestamp);
@@ -78,7 +69,7 @@ size_t bsread::Sender::send_message(const uint64_t pulse_id, const bsread::times
         bool last_channel = (i == n_channels-1);
         auto channel = m_channels.at(i);
 
-        if(channel->get_enabled()) {
+        if(channel->is_enabled_for_pulse_id(pulse_id)) {
             part_len = send_channel(channel, last_channel);
             if (!part_len) return 0;
             msg_len += part_len;
