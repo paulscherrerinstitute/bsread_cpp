@@ -45,6 +45,28 @@ Json::Value bsread::Channel::get_data_header(bool config_only){
     return root;
 }
 
+bool bsread::Channel::is_enabled_for_pulse_id(uint64_t pulse_id){
+//    if(set_enable){
+//    for(size_t i=0;i<m_channels.size();i++){
+//    Channel* c = m_channels[i];
+//
+//    int modulo = c->m_meta_modulo;
+//
+//    int offset = c->m_meta_offset;
+//
+//    //Calculate modulo if set
+//    if (modulo > 0) {
+//    if ( ((pulseid-offset) % modulo ) == 0) {
+//    c->set_enabled(true);
+//    any_channels_enabled = true;
+//    }
+//    else{
+//    c->set_enabled(false);
+//    }
+//    }
+//    }
+    }
+
 size_t bsread::Channel::acquire_compressed(char*& buffer, size_t& buffer_size){
     if(m_compression==compression_none) return 0;
 
