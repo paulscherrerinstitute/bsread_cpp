@@ -4,10 +4,16 @@
 #include <cstddef>
 #include <string>
 #include <zmq.hpp>
+#include <memory>
+#include "json.h"
 
-#include "Message.h"
+#include "Channel.h"
+
+#define BSREAD_MAIN_HEADER_VERSION "bsr_m-1.1"
+#define BSREAD_DATA_HEADER_VERSION "bsr_d-1.1"
 
 namespace bsread{
+
     /**
      * @brief The BSDataSenderZmq class
      *
@@ -22,7 +28,25 @@ namespace bsread{
         size_t m_compress_buffer_size;
         zmq::context_t& m_ctx;
         zmq::socket_t m_sock;
-        std::string m_address;
+        const std::string m_address;
+
+        const bsdata_compression_type m_data_header_compression;
+        // String representation of the data header compression (for main header)
+        const std::string m_data_header_compression_name;
+
+        std::string m_data_header;
+        std::string m_data_header_hash;
+
+        virtual void build_data_header();
+
+        virtual const std::string get_main_header(uint64_t pulse_id, timestamp global_timestamp);
+        virtual const std::string& get_data_header();
+        virtual const std::string& bsread::Sender::get_data_header_hash();
+
+        std::vector<Channel*> m_channels;
+
+        Json::FastWriter m_writer;
+        std::recursive_mutex m_data_lock;
 
     public:
 
@@ -34,12 +58,12 @@ namespace bsread{
          * @param sock_type
          * @param linger
          */
-        Sender(zmq::context_t& ctx, std::string address,
-                        int sndhwm=10, int sock_type=ZMQ_PUSH, int linger=1000);
+        Sender(zmq::context_t& ctx, std::string address, int sndhwm=10, int sock_type=ZMQ_PUSH, int linger=1000,
+               bsdata_compression_type data_header_compression=compression_none);
 
         virtual ~Sender();
 
-        virtual size_t send_message(Message& message);
+        virtual size_t send_message(const uint64_t pulse_id, const bsread::timestamp);
     };
 }
 
