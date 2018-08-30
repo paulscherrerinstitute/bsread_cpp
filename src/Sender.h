@@ -43,6 +43,7 @@ namespace bsread{
         virtual const std::string& bsread::Sender::get_data_header_hash();
 
         std::vector<Channel*> m_channels;
+        virtual void bsread::Sender::add_channel(bsread::Channel *channel);
         virtual size_t send_channel(Channel* channel, bool last_channel);
 
         Json::FastWriter m_writer;

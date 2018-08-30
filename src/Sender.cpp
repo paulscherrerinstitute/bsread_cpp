@@ -121,3 +121,13 @@ void bsread::Sender::set_sending_enabled(bool enable) {
 
     m_sending_enabled = enable;
 }
+
+void bsread::Sender::add_channel(bsread::Channel *channel){
+    lock_guard<std::recursive_mutex> lock(m_sender_lock);
+
+    m_channels.push_back(channel);
+
+    // A new data header needs to be constructed when a new channel is added.
+    m_data_header.clear();
+    m_data_header_hash.clear();
+}
