@@ -24,11 +24,10 @@ namespace bsread{
     class Sender{
 
     protected:
-        char* m_compress_buffer;
-        size_t m_compress_buffer_size;
         zmq::context_t& m_ctx;
         zmq::socket_t m_sock;
         const std::string m_address;
+        bool m_sending_enabled;
 
         const bsdata_compression_type m_data_header_compression;
         // String representation of the data header compression (for main header)

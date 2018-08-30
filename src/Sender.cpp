@@ -4,10 +4,10 @@ using namespace std;
 
 bsread::Sender::Sender(zmq::context_t &ctx, string address, int sndhwm, int sock_type, int linger,
                        bsdata_compression_type data_header_compression):
-        m_compress_buffer_size(0),
         m_ctx(ctx),
         m_sock(m_ctx, sock_type),
         m_address(address.c_str()),
+        m_sending_enabled(true),
         m_data_header_compression(data_header_compression),
         m_data_header_compression_name(compression_names[m_data_header_compression])
 {
@@ -69,21 +69,9 @@ size_t bsread::Sender::send_message(const uint64_t pulse_id, const bsread::times
         bool last_channel = (i == n_channels-1);
         auto channel = m_channels.at(i);
 
-        if(channel->is_enabled_for_pulse_id(pulse_id)) {
-            part_len = send_channel(channel, last_channel);
-            if (!part_len) return 0;
-            msg_len += part_len;
-
-        } else {
-            // Send empty messages for disabled channels.
-            m_sock.send(NULL, 0, ZMQ_SNDMORE | ZMQ_NOBLOCK);
-
-            if (last_channel) {
-                m_sock.send(NULL, 0, ZMQ_NOBLOCK);
-            } else {
-                m_sock.send(NULL, 0, ZMQ_SNDMORE | ZMQ_NOBLOCK);
-            }
-        }
+        part_len = send_channel(channel, last_channel);
+        if (!part_len) return 0;
+        msg_len += part_len;
     }
 
     return msg_len;
