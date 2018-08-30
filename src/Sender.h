@@ -46,7 +46,7 @@ namespace bsread{
         virtual size_t send_channel(Channel* channel, bool last_channel);
 
         Json::FastWriter m_writer;
-        std::recursive_mutex m_data_lock;
+        std::recursive_mutex m_sender_lock;
 
     public:
 
@@ -64,6 +64,8 @@ namespace bsread{
         virtual ~Sender();
 
         virtual size_t send_message(const uint64_t pulse_id, const bsread::timestamp);
+
+        virtual void set_sending_enabled(bool enable);
     };
 }
 

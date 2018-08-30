@@ -38,7 +38,6 @@ size_t bsread::Sender::send_channel(Channel* channel, bool last_channel) {
     } else {
         part_len = m_sock.send(rtimestamp, sizeof(rtimestamp), ZMQ_SNDMORE | ZMQ_NOBLOCK);
     }
-
     if (!part_len) return 0;
     msg_len += part_len;
 
@@ -47,7 +46,11 @@ size_t bsread::Sender::send_channel(Channel* channel, bool last_channel) {
 
 size_t bsread::Sender::send_message(const uint64_t pulse_id, const bsread::timestamp global_timestamp){
 
-    lock_guard<std::recursive_mutex> lock(m_data_lock);
+    lock_guard<std::recursive_mutex> lock(m_sender_lock);
+
+    if (!m_sending_enabled) {
+        return 0;
+    }
 
     size_t msg_len=0;
     size_t part_len=0;
@@ -80,11 +83,11 @@ size_t bsread::Sender::send_message(const uint64_t pulse_id, const bsread::times
 
 
 void bsread::Sender::build_data_header(){
-    lock_guard<std::recursive_mutex> lock(m_data_lock);
+    lock_guard<std::recursive_mutex> lock(m_sender_lock);
     //TODO: Build data header.
 }
 
-virtual const std::string& bsread::Sender::get_data_header(){
+const std::string& bsread::Sender::get_data_header(){
     if (m_data_header.empty()) {
         build_data_header();
     }
@@ -92,7 +95,7 @@ virtual const std::string& bsread::Sender::get_data_header(){
     return m_data_header;
 }
 
-virtual const std::string& bsread::Sender::get_data_header_hash(){
+const string& bsread::Sender::get_data_header_hash() {
     if (m_data_header.empty()) {
         build_data_header();
     }
@@ -111,4 +114,10 @@ const string bsread::Sender::get_main_header(uint64_t pulse_id, timestamp global
     root["hash"] = get_data_header_hash();
 
     return m_writer.write(root);
+}
+
+void bsread::Sender::set_sending_enabled(bool enable) {
+    lock_guard<std::recursive_mutex> lock(m_sender_lock);
+
+    m_sending_enabled = enable;
 }
