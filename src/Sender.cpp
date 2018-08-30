@@ -18,81 +18,81 @@ bsread::Sender::Sender(zmq::context_t &ctx, string address, int sndhwm, int sock
 
 bsread::Sender::~Sender() {}
 
-size_t bsread::Sender::send_message(const uint64_t pulse_id, const bsread::timestamp global_timestamp,
-                                    const bsread::Message &message){
+size_t bsread::Sender::send_channel(Channel* channel, bool last_channel) {
+    const void* data;
+    size_t data_len;
+    //Fetch timestamp
+    uint64_t rtimestamp[2];
+    channel->get_timestamp(rtimestamp);
+
+    //Acquire and send data
+
+    //Check if compressing is enabled
+    /* When sending compressed data we are sending from our buffer (acquire_compressed makes a
+     * compressed copy of the source data. As such it does not require unlocking of channel.
+     * This is the reason for different handling of compressed vs uncompressed data here */
+    data_len = channel->acquire_compressed(m_compress_buffer,m_compress_buffer_size);
+    if(data_len){
+        part_len = m_sock.send(m_compress_buffer,data_len, ZMQ_SNDMORE|ZMQ_NOBLOCK);
+        if (!part_len) return 0;
+        msg_len += part_len;
+    }
+    else{ //Compressing disabled
+        data = channel->acquire();
+        data_len = channel->get_len();
+
+        part_len = m_sock.send(data,data_len, ZMQ_SNDMORE|ZMQ_NOBLOCK);
+        msg_len+=part_len;
+    }
+
+    if (last_channel) {
+        part_len = m_sock.send(rtimestamp, sizeof(rtimestamp), ZMQ_NOBLOCK);
+    } else {
+        part_len = m_sock.send(rtimestamp, sizeof(rtimestamp), ZMQ_SNDMORE | ZMQ_NOBLOCK);
+    }
+
+    msg_len+=part_len;
+}
+
+size_t bsread::Sender::send_message(const uint64_t pulse_id, const bsread::timestamp global_timestamp){
 
     lock_guard<std::recursive_mutex> lock(m_data_lock);
 
     size_t msg_len=0;
     size_t part_len;
 
-    //Send main header
+    // We have to construct the main header each time, because it contains the pulse_id and global timestamp.
     auto mainheader = get_main_header(pulse_id, global_timestamp);
-    part_len = m_sock.send(mainheader.c_str(),mainheader.length(),ZMQ_SNDMORE|ZMQ_NOBLOCK);
-    if(!part_len) return 0;
-    msg_len+=part_len;
+    part_len = m_sock.send(mainheader.c_str(), mainheader.length(), ZMQ_SNDMORE|ZMQ_NOBLOCK);
+    if (!part_len) return 0;
+    msg_len += part_len;
 
-
-    //Send dataheader
     auto dataheader = get_data_header();
-    part_len = m_sock.send(dataheader.c_str(),dataheader.length(), ZMQ_SNDMORE|ZMQ_NOBLOCK);
-    if(!part_len) return 0;
-    msg_len+=part_len;
+    part_len = m_sock.send(dataheader.c_str(), dataheader.length(), ZMQ_SNDMORE|ZMQ_NOBLOCK);
+    if (!part_len) return 0;
+    msg_len += part_len;
 
-    //Send data for each channel
     size_t n_channels = m_channels.size();
     for(size_t i=0; i<n_channels; i++){
 
-        auto chan = m_channels.at(i);
+        bool last_channel = (i == n_channels-1);
+        auto channel = m_channels.at(i);
 
-        //Only send enabled channels
-        if(!chan->get_enabled()) {
+        if(channel->get_enabled()) {
+            part_len = send_channel(channel, last_channel);
+            if (!part_len) return 0;
+            msg_len += part_len;
 
-        }
-            const void* data;
-            size_t data_len;
-            //Fetch timestamp
-            uint64_t rtimestamp[2];
-            chan->get_timestamp(rtimestamp);
+        } else {
+            // Send empty messages for disabled channels.
+            m_sock.send(NULL, 0, ZMQ_SNDMORE | ZMQ_NOBLOCK);
 
-
-            //Acquire and send data
-
-            //Check if compressing is enabled
-            /* When sending compressed data we are sending from our buffer (acquire_compressed makes a
-             * compressed copy of the source data. As such it does not require unlocking of channel.
-             * This is the reason for different handling of compressed vs uncompressed data here */
-            data_len = chan->acquire_compressed(m_compress_buffer,m_compress_buffer_size);
-            if(data_len){
-                part_len = m_sock.send(m_compress_buffer,data_len,zmq_flags);
-                msg_len+=part_len;
+            if (last_channel) {
+                m_sock.send(NULL, 0, ZMQ_NOBLOCK);
+            } else {
+                m_sock.send(NULL, 0, ZMQ_SNDMORE | ZMQ_NOBLOCK);
             }
-            else{ //Compressing disabled
-                data = chan->acquire();
-                data_len = chan->get_len();
-
-                part_len = m_sock.send(data,data_len,zmq_flags);
-                msg_len+=part_len;
-            }
-
-
-            //Send timestamp, take care of last part
-            if(i==n-1) zmq_flags &= ~ZMQ_SNDMORE;
-            part_len = m_sock.send(rtimestamp,sizeof(rtimestamp),zmq_flags);
-
-            msg_len+=part_len;
-
         }
-            //Not enabled channels are replaced with empty submessages
-        else{
-            m_sock.send(NULL,0,ZMQ_SNDMORE | ZMQ_NOBLOCK);
-
-            //Last part
-            if(i==n-1) zmq_flags &= ~ZMQ_SNDMORE;
-            part_len = m_sock.send(NULL,0,zmq_flags);
-
-        }
-
     }
 
     return msg_len;

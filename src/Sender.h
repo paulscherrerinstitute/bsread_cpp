@@ -44,6 +44,7 @@ namespace bsread{
         virtual const std::string& bsread::Sender::get_data_header_hash();
 
         std::vector<Channel*> m_channels;
+        virtual size_t send_channel(Channel* channel, bool last_channel);
 
         Json::FastWriter m_writer;
         std::recursive_mutex m_data_lock;
