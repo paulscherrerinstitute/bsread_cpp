@@ -6,16 +6,26 @@
 
 namespace bsread {
 
-    enum bsdata_compression_type{
+    enum compression_type{
         compression_none,
         compression_lz4,
         compression_bslz4
     };
 
-    static const std::map<bsdata_compression_type, std::string> compression_names = {
+    static const std::map<compression_type, std::string> compression_type_names = {
             {compression_none, "none"},
             {compression_lz4, "lz4"},
             {compression_bslz4, "bitshuffle_lz4"}
+    };
+
+    enum endianess {
+        little,
+        big
+    };
+
+    static const std::map<endianess, std::string> endianess_names = {
+            {little, "little"},
+            {big, "big"}
     };
 
     struct timestamp{
