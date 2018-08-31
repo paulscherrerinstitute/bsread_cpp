@@ -54,15 +54,15 @@ namespace bsread {
         //Empty channel_data can be sent over ZMQ as an empty message.
         channel_data():
                 data(nullptr),
-                n_data_bytes(0),
+                data_len(0),
                 timestamp(nullptr),
-                n_timestamp_bytes(0)
+                timestamp_len(0)
         {}
 
         void* data;
-        size_t n_data_bytes;
+        size_t data_len;
         void* timestamp;
-        size_t n_timestamp_bytes;
+        size_t timestamp_len;
     };
 
 

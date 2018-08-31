@@ -22,24 +22,20 @@ bsread::Sender::~Sender() {}
 
 size_t bsread::Sender::send_channel(Channel* channel, uint64_t pulse_id, bool last_channel) {
 
-    // TODO: This 3 operations are not synchronous.
-    auto data = channel->get_data_for_pulse_id(pulse_id);
-    auto data_len = channel->get_len_for_pulse_id(pulse_id);
-    uint64_t rtimestamp[2];
-    channel->get_timestamp_for_pulse_id(pulse_id, rtimestamp);
+    auto channel_data = channel->get_data_for_pulse_id(pulse_id);
 
     size_t msg_len=0;
     size_t part_len=0;
 
-    part_len = m_sock.send(data, data_len, ZMQ_SNDMORE|ZMQ_NOBLOCK);
+    part_len = m_sock.send(channel_data.data, channel_data.data_len, ZMQ_SNDMORE|ZMQ_NOBLOCK);
 
     if (!part_len) return 0;
     msg_len += part_len;
 
     if (last_channel) {
-        part_len = m_sock.send(rtimestamp, sizeof(rtimestamp), ZMQ_NOBLOCK);
+        part_len = m_sock.send(channel_data.timestamp, channel_data.timestamp_len, ZMQ_NOBLOCK);
     } else {
-        part_len = m_sock.send(rtimestamp, sizeof(rtimestamp), ZMQ_SNDMORE | ZMQ_NOBLOCK);
+        part_len = m_sock.send(channel_data.timestamp, channel_data.timestamp_len, ZMQ_SNDMORE | ZMQ_NOBLOCK);
     }
     if (!part_len) return 0;
     msg_len += part_len;
