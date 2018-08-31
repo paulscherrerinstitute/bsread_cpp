@@ -15,7 +15,8 @@ bsread::Channel::Channel(const string &name, bsread::bsdata_type type, vector<si
         m_compression_name(compression_type_names.at(compression)),
         m_shape(shape),
         m_modulo(modulo),
-        m_offset(offset)
+        m_offset(offset),
+        compression_buffer(nullptr)
 {
     if (m_modulo < 1) {
         throw runtime_error("Modulo cannot be less than 1.");
@@ -23,6 +24,18 @@ bsread::Channel::Channel(const string &name, bsread::bsdata_type type, vector<si
 
     if (shape.size() == 0) {
         throw runtime_error("Shape must have at least 1 value.");
+    }
+
+    if (compression != compression_none) {
+        size_t n_elements = 0;
+        for (auto dimension_size:shape) {
+            n_elements += dimension_size;
+        }
+
+        size_t element_size = bsdata_type_size[type];
+
+        size_t compression_buffer_size = get_compression_buffer_size(compression, n_elements, element_size);
+        compression_buffer.reset(new char[compression_buffer_size]);
     }
 }
 

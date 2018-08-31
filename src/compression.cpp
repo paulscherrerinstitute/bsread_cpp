@@ -13,8 +13,6 @@ using namespace std;
 
 size_t bsread::get_compression_buffer_size(compression_type compression, size_t n_elements, size_t element_size) {
     switch (compression) {
-        case compression_none:
-            return 0;
 
         case compression_lz4: {
             size_t n_bytes = n_elements * element_size;
