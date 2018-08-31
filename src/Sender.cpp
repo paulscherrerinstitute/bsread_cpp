@@ -1,5 +1,7 @@
 #include "Sender.h"
 
+#include "md5.h"
+
 using namespace std;
 
 bsread::Sender::Sender(zmq::context_t &ctx, string address, int sndhwm, int sock_type, int linger,
@@ -92,38 +94,38 @@ void bsread::Sender::build_data_header(){
     Json::Value root;
     root["htype"] = BSREAD_DATA_HEADER_VERSION;
 
-    for(size_t i=0;i<m_channels.size();i++){
-        root["channels"][(int)i]=m_channels[i]->get_data_header();
-        m_datasize += m_channels[i]->get_len() + sizeof(uint64_t[2]); //Size of data + timestamp
+    for(size_t i=0; i<m_channels.size(); i++){
+        root["channels"][(int)i]=m_channels[i]->get_channel_data_header();
     }
 
-    m_dataheader = m_writer.write(root);
+    m_data_header = m_writer.write(root);
 
+    // TODO: Compress m_data_header.
     // Compress data header with LZ4
-    if(m_dh_compression == compression_lz4){
+//    if(m_dh_compression == compression_lz4){
+//
+//        char* compressed=0;
+//        size_t compressed_buf_size=0;
+//        size_t compressed_len = compress_lz4(m_dataheader.c_str(),m_dataheader.length(),compressed,compressed_buf_size,true);
+//        m_dataheader = string(compressed,compressed_len);
+//
+//        delete compressed;
+//    }
+//
+//    // Compress data header with LZ4 bitshuffle
+//    if(m_dh_compression == compression_bslz4){
+//
+//        char* compressed=0;
+//        size_t compressed_buf_size=0;
+//        size_t compressed_len = compress_bitshuffle(m_dataheader.c_str(),m_dataheader.length(),sizeof(char),compressed,compressed_buf_size);
+//        m_dataheader = string(compressed,compressed_len);
+//
+//        delete compressed;
+//    }
 
-        char* compressed=0;
-        size_t compressed_buf_size=0;
-        size_t compressed_len = compress_lz4(m_dataheader.c_str(),m_dataheader.length(),compressed,compressed_buf_size,true);
-        m_dataheader = string(compressed,compressed_len);
-
-        delete compressed;
-    }
-
-    // Compress data header with LZ4 bitshuffle
-    if(m_dh_compression == compression_bslz4){
-
-        char* compressed=0;
-        size_t compressed_buf_size=0;
-        size_t compressed_len = compress_bitshuffle(m_dataheader.c_str(),m_dataheader.length(),sizeof(char),compressed,compressed_buf_size);
-        m_dataheader = string(compressed,compressed_len);
-
-        delete compressed;
-    }
 
 
-
-    m_datahash = md5(m_dataheader);
+    m_data_header_hash = md5(m_data_header);
     //TODO: Build data header.
 }
 
