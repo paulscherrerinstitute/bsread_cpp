@@ -3,11 +3,15 @@
 
 #include <cstddef>
 #include <cstdint>
+#include "constants.h"
 
 namespace bsread{
-    size_t compress_lz4(const char* data, uint32_t data_len, char*& buffer, size_t& buffer_size);
 
-    size_t compress_bitshuffle(const char* data, size_t nelm, size_t elm_size,
+    size_t get_compression_buffer_size(compression_type compression, size_t n_elements, size_t element_size);
+
+    size_t compress_lz4(const char* data, size_t n_elements, size_t element_size, char*& buffer, size_t& buffer_size);
+
+    size_t compress_bitshuffle(const char* data, size_t n_elements, size_t element_size,
                                char*& buffer, size_t& buffer_size);
 };
 

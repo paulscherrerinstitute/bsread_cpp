@@ -11,6 +11,24 @@ using namespace std;
 
 #define is_little_endian htonl(1) != 1
 
+size_t bsread::get_compression_buffer_size(compression_type compression, size_t n_elements, size_t element_size) {
+    switch (compression) {
+        case compression_none:
+            return 0;
+
+        case compression_lz4: {
+            size_t n_bytes = n_elements * element_size;
+            return static_cast<size_t>(LZ4_compressBound(n_bytes)) + 4;
+        }
+
+        case compression_bslz4:
+            return bshuf_compress_lz4_bound(n_elements, element_size, 0) + 12;
+
+        default:
+            throw runtime_error("Cannot determine compression buffer size for unknown compression type.");
+    }
+}
+
  /**
  * @brief compress auxilary function that wraps lz4 so that they are bs compatible (prepends length, etc..)
  *
@@ -24,16 +42,18 @@ using namespace std;
  * @param network_order
  * @return
  */
-size_t bsread::compress_lz4(const char* data, uint32_t data_len, char*& buffer, size_t& buffer_size){
+size_t bsread::compress_lz4(const char* data, size_t n_elements, size_t element_size, char*& buffer, size_t& buffer_size){
 
-    size_t compressed_size;
+
+    size_t min_buffer_size = get_compression_buffer_size(compression_lz4, n_elements, element_size);
+    size_t data_len = n_elements * element_size;
 
     // Ensure output buffer is large enough
-    if(buffer_size < (size_t)(LZ4_compressBound(data_len)+4) ){
+    if(buffer_size < min_buffer_size){
         // Free existing buffer if it exists
         if(buffer_size) free(buffer);
         //New output buffer
-        buffer_size = LZ4_compressBound(data_len)+4;
+        buffer_size = min_buffer_size;
         buffer = (char*) malloc(buffer_size);
     }
 
@@ -45,29 +65,30 @@ size_t bsread::compress_lz4(const char* data, uint32_t data_len, char*& buffer, 
     }
 
     //Compress the data
-    compressed_size = LZ4_compress_default((const char*)data, &buffer[4], data_len, buffer_size-4);
+    size_t compressed_size = LZ4_compress_default((const char*)data, &buffer[4], data_len, buffer_size-4);
 
     if(!compressed_size) throw runtime_error("Error while compressing [LZ4] channel:");
     return compressed_size+4;
 
 }
 
-size_t bsread::compress_bitshuffle(const char* data, size_t nelm, size_t elm_size, char*& buffer, size_t& buffer_size){
+size_t bsread::compress_bitshuffle(const char* data, size_t n_elements, size_t element_size,
+                                   char*& buffer, size_t& buffer_size){
 
     size_t compressed_size;
-    size_t block_size = bshuf_default_block_size(elm_size);
-    size_t buf_min_size=bshuf_compress_lz4_bound(nelm,elm_size,0)+12; //12byte header at the start
+    size_t block_size = bshuf_default_block_size(element_size);
+    size_t min_buffer_size = get_compression_buffer_size(compression_bslz4, n_elements, element_size);
 
     // Ensure output buffer is large enough
-    if(buffer_size < buf_min_size ){
+    if(buffer_size < min_buffer_size ) {
         // Free existing buffer if it exists
         if(buffer_size) free(buffer);
         //New output buffer
-        buffer_size = buf_min_size;
+        buffer_size = min_buffer_size;
         buffer = (char*) malloc(buffer_size);
     }
 
-    uint64_t uncompressed_data_len = (uint64_t) nelm*elm_size;
+    uint64_t uncompressed_data_len = (uint64_t) n_elements * element_size;
 
     // The system is little endian, convert the 64bit value to big endian (network order).
     if (is_little_endian) {
@@ -81,13 +102,13 @@ size_t bsread::compress_bitshuffle(const char* data, size_t nelm, size_t elm_siz
 
     //The block size has to be multiplied by the elm_size before inserting it into the binary header.
     //https://github.com/kiyo-masui/bitshuffle/blob/04e58bd553304ec26e222654f1d9b6ff64e97d10/src/bshuf_h5filter.c#L167
-    uint32_t header_block_size = (uint32_t) block_size * elm_size;
+    uint32_t header_block_size = (uint32_t) block_size * element_size;
 
     //Set the subblock size length
     ((int32_t*)buffer)[2] = htonl(header_block_size);
 
     //Compress the data
-    compressed_size = bshuf_compress_lz4((const char*)data, &buffer[12], nelm, elm_size, block_size);
+    compressed_size = bshuf_compress_lz4((const char*)data, &buffer[12], n_elements, element_size, block_size);
 
     if(!compressed_size) throw runtime_error("Error while compressing [LZ4] channel:");
     return compressed_size+12;
