@@ -1,15 +1,21 @@
 #ifndef LIB_BSREAD_CONSTANTS_H
 #define LIB_BSREAD_CONSTANTS_H
 
-namespace bsread {
+#include <map>
+#include <string>
 
-    #define BSREAD_MAIN_HEADER_VERSION "bsr_m-1.1"
-    #define BSREAD_DATA_HEADER_VERSION "bsr_d-1.1"
+namespace bsread {
 
     enum bsdata_compression_type{
         compression_none,
         compression_lz4,
         compression_bslz4
+    };
+
+    static const std::map<bsdata_compression_type, std::string> compression_names = {
+            {compression_none, "none"},
+            {compression_lz4, "lz4"},
+            {compression_bslz4, "bitshuffle_lz4"}
     };
 
     struct timestamp{

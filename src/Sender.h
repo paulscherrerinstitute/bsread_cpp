@@ -40,10 +40,10 @@ namespace bsread{
 
         virtual const std::string get_main_header(uint64_t pulse_id, timestamp global_timestamp);
         virtual const std::string& get_data_header();
-        virtual const std::string& bsread::Sender::get_data_header_hash();
+        virtual const std::string& get_data_header_hash();
 
         std::vector<Channel*> m_channels;
-        virtual void bsread::Sender::add_channel(bsread::Channel *channel);
+        virtual void add_channel(bsread::Channel *channel);
         virtual size_t send_channel(Channel* channel, bool last_channel);
 
         Json::FastWriter m_writer;
