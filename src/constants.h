@@ -6,7 +6,7 @@
 
 namespace bsread {
 
-    enum compression_type{
+    enum compression_type {
         compression_none,
         compression_lz4,
         compression_bslz4
@@ -48,6 +48,23 @@ namespace bsread {
          */
         uint64_t nsec;
     };
+
+    struct channel_data{
+
+        //Empty channel_data can be sent over ZMQ as an empty message.
+        channel_data():
+                data(nullptr),
+                n_data_bytes(0),
+                timestamp(nullptr),
+                n_timestamp_bytes(0)
+        {}
+
+        void* data;
+        size_t n_data_bytes;
+        void* timestamp;
+        size_t n_timestamp_bytes;
+    };
+
 
     enum bsdata_type {BSDATA_STRING,
         BSDATA_BOOl,

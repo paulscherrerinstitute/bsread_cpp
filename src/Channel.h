@@ -31,7 +31,7 @@ namespace bsread {
 
         Json::Value get_channel_data_header() const;
 
-        void* get_data_for_pulse_id(uint64_t pulse_id);
+        channel_data get_data_for_pulse_id(uint64_t pulse_id);
 
     private:
         bool is_enabled_for_pulse_id(uint64_t pulse_id) const;

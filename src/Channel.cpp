@@ -3,6 +3,7 @@
 #include "compression.h"
 
 using namespace std;
+using namespace bsread;
 
 bsread::Channel::Channel(const string &name, bsread::bsdata_type type, vector<size_t> shape,
                          endianess endian, compression_type compression, int modulo, int offset):
@@ -45,15 +46,14 @@ Json::Value bsread::Channel::get_channel_data_header() const {
     return root;
 }
 
-void* bsread::Channel::get_data_for_pulse_id(uint64_t pulse_id) {
+channel_data bsread::Channel::get_data_for_pulse_id(uint64_t pulse_id) {
 
     if (!is_enabled_for_pulse_id(pulse_id)) {
-        return nullptr;
+        return channel_data();
     }
 
     // TODO: Return the value from the value provider.
-
-    return nullptr;
+    return channel_data();
 }
 
 bool bsread::Channel::is_enabled_for_pulse_id(uint64_t pulse_id) const {
