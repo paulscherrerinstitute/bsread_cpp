@@ -18,18 +18,19 @@ bsread::Sender::Sender(zmq::context_t &ctx, string address, int sndhwm, int sock
 
 bsread::Sender::~Sender() {}
 
-size_t bsread::Sender::send_channel(Channel* channel, bool last_channel) {
+size_t bsread::Sender::send_channel(Channel* channel, uint64_t pulse_id, bool last_channel) {
 
     // TODO: This 3 operations are not synchronous.
-    auto data = channel->get_data();
-    auto data_len = channel->get_len();
+    auto data = channel->get_data_for_pulse_id(pulse_id);
+    auto data_len = channel->get_len_for_pulse_id(pulse_id);
     uint64_t rtimestamp[2];
-    channel->get_timestamp(rtimestamp);
+    channel->get_timestamp_for_pulse_id(pulse_id, rtimestamp);
 
     size_t msg_len=0;
     size_t part_len=0;
 
     part_len = m_sock.send(data, data_len, ZMQ_SNDMORE|ZMQ_NOBLOCK);
+
     if (!part_len) return 0;
     msg_len += part_len;
 
@@ -58,11 +59,13 @@ size_t bsread::Sender::send_message(const uint64_t pulse_id, const bsread::times
     // We have to construct the main header each time, because it contains the pulse_id and global timestamp.
     auto mainheader = get_main_header(pulse_id, global_timestamp);
     part_len = m_sock.send(mainheader.c_str(), mainheader.length(), ZMQ_SNDMORE|ZMQ_NOBLOCK);
+
     if (!part_len) return 0;
     msg_len += part_len;
 
     auto dataheader = get_data_header();
     part_len = m_sock.send(dataheader.c_str(), dataheader.length(), ZMQ_SNDMORE|ZMQ_NOBLOCK);
+
     if (!part_len) return 0;
     msg_len += part_len;
 
@@ -72,7 +75,8 @@ size_t bsread::Sender::send_message(const uint64_t pulse_id, const bsread::times
         bool last_channel = (i == n_channels-1);
         auto channel = m_channels.at(i);
 
-        part_len = send_channel(channel, last_channel);
+        part_len = send_channel(channel, pulse_id, last_channel);
+
         if (!part_len) return 0;
         msg_len += part_len;
     }
@@ -84,6 +88,42 @@ size_t bsread::Sender::send_message(const uint64_t pulse_id, const bsread::times
 
 void bsread::Sender::build_data_header(){
     lock_guard<std::recursive_mutex> lock(m_sender_lock);
+
+    Json::Value root;
+    root["htype"] = BSREAD_DATA_HEADER_VERSION;
+
+    for(size_t i=0;i<m_channels.size();i++){
+        root["channels"][(int)i]=m_channels[i]->get_data_header();
+        m_datasize += m_channels[i]->get_len() + sizeof(uint64_t[2]); //Size of data + timestamp
+    }
+
+    m_dataheader = m_writer.write(root);
+
+    // Compress data header with LZ4
+    if(m_dh_compression == compression_lz4){
+
+        char* compressed=0;
+        size_t compressed_buf_size=0;
+        size_t compressed_len = compress_lz4(m_dataheader.c_str(),m_dataheader.length(),compressed,compressed_buf_size,true);
+        m_dataheader = string(compressed,compressed_len);
+
+        delete compressed;
+    }
+
+    // Compress data header with LZ4 bitshuffle
+    if(m_dh_compression == compression_bslz4){
+
+        char* compressed=0;
+        size_t compressed_buf_size=0;
+        size_t compressed_len = compress_bitshuffle(m_dataheader.c_str(),m_dataheader.length(),sizeof(char),compressed,compressed_buf_size);
+        m_dataheader = string(compressed,compressed_len);
+
+        delete compressed;
+    }
+
+
+
+    m_datahash = md5(m_dataheader);
     //TODO: Build data header.
 }
 
