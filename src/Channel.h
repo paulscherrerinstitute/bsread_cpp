@@ -12,32 +12,41 @@
 
 namespace bsread {
 
-    class Channel;
-    typedef void (*BSDataCallaback)(Channel* chan,bool acquire, void* pvt);
 
     class Channel {
 
-        bsdata_type     m_type;
+    protected:
+        const std::string m_name;
+        const bsdata_type m_type;
+        const std::string endianess;
+
+
         void*           m_data;
         timestamp       m_timestamp;
         size_t          m_len;
-        std::string          m_name;
-        bool            m_encoding_le;
+
+
+        int             m_meta_modulo;
+        int             m_meta_offset;
         bsdata_compression_type    m_compression;
         bool            m_enabled;
         std::vector<unsigned int> m_shape;
-
-        BSDataCallaback m_callback;
-        void* m_callback_pvt;
 
         std::unique_ptr<char> data_buffer;
         size_t data_buffer_length = 0;
 
     public:
 
-        /* standard meta data variables */
-        int             m_meta_modulo;
-        int             m_meta_offset;
+        Channel(const std::string& name, bsdata_type type);
+
+
+        /**
+         * @brief get_data_header
+         * @param config_only if set to true the data header returend contains
+         *  only configuration fields (name, modulo, offset)
+         * @return Json::Value representing data header for this channel
+         */
+        Json::Value get_data_header();
 
         bool is_enabled_for_pulse_id(uint64_t pulse_id);
 
@@ -45,7 +54,7 @@ namespace bsread {
         /* extra metadata variables */
         Json::Value     m_meta;
 
-        Channel(const std::string& name,bsdata_type type);
+
 
         /**
          * @brief set_data set message data. length is specified in number of
@@ -60,56 +69,6 @@ namespace bsread {
         void* get_data(){
             return m_data;
         }
-
-        /**
-         * @brief set_callback set channel callback.
-         * The callback is invoked when acquire is called and allows user to dynamically set data pointer,
-         * data shape, or to preform lock to a data structure. The callback is invoked again after the sender
-         * has finished using the data.
-         *
-         * @param c
-         */
-        void set_callback(BSDataCallaback c,void* pvt){
-            m_callback = c;
-            m_callback_pvt = pvt;
-        }
-
-
-        void clear_callback(){
-            m_callback = 0;
-            m_callback_pvt =0;
-        }
-
-        /**
-         * @brief acquire function has to be called before attempting to access data,
-         */
-        const void* acquire(){
-            if(m_callback) m_callback(this,true,m_callback_pvt);
-
-            // TODO: Check if bsread does not use the buffer anymore.
-            memcpy(data_buffer.get(), m_data, get_len());
-
-            if(m_callback) m_callback(this,false,m_callback_pvt);
-
-            return data_buffer.get();
-        }
-
-        void set_compression(bsdata_compression_type type){
-            m_compression=type;
-        }
-
-        /**
-         * @brief acquire function has to be called before attempting to access data
-         * @param temp_buffer; temporary buffer to use for compression. If temp_buffer
-         * is not nullptr than existing buffer is used and the result of compression is
-         * placed in it. Note that if buffer is too small it will be silently resized by
-         * realloc.
-         *
-         * If temp_buffer is nullptr than new buffer is allocated. It is responsiblity of
-         * the caller to free this buffer.
-         *
-         */
-        size_t acquire_compressed(char *&buffer, size_t &buffer_size);
 
         /**
          * @brief get_len
@@ -184,13 +143,7 @@ namespace bsread {
 
         std::string dump_header();
 
-        /**
-         * @brief get_data_header
-         * @param config_only if set to true the data header returend contains
-         *  only configuration fields (name, modulo, offset)
-         * @return Json::Value representing data header for this channel
-         */
-        Json::Value get_data_header(bool config_only=false);
+
 
     };
 }
