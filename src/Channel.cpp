@@ -65,6 +65,7 @@ bool bsread::Channel::is_enabled_for_pulse_id(uint64_t pulse_id){
 //    }
 //    }
 //    }
+    return true;
     }
 
 size_t bsread::Channel::acquire_compressed(char*& buffer, size_t& buffer_size){
