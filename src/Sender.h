@@ -29,7 +29,7 @@ namespace bsread{
         const std::string m_address;
         bool m_sending_enabled;
 
-        const bsdata_compression_type m_data_header_compression;
+        const compression_type m_data_header_compression;
         // String representation of the data header compression (for main header)
         const std::string m_data_header_compression_name;
 
@@ -60,7 +60,7 @@ namespace bsread{
          * @param linger
          */
         Sender(zmq::context_t& ctx, std::string address, int sndhwm=10, int sock_type=ZMQ_PUSH, int linger=1000,
-               bsdata_compression_type data_header_compression=compression_none);
+               compression_type data_header_compression=compression_none);
 
         virtual ~Sender();
 

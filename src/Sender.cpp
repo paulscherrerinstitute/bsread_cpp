@@ -3,13 +3,13 @@
 using namespace std;
 
 bsread::Sender::Sender(zmq::context_t &ctx, string address, int sndhwm, int sock_type, int linger,
-                       bsdata_compression_type data_header_compression):
+                       compression_type data_header_compression):
         m_ctx(ctx),
         m_sock(m_ctx, sock_type),
         m_address(address.c_str()),
         m_sending_enabled(true),
         m_data_header_compression(data_header_compression),
-        m_data_header_compression_name(compression_names.at(m_data_header_compression))
+        m_data_header_compression_name(compression_type_names.at(m_data_header_compression))
 {
     m_sock.setsockopt(ZMQ_LINGER, &linger, sizeof(linger));
     m_sock.setsockopt(ZMQ_SNDHWM, &sndhwm, sizeof(sndhwm));
