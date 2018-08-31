@@ -122,7 +122,6 @@ void bsread::Sender::build_data_header(){
 
 
     m_data_header_hash = md5(m_data_header);
-    //TODO: Build data header.
 }
 
 const std::string& bsread::Sender::get_data_header(){
