@@ -9,6 +9,8 @@ extern "C"{
 
 using namespace std;
 
+#define is_little_endian htonl(1) != 1
+
  /**
  * @brief compress auxilary function that wraps lz4 so that they are bs compatible (prepends length, etc..)
  *
@@ -22,36 +24,35 @@ using namespace std;
  * @param network_order
  * @return
  */
-size_t bsread::compress_lz4(const char* uncompressed_data, int32_t uncompressed_data_len, char*& buffer, size_t& buffer_size, bool network_order){
+size_t bsread::compress_lz4(const char* data, uint32_t data_len, char*& buffer, size_t& buffer_size){
 
     size_t compressed_size;
 
     // Ensure output buffer is large enough
-    if(buffer_size < (size_t)(LZ4_compressBound(uncompressed_data_len)+4) ){
+    if(buffer_size < (size_t)(LZ4_compressBound(data_len)+4) ){
         // Free existing buffer if it exists
         if(buffer_size) free(buffer);
         //New output buffer
-        buffer_size = LZ4_compressBound(uncompressed_data_len)+4;
+        buffer_size = LZ4_compressBound(data_len)+4;
         buffer = (char*) malloc(buffer_size);
     }
 
-    //Set the uncompressed blob length
-    if(network_order){
-        ((int32_t*)buffer)[0] = htonl(uncompressed_data_len);
-    }
-    else{
-        ((int32_t*)buffer)[0] = uncompressed_data_len;
+    // The bytes should be in big endian (network order).
+    if(is_little_endian){
+        ((uint32_t*)buffer)[0] = htonl(data_len);
+    } else {
+        ((uint32_t*)buffer)[0] = data_len;
     }
 
     //Compress the data
-    compressed_size = LZ4_compress_default((const char*)uncompressed_data,&buffer[4],uncompressed_data_len,buffer_size-4);
+    compressed_size = LZ4_compress_default((const char*)data, &buffer[4], data_len, buffer_size-4);
 
     if(!compressed_size) throw runtime_error("Error while compressing [LZ4] channel:");
     return compressed_size+4;
 
 }
 
-size_t bsread::compress_bitshuffle(const char* uncompressed_data, size_t nelm, size_t elm_size, char*& buffer, size_t& buffer_size){
+size_t bsread::compress_bitshuffle(const char* data, size_t nelm, size_t elm_size, char*& buffer, size_t& buffer_size){
 
     size_t compressed_size;
     size_t block_size = bshuf_default_block_size(elm_size);
@@ -69,7 +70,7 @@ size_t bsread::compress_bitshuffle(const char* uncompressed_data, size_t nelm, s
     uint64_t uncompressed_data_len = (uint64_t) nelm*elm_size;
 
     // The system is little endian, convert the 64bit value to big endian (network order).
-    if (htonl(1) != 1) {
+    if (is_little_endian) {
         uint32_t high_bytes = htonl((uint32_t)(uncompressed_data_len >> 32));
         uint32_t low_bytes = htonl((uint32_t)(uncompressed_data_len & 0xFFFFFFFFLL));
         uncompressed_data_len = (((uint64_t)low_bytes) << 32) | high_bytes;
@@ -86,10 +87,8 @@ size_t bsread::compress_bitshuffle(const char* uncompressed_data, size_t nelm, s
     ((int32_t*)buffer)[2] = htonl(header_block_size);
 
     //Compress the data
-    compressed_size = bshuf_compress_lz4((const char*)uncompressed_data,&buffer[12],nelm,elm_size,block_size);
+    compressed_size = bshuf_compress_lz4((const char*)data, &buffer[12], nelm, elm_size, block_size);
 
     if(!compressed_size) throw runtime_error("Error while compressing [LZ4] channel:");
     return compressed_size+12;
-
-    return 0;
 }

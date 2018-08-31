@@ -5,10 +5,9 @@
 #include <cstdint>
 
 namespace bsread{
-    size_t compress_lz4(const char* uncompressed_data, int32_t uncompressed_data_len, char*& buffer,
-                        size_t& buffer_size, bool network_order);
+    size_t compress_lz4(const char* data, uint32_t data_len, char*& buffer, size_t& buffer_size);
 
-    size_t compress_bitshuffle(const char* uncompressed_data, size_t nelm, size_t elm_size,
+    size_t compress_bitshuffle(const char* data, size_t nelm, size_t elm_size,
                                char*& buffer, size_t& buffer_size);
 };
 
