@@ -7,6 +7,7 @@
 
 #include "json.h"
 #include "constants.h"
+#include "DataProvider.h"
 
 namespace bsread {
 
@@ -14,6 +15,7 @@ namespace bsread {
 
     protected:
         const std::string m_name;
+        std::unique_ptr<bsread::DataProvider> m_data_provider;
         const bsdata_type m_type;
         const size_t m_type_size;
         const std::vector<size_t> m_shape;
@@ -24,9 +26,11 @@ namespace bsread {
         const int m_modulo;
         const int m_offset;
 
+
     public:
-        Channel(const std::string &name, bsread::bsdata_type type, std::vector<size_t> shape,
-                endianess endian, compression_type compression=compression_none, int modulo=1, int offset=0);
+        Channel(const std::string &name, std::unique_ptr<DataProvider> data_provider, bsread::bsdata_type type,
+                std::vector<size_t> shape, endianess endian, compression_type compression=compression_none,
+                int modulo=1, int offset=0);
 
         std::string get_name() const;
 

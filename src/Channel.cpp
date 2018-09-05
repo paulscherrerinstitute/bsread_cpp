@@ -5,9 +5,10 @@
 using namespace std;
 using namespace bsread;
 
-bsread::Channel::Channel(const string &name, bsread::bsdata_type type, vector<size_t> shape,
-                         endianess endian, compression_type compression, int modulo, int offset):
+bsread::Channel::Channel(const string &name, unique_ptr<DataProvider> data_provider, bsdata_type type,
+                         vector<size_t> shape, endianess endian, compression_type compression, int modulo, int offset):
         m_name(name),
+        m_data_provider(move(data_provider)),
         m_type(type),
         m_type_size(bsdata_type_size[type]),
         m_endianess(endian),
@@ -64,8 +65,7 @@ channel_data bsread::Channel::get_data_for_pulse_id(uint64_t pulse_id) {
         return {};
     }
 
-    // TODO: Return the value from the value provider.
-    auto pulse_data = channel_data();
+    auto pulse_data = m_data_provider->get_data();
 
     if (m_compression) {
         size_t compressed_len = compress_buffer(m_compression,
