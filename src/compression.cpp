@@ -71,7 +71,6 @@ size_t bsread::compress_lz4(const char* data, size_t n_elements, size_t element_
         ((uint32_t*)buffer)[0] = data_len;
     }
 
-    //Compress the data
     size_t compressed_size = LZ4_compress_default((const char*)data, &buffer[4], data_len, buffer_size-4);
 
     if(!compressed_size) throw runtime_error("Error while compressing [LZ4] channel:");
@@ -94,17 +93,14 @@ size_t bsread::compress_bitshuffle(const char* data, size_t n_elements, size_t e
         uncompressed_data_len = (((uint64_t)low_bytes) << 32) | high_bytes;
     }
 
-    //Set the uncompressed blob length
     ((int64_t*)buffer)[0] = uncompressed_data_len;
 
-    //The block size has to be multiplied by the elm_size before inserting it into the binary header.
-    //https://github.com/kiyo-masui/bitshuffle/blob/04e58bd553304ec26e222654f1d9b6ff64e97d10/src/bshuf_h5filter.c#L167
+    // The block size has to be multiplied by the elm_size before inserting it into the binary header.
+    // https://github.com/kiyo-masui/bitshuffle/blob/04e58bd553304ec26e222654f1d9b6ff64e97d10/src/bshuf_h5filter.c#L167
     uint32_t header_block_size = (uint32_t) block_size * element_size;
 
-    //Set the subblock size length
     ((int32_t*)buffer)[2] = htonl(header_block_size);
 
-    //Compress the data
     compressed_size = bshuf_compress_lz4((const char*)data, &buffer[12], n_elements, element_size, block_size);
 
     if(!compressed_size) throw runtime_error("Error while compressing [LZ4] channel:");
