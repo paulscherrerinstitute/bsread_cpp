@@ -15,6 +15,7 @@ namespace bsread {
     protected:
         const std::string m_name;
         const bsdata_type m_type;
+        const size_t m_type_size;
         const std::vector<size_t> m_shape;
         const endianess m_endianess;
         const std::string m_endianess_name;
@@ -36,8 +37,10 @@ namespace bsread {
     private:
         bool is_enabled_for_pulse_id(uint64_t pulse_id) const;
 
-        std::unique_ptr<char[]> compression_buffer;
+        std::unique_ptr<char[]> m_compression_buffer;
 
+        size_t m_n_elements;
+        size_t m_compression_buffer_len;
     };
 }
 

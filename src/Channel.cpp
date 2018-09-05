@@ -9,14 +9,15 @@ bsread::Channel::Channel(const string &name, bsread::bsdata_type type, vector<si
                          endianess endian, compression_type compression, int modulo, int offset):
         m_name(name),
         m_type(type),
+        m_type_size(bsdata_type_size[type]),
         m_endianess(endian),
-        m_endianess_name(endianess_names.at(endian)),
+        m_endianess_name(endianess_name[endian]),
         m_compression(compression),
-        m_compression_name(compression_type_names.at(compression)),
+        m_compression_name(compression_type_name[compression]),
         m_shape(shape),
         m_modulo(modulo),
         m_offset(offset),
-        compression_buffer(nullptr)
+        m_compression_buffer(nullptr)
 {
     if (m_modulo < 1) {
         throw runtime_error("Modulo cannot be less than 1.");
@@ -26,16 +27,14 @@ bsread::Channel::Channel(const string &name, bsread::bsdata_type type, vector<si
         throw runtime_error("Shape must have at least 1 value.");
     }
 
-    if (compression != compression_none) {
-        size_t n_elements = 0;
-        for (auto dimension_size:shape) {
-            n_elements += dimension_size;
-        }
+    m_n_elements = 0;
+    for (auto dimension_size : m_shape) {
+        m_n_elements += dimension_size;
+    }
 
-        size_t element_size = bsdata_type_size[type];
-
-        size_t compression_buffer_size = get_compression_buffer_size(compression, n_elements, element_size);
-        compression_buffer.reset(new char[compression_buffer_size]);
+    if (m_compression) {
+        m_compression_buffer_len = get_compression_buffer_size(compression, m_n_elements, m_type_size);
+        m_compression_buffer.reset(new char[m_compression_buffer_len]);
     }
 }
 
@@ -62,11 +61,25 @@ Json::Value bsread::Channel::get_channel_data_header() const {
 channel_data bsread::Channel::get_data_for_pulse_id(uint64_t pulse_id) {
 
     if (!is_enabled_for_pulse_id(pulse_id)) {
-        return channel_data();
+        return {};
     }
 
     // TODO: Return the value from the value provider.
-    return channel_data();
+    auto pulse_data = channel_data();
+
+    if (m_compression) {
+        size_t compressed_len = compress_buffer(m_compression,
+                                                (char*)pulse_data.data,
+                                                m_n_elements,
+                                                m_type_size,
+                                                m_compression_buffer.get(),
+                                                m_compression_buffer_len);
+
+        pulse_data.data = m_compression_buffer.get();
+        pulse_data.data_len = compressed_len;
+    }
+
+    return pulse_data;
 }
 
 bool bsread::Channel::is_enabled_for_pulse_id(uint64_t pulse_id) const {
