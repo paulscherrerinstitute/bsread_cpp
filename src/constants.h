@@ -12,10 +12,10 @@ namespace bsread {
         compression_bslz4
     };
 
-    static const std::map<compression_type, std::string> compression_type_names = {
-            {compression_none, "none"},
-            {compression_lz4, "lz4"},
-            {compression_bslz4, "bitshuffle_lz4"}
+    static const std::string compression_type_name[] = {
+            "none",
+            "lz4",
+            "bitshuffle_lz4"
     };
 
     enum endianess {
@@ -23,9 +23,9 @@ namespace bsread {
         big
     };
 
-    static const std::map<endianess, std::string> endianess_names = {
-            {little, "little"},
-            {big, "big"}
+    static const std::string endianess_name[] = {
+            "little",
+            "big",
     };
 
     struct timestamp{
@@ -51,12 +51,19 @@ namespace bsread {
 
     struct channel_data{
 
-        //Empty channel_data can be sent over ZMQ as an empty message.
+        // Empty channel_data can be sent over ZMQ as an empty message.
         channel_data():
                 data(nullptr),
                 data_len(0),
                 timestamp(nullptr),
                 timestamp_len(0)
+        {}
+
+        channel_data(void* data, size_t data_len, void* timestamp, size_t timestamp_len):
+                data(data),
+                data_len(data_len),
+                timestamp(timestamp),
+                timestamp_len(timestamp_len)
         {}
 
         void* data;
