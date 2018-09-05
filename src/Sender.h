@@ -64,7 +64,7 @@ namespace bsread{
 
         virtual ~Sender();
 
-        virtual size_t send_message(const uint64_t pulse_id, const bsread::timestamp);
+        virtual size_t send_message(uint64_t pulse_id, bsread::timestamp);
 
         virtual void set_sending_enabled(bool enable);
 

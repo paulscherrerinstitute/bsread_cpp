@@ -24,7 +24,7 @@ bsread::Channel::Channel(const string &name, unique_ptr<DataProvider> data_provi
         throw runtime_error("Modulo cannot be less than 1.");
     }
 
-    if (shape.size() == 0) {
+    if (shape.empty()) {
         throw runtime_error("Shape must have at least 1 value.");
     }
 

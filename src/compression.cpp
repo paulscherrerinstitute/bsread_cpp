@@ -71,7 +71,7 @@ size_t bsread::compress_lz4(const char* data, size_t n_elements, size_t element_
         ((uint32_t*)buffer)[0] = data_len;
     }
 
-    size_t compressed_size = LZ4_compress_default((const char*)data, &buffer[4], data_len, buffer_size-4);
+    size_t compressed_size = LZ4_compress_default(data, &buffer[4], data_len, buffer_size-4);
 
     if(!compressed_size) throw runtime_error("Error while compressing [LZ4] channel:");
     return compressed_size+4;
@@ -101,7 +101,7 @@ size_t bsread::compress_bitshuffle(const char* data, size_t n_elements, size_t e
 
     ((int32_t*)buffer)[2] = htonl(header_block_size);
 
-    compressed_size = bshuf_compress_lz4((const char*)data, &buffer[12], n_elements, element_size, block_size);
+    compressed_size = bshuf_compress_lz4(data, &buffer[12], n_elements, element_size, block_size);
 
     if(!compressed_size) throw runtime_error("Error while compressing [LZ4] channel:");
     return compressed_size+12;

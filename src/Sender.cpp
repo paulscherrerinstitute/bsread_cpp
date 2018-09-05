@@ -9,7 +9,7 @@ bsread::Sender::Sender(zmq::context_t &ctx, string address, int sndhwm, int sock
                        compression_type data_header_compression):
         m_ctx(ctx),
         m_sock(m_ctx, sock_type),
-        m_address(address.c_str()),
+        m_address(address),
         m_sending_enabled(true),
         m_dh_compression(data_header_compression),
         m_dh_compression_name(compression_type_name[m_dh_compression])
@@ -24,7 +24,7 @@ bsread::Sender::Sender(zmq::context_t &ctx, string address, int sndhwm, int sock
     }
 }
 
-bsread::Sender::~Sender() {}
+bsread::Sender::~Sender() = default;
 
 size_t bsread::Sender::send_channel(Channel* channel, uint64_t pulse_id, bool last_channel) {
 
