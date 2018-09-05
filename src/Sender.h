@@ -29,9 +29,9 @@ namespace bsread{
         const std::string m_address;
         bool m_sending_enabled;
 
-        const compression_type m_data_header_compression;
+        const compression_type m_dh_compression;
         // String representation of the data header compression (for main header)
-        const std::string m_data_header_compression_name;
+        const std::string m_dh_compression_name;
 
         std::string m_data_header;
         std::string m_data_header_hash;
@@ -67,6 +67,10 @@ namespace bsread{
         virtual size_t send_message(const uint64_t pulse_id, const bsread::timestamp);
 
         virtual void set_sending_enabled(bool enable);
+
+    private:
+        std::unique_ptr<char[]> m_dh_compression_buffer;
+        size_t m_dh_compression_buffer_len;
     };
 }
 

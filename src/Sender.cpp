@@ -1,6 +1,7 @@
 #include "Sender.h"
 
 #include "md5.h"
+#include "compression.h"
 
 using namespace std;
 
@@ -10,12 +11,17 @@ bsread::Sender::Sender(zmq::context_t &ctx, string address, int sndhwm, int sock
         m_sock(m_ctx, sock_type),
         m_address(address.c_str()),
         m_sending_enabled(true),
-        m_data_header_compression(data_header_compression),
-        m_data_header_compression_name(compression_type_name[m_data_header_compression])
+        m_dh_compression(data_header_compression),
+        m_dh_compression_name(compression_type_name[m_dh_compression])
 {
     m_sock.setsockopt(ZMQ_LINGER, &linger, sizeof(linger));
     m_sock.setsockopt(ZMQ_SNDHWM, &sndhwm, sizeof(sndhwm));
     m_sock.bind(address.c_str());
+
+    if (m_dh_compression) {
+        m_dh_compression_buffer_len = get_compression_buffer_size(m_dh_compression, MAX_DATA_HEADER_LEN, sizeof(char));
+        m_dh_compression_buffer.reset(new char[m_dh_compression_buffer_len]);
+    }
 }
 
 bsread::Sender::~Sender() {}
@@ -96,30 +102,16 @@ void bsread::Sender::build_data_header(){
 
     m_data_header = m_writer.write(root);
 
-    // TODO: Compress m_data_header.
-    // Compress data header with LZ4
-//    if(m_dh_compression == compression_lz4){
-//
-//        char* compressed=0;
-//        size_t compressed_buf_size=0;
-//        size_t compressed_len = compress_lz4(m_dataheader.c_str(),m_dataheader.length(),compressed,compressed_buf_size,true);
-//        m_dataheader = string(compressed,compressed_len);
-//
-//        delete compressed;
-//    }
-//
-//    // Compress data header with LZ4 bitshuffle
-//    if(m_dh_compression == compression_bslz4){
-//
-//        char* compressed=0;
-//        size_t compressed_buf_size=0;
-//        size_t compressed_len = compress_bitshuffle(m_dataheader.c_str(),m_dataheader.length(),sizeof(char),compressed,compressed_buf_size);
-//        m_dataheader = string(compressed,compressed_len);
-//
-//        delete compressed;
-//    }
+    if (m_dh_compression) {
+        size_t compressed_size = compress_buffer(m_dh_compression,
+                                                 m_data_header.c_str(),
+                                                 m_data_header.size(),
+                                                 sizeof(char),
+                                                 m_dh_compression_buffer.get(),
+                                                 m_dh_compression_buffer_len);
 
-
+        m_data_header = string(m_dh_compression_buffer.get(), compressed_size);
+    }
 
     m_data_header_hash = md5(m_data_header);
 }
@@ -147,7 +139,7 @@ const string bsread::Sender::get_main_header(uint64_t pulse_id, timestamp global
     root["pulse_id"] = static_cast<Json::Int64>(pulse_id);
     root["global_timestamp"]["sec"] = static_cast<Json::Int64>(global_timestamp.sec);
     root["global_timestamp"]["ns"] = static_cast<Json::Int64>(global_timestamp.nsec);
-    root["dh_compression"] = m_data_header_compression_name;
+    root["dh_compression"] = m_dh_compression_name;
     root["hash"] = get_data_header_hash();
 
     return m_writer.write(root);
