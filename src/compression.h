@@ -12,11 +12,10 @@ namespace bsread{
     size_t compress_buffer(compression_type compression, const char* data, size_t n_elements, size_t element_size,
                            char* buffer, size_t buffer_size);
 
-    size_t compress_lz4(const char* data, size_t n_elements, size_t element_size, char*& buffer, size_t& buffer_size);
+    size_t compress_lz4(const char* data, size_t n_elements, size_t element_size,
+                        char* buffer, size_t buffer_size);
 
-    size_t compress_bitshuffle(const char* data, size_t n_elements, size_t element_size,
-                               char*& buffer, size_t& buffer_size);
+    size_t compress_bitshuffle(const char* data, size_t n_elements, size_t element_size, char* buffer);
 };
-
 
 #endif //BSREAD_COMPRESSION_H

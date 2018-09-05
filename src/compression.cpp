@@ -36,7 +36,7 @@ size_t bsread::compress_buffer(compression_type compression, const char* data, s
         }
 
         case compression_bslz4:
-            return compress_bitshuffle(data, n_elements, element_size, buffer, buffer_size);
+            return compress_bitshuffle(data, n_elements, element_size, buffer);
 
         default:
             throw runtime_error("Cannot compress with unknown compression type.");
@@ -58,7 +58,8 @@ size_t bsread::compress_buffer(compression_type compression, const char* data, s
  * @param network_order
  * @return
  */
-size_t bsread::compress_lz4(const char* data, size_t n_elements, size_t element_size, char* buffer, size_t buffer_size){
+size_t bsread::compress_lz4(const char* data, size_t n_elements, size_t element_size,
+                            char* buffer, size_t buffer_size){
 
 
     size_t data_len = n_elements * element_size;
@@ -78,8 +79,7 @@ size_t bsread::compress_lz4(const char* data, size_t n_elements, size_t element_
 
 }
 
-size_t bsread::compress_bitshuffle(const char* data, size_t n_elements, size_t element_size,
-                                   char*& buffer, size_t buffer_size){
+size_t bsread::compress_bitshuffle(const char* data, size_t n_elements, size_t element_size, char* buffer){
 
     size_t compressed_size;
     size_t block_size = bshuf_default_block_size(element_size);
