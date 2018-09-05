@@ -11,7 +11,7 @@ bsread::Sender::Sender(zmq::context_t &ctx, string address, int sndhwm, int sock
         m_address(address.c_str()),
         m_sending_enabled(true),
         m_data_header_compression(data_header_compression),
-        m_data_header_compression_name(compression_type_names.at(m_data_header_compression))
+        m_data_header_compression_name(compression_type_name[m_data_header_compression])
 {
     m_sock.setsockopt(ZMQ_LINGER, &linger, sizeof(linger));
     m_sock.setsockopt(ZMQ_SNDHWM, &sndhwm, sizeof(sndhwm));
