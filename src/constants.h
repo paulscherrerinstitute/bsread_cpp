@@ -6,6 +6,9 @@
 
 namespace bsread {
 
+    // 200 characters for 200 channels.
+    static const size_t MAX_DATA_HEADER_LEN = 200 * 200;
+
     enum compression_type {
         compression_none,
         compression_lz4,
