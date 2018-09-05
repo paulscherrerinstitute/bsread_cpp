@@ -62,6 +62,11 @@ namespace bsread {
                 timestamp_len(0)
         {}
 
+        // Channel data can also be sent without a timestamp.
+        channel_data(void* data, size_t data_len) : data(data), data_len(data_len),
+                                                    timestamp(nullptr), timestamp_len(0)
+        {}
+
         channel_data(void* data, size_t data_len, void* timestamp, size_t timestamp_len):
                 data(data),
                 data_len(data_len),
