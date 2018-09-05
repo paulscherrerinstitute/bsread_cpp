@@ -38,9 +38,9 @@ namespace bsread {
         bool is_enabled_for_pulse_id(uint64_t pulse_id) const;
 
         std::unique_ptr<char[]> m_compression_buffer;
+        size_t m_compression_buffer_len;
 
         size_t m_n_elements;
-        size_t m_compression_buffer_len;
     };
 }
 
