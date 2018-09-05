@@ -27,6 +27,24 @@ size_t bsread::get_compression_buffer_size(compression_type compression, size_t 
     }
 }
 
+size_t bsread::compress_buffer(compression_type compression, const char* data, size_t n_elements, size_t element_size,
+                               char* buffer, size_t buffer_size) {
+    switch (compression) {
+
+        case compression_lz4: {
+            return compress_lz4(data, n_elements, element_size, buffer, buffer_size);
+        }
+
+        case compression_bslz4:
+            return compress_bitshuffle(data, n_elements, element_size, buffer, buffer_size);
+
+        default:
+            throw runtime_error("Cannot compress with unknown compression type.");
+    }
+}
+
+
+
  /**
  * @brief compress auxilary function that wraps lz4 so that they are bs compatible (prepends length, etc..)
  *
@@ -40,20 +58,10 @@ size_t bsread::get_compression_buffer_size(compression_type compression, size_t 
  * @param network_order
  * @return
  */
-size_t bsread::compress_lz4(const char* data, size_t n_elements, size_t element_size, char*& buffer, size_t& buffer_size){
+size_t bsread::compress_lz4(const char* data, size_t n_elements, size_t element_size, char* buffer, size_t buffer_size){
 
 
-    size_t min_buffer_size = get_compression_buffer_size(compression_lz4, n_elements, element_size);
     size_t data_len = n_elements * element_size;
-
-    // Ensure output buffer is large enough
-    if(buffer_size < min_buffer_size){
-        // Free existing buffer if it exists
-        if(buffer_size) free(buffer);
-        //New output buffer
-        buffer_size = min_buffer_size;
-        buffer = (char*) malloc(buffer_size);
-    }
 
     // The bytes should be in big endian (network order).
     if(is_little_endian){
@@ -71,20 +79,11 @@ size_t bsread::compress_lz4(const char* data, size_t n_elements, size_t element_
 }
 
 size_t bsread::compress_bitshuffle(const char* data, size_t n_elements, size_t element_size,
-                                   char*& buffer, size_t& buffer_size){
+                                   char*& buffer, size_t buffer_size){
 
     size_t compressed_size;
     size_t block_size = bshuf_default_block_size(element_size);
-    size_t min_buffer_size = get_compression_buffer_size(compression_bslz4, n_elements, element_size);
 
-    // Ensure output buffer is large enough
-    if(buffer_size < min_buffer_size ) {
-        // Free existing buffer if it exists
-        if(buffer_size) free(buffer);
-        //New output buffer
-        buffer_size = min_buffer_size;
-        buffer = (char*) malloc(buffer_size);
-    }
 
     uint64_t uncompressed_data_len = (uint64_t) n_elements * element_size;
 
