@@ -23,12 +23,13 @@ namespace bsread {
 
     enum endianess {
         little,
-        big
+        big,
+        auto_detect
     };
 
     static const std::string endianess_name[] = {
             "little",
-            "big",
+            "big"
     };
 
     struct timestamp{
