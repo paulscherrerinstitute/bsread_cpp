@@ -91,3 +91,25 @@ TEST(Channel, modulo_and_offset) {
     // modulo=3, offset=1, pulse_id=4, data=VALID
     EXPECT_EQ(channel_offset.get_data_for_pulse_id(4).data, &data);
 }
+
+TEST(Channel, compressed_channel) {
+    size_t array_size = 1000;
+    char array[array_size];
+    auto data_provider = make_shared<DirectDataProvider>((char*)&array, sizeof(char)*array_size);
+
+    Channel channel_bslz4("channel_bslz4", data_provider, BSDATA_UINT8, {array_size}, compression_bslz4);
+
+    auto bslz4_array = channel_bslz4.get_data_for_pulse_id(0);
+    EXPECT_NE(bslz4_array.data, nullptr);
+    // The data should come from the compression buffer.
+    EXPECT_NE(bslz4_array.data, (char*)&array);
+    EXPECT_TRUE(bslz4_array.data_len < array_size);
+
+    Channel channel_lz4("channel_lz4", data_provider, BSDATA_UINT8, {array_size}, compression_lz4);
+
+    auto lz4_array = channel_lz4.get_data_for_pulse_id(0);
+    EXPECT_NE(lz4_array.data, nullptr);
+    // The data should come from the compression buffer.
+    EXPECT_NE(lz4_array.data, (char*)&array);
+    EXPECT_TRUE(lz4_array.data_len < array_size);
+}
