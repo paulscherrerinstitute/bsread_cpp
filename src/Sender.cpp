@@ -26,9 +26,9 @@ bsread::Sender::Sender(string address, int sndhwm, int sock_type, int linger,
 
 bsread::Sender::~Sender() = default;
 
-size_t bsread::Sender::send_channel(Channel* channel, uint64_t pulse_id, bool last_channel) {
+size_t bsread::Sender::send_channel(Channel& channel, uint64_t pulse_id, bool last_channel) {
 
-    auto channel_data = channel->get_data_for_pulse_id(pulse_id);
+    auto channel_data = channel.get_data_for_pulse_id(pulse_id);
 
     size_t msg_len=0;
     size_t part_len=0;
@@ -79,7 +79,7 @@ size_t bsread::Sender::send_message(const uint64_t pulse_id, const bsread::times
         bool last_channel = (i == n_channels-1);
         auto channel = m_channels.at(i);
 
-        part_len = send_channel(channel, pulse_id, last_channel);
+        part_len = send_channel(*channel, pulse_id, last_channel);
 
         if (!part_len) return 0;
         msg_len += part_len;
@@ -151,10 +151,10 @@ void bsread::Sender::set_sending_enabled(bool enable) {
     m_sending_enabled = enable;
 }
 
-void bsread::Sender::add_channel(bsread::Channel *channel){
+void bsread::Sender::add_channel(shared_ptr<Channel> channel){
     lock_guard<std::recursive_mutex> lock(m_sender_lock);
 
-    m_channels.push_back(channel);
+    m_channels.push_back(move(channel));
 
     // A new data header needs to be constructed when a new channel is added.
     m_data_header.clear();

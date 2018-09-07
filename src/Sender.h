@@ -42,9 +42,8 @@ namespace bsread{
         virtual const std::string& get_data_header();
         virtual const std::string& get_data_header_hash();
 
-        std::vector<Channel*> m_channels;
-        virtual void add_channel(bsread::Channel *channel);
-        virtual size_t send_channel(Channel* channel, uint64_t pulse_id, bool last_channel);
+        std::vector<std::shared_ptr<Channel>> m_channels;
+        virtual size_t send_channel(Channel& channel, uint64_t pulse_id, bool last_channel);
 
         Json::FastWriter m_writer;
         std::recursive_mutex m_sender_lock;
@@ -63,6 +62,8 @@ namespace bsread{
                compression_type data_header_compression=compression_none, int n_io_threads=1);
 
         virtual ~Sender();
+
+        virtual void add_channel(std::shared_ptr<Channel> channel);
 
         virtual size_t send_message(uint64_t pulse_id, bsread::timestamp);
 
