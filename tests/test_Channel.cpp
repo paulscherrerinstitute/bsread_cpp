@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 #include "../src/Channel.h"
-#include "../src/BufferDataProvider.h"
+#include "../src/DirectDataProvider.h"
 #include "../src/constants.h"
 
 using namespace std;
@@ -9,7 +9,7 @@ using namespace bsread;
 TEST(Channel, constructor) {
 
     int32_t data = 12345;
-    auto data_provider = make_shared<BufferDataProvider>(&data, sizeof(data));
+    auto data_provider = make_shared<DirectDataProvider>(&data, sizeof(data));
 
     auto channel_name = "integer_channel";
     Channel channel(channel_name, data_provider, BSDATA_INT32, {1});
@@ -22,13 +22,13 @@ TEST(Channel, constructor) {
     EXPECT_EQ(channel_data.data, &data);
     EXPECT_EQ(channel_data.data_len, sizeof(data));
 
-    // BufferDataProvider does not use a timestamp.
+    // DirectDataProvider does not use a timestamp.
     EXPECT_EQ(channel_data.timestamp, nullptr);
     EXPECT_EQ(channel_data.timestamp_len, 0);
 }
 
 TEST(Channel, endian_test) {
-    auto data_provider = make_shared<BufferDataProvider>(nullptr, 0);
+    auto data_provider = make_shared<DirectDataProvider>(nullptr, 0);
 
     auto expected_endianess = htonl(1) == 1 ? "big" : "little";
 

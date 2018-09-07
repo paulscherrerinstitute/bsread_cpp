@@ -4,14 +4,14 @@
 #include "DataProvider.h"
 
 namespace bsread {
-    class BufferDataProvider: public DataProvider{
+    class DirectDataProvider: public DataProvider{
 
     protected:
         void* const m_data;
         const size_t m_data_len;
 
     public:
-        BufferDataProvider(void* data, size_t data_len);
+        DirectDataProvider(void* data, size_t data_len);
         bsread::channel_data get_data() override;
     };
 };
