@@ -29,7 +29,7 @@ namespace bsread {
 
     public:
         Channel(const std::string &name, std::shared_ptr<DataProvider> data_provider, bsread::bsdata_type type,
-                std::vector<size_t> shape, compression_type compression=compression_none, int modulo=1, int offset=0,
+                std::vector<size_t> shape={1}, compression_type compression=compression_none, int modulo=1, int offset=0,
                 endianess endian=auto_detect);
 
         std::string get_name() const;
