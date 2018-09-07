@@ -6,7 +6,9 @@ include_directories("//anaconda/include")
 include_directories("../external")
 link_directories("//anaconda/lib")
 
-add_executable(run_tests test_main.cpp)
+file(GLOB SOURCES *.cpp)
+
+add_executable(run_tests ${SOURCES})
 target_link_libraries(run_tests bsread gtest_main gtest)
 
 add_test(NAME tests COMMAND run_tests)

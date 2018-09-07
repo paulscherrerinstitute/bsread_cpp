@@ -1,5 +1,4 @@
 #include "gtest/gtest.h"
-#include "test_compression.cpp"
 
 using namespace std;
 
