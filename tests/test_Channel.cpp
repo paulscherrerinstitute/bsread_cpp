@@ -75,5 +75,19 @@ TEST(Channel, data_header) {
 }
 
 TEST(Channel, modulo_and_offset) {
-    Channel channel_auto("test", nullptr, BSDATA_UINT16, {1}, compression_none, 3, 0);
+    uint16_t data = 1;
+    auto data_provider = make_shared<DirectDataProvider>(&data, sizeof(data));
+    Channel channel("test", data_provider, BSDATA_UINT16, {1}, compression_none, 3, 0);
+
+    // modulo=3, offset=0, pulse_id=1, data=null
+    EXPECT_EQ(channel.get_data_for_pulse_id(1).data, nullptr);
+    // modulo=3, offset=0, pulse_id=3, data=VALID
+    EXPECT_EQ(channel.get_data_for_pulse_id(3).data, &data);
+
+    Channel channel_offset("test", data_provider, BSDATA_UINT16, {1}, compression_none, 3, 1);
+
+    // modulo=3, offset=1, pulse_id=3, data=null
+    EXPECT_EQ(channel_offset.get_data_for_pulse_id(3).data, nullptr);
+    // modulo=3, offset=1, pulse_id=4, data=VALID
+    EXPECT_EQ(channel_offset.get_data_for_pulse_id(4).data, &data);
 }
