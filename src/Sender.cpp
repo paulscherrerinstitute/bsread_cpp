@@ -6,8 +6,8 @@
 using namespace std;
 
 bsread::Sender::Sender(string address, int sndhwm, int sock_type, int linger,
-                       compression_type data_header_compression):
-        m_ctx(1),
+                       compression_type data_header_compression, int n_io_threads):
+        m_ctx(n_io_threads),
         m_sock(m_ctx, sock_type),
         m_address(address),
         m_sending_enabled(true),
