@@ -24,7 +24,7 @@ namespace bsread{
     class Sender{
 
     protected:
-        zmq::context_t& m_ctx;
+        zmq::context_t m_ctx;
         zmq::socket_t m_sock;
         const std::string m_address;
         bool m_sending_enabled;
@@ -59,7 +59,7 @@ namespace bsread{
          * @param sock_type
          * @param linger
          */
-        Sender(zmq::context_t& ctx, std::string address, int sndhwm=10, int sock_type=ZMQ_PUSH, int linger=1000,
+        Sender(std::string address, int sndhwm=10, int sock_type=ZMQ_PUSH, int linger=1000,
                compression_type data_header_compression=compression_none);
 
         virtual ~Sender();

@@ -5,9 +5,9 @@
 
 using namespace std;
 
-bsread::Sender::Sender(zmq::context_t &ctx, string address, int sndhwm, int sock_type, int linger,
+bsread::Sender::Sender(string address, int sndhwm, int sock_type, int linger,
                        compression_type data_header_compression):
-        m_ctx(ctx),
+        m_ctx(1),
         m_sock(m_ctx, sock_type),
         m_address(address),
         m_sending_enabled(true),
