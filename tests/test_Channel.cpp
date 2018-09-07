@@ -6,7 +6,7 @@
 using namespace std;
 using namespace bsread;
 
-TEST(Channel, constructor) {
+TEST(Channel, data_provider) {
 
     int32_t data = 12345;
     auto data_provider = make_shared<DirectDataProvider>(&data, sizeof(data));
@@ -36,7 +36,7 @@ TEST(Channel, endian) {
     Channel channel_auto("auto_detect", data_provider, BSDATA_INT32, {1});
     EXPECT_EQ(expected_endianess, channel_auto.get_channel_data_header()["encoding"].asString());
 
-    // Forced automatic system endianes detection.
+    // Forced automatic system endianess detection.
     Channel channel_auto_explicit("little", data_provider, BSDATA_INT32, {1}, compression_none, 1, 0, auto_detect);
     EXPECT_EQ(expected_endianess, channel_auto_explicit.get_channel_data_header()["encoding"].asString());
 
