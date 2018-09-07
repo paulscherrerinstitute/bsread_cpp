@@ -5,19 +5,21 @@
 using namespace std;
 using namespace bsread;
 
-bsread::Channel::Channel(const string &name, unique_ptr<DataProvider> data_provider, bsdata_type type,
-                         vector<size_t> shape, endianess endian, compression_type compression, int modulo, int offset):
+#define is_big_endian htonl(1) == 1
+
+bsread::Channel::Channel(const string &name, shared_ptr<DataProvider> data_provider, bsdata_type type,
+                         vector<size_t> shape, compression_type compression, int modulo, int offset, endianess endian):
         m_name(name),
         m_data_provider(move(data_provider)),
         m_type(type),
         m_type_size(bsdata_type_size[type]),
-        m_endianess(endian),
-        m_endianess_name(endianess_name[endian]),
+        m_shape(shape),
         m_compression(compression),
         m_compression_name(compression_type_name[compression]),
-        m_shape(shape),
         m_modulo(modulo),
         m_offset(offset),
+        m_endianess((endian == auto_detect) ? static_cast<endianess>(is_big_endian) : endian),
+        m_endianess_name(endianess_name[m_endianess]),
         m_compression_buffer(nullptr)
 {
     if (m_modulo < 1) {
