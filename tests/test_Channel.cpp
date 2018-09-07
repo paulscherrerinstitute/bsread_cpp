@@ -12,7 +12,7 @@ TEST(Channel, data_provider) {
     auto data_provider = make_shared<DirectDataProvider>(&data, sizeof(data));
 
     auto channel_name = "integer_channel";
-    Channel channel(channel_name, data_provider, BSDATA_INT32, {1});
+    Channel channel(channel_name, data_provider, BSDATA_INT32);
 
     EXPECT_EQ(channel_name, channel.get_name());
 
@@ -48,15 +48,32 @@ TEST(Channel, endian) {
 }
 
 TEST(Channel, data_header) {
-    Channel channel_auto("test", nullptr, BSDATA_UINT16, {1024, 512}, compression_bslz4, 5, 3, big);
-    auto channel_data_header = channel_auto.get_channel_data_header();
+
+    Channel scalar_channel("test", nullptr, BSDATA_FLOAT32);
+    auto scalar_channel_dh = scalar_channel.get_channel_data_header();
+    auto expected_endianess = htonl(1) == 1 ? "big" : "little";
+
+    // Expected default values
+    EXPECT_EQ("test", scalar_channel_dh["name"].asString());
+    EXPECT_EQ("float32", scalar_channel_dh["type"].asString());
+    EXPECT_EQ(expected_endianess, scalar_channel_dh["encoding"].asString());
+    EXPECT_EQ(1, scalar_channel_dh["modulo"].asInt());
+    EXPECT_EQ(0, scalar_channel_dh["offset"].asInt());
+    EXPECT_EQ(1, scalar_channel_dh["shape"][0].asInt());
+
+    Channel array_channel("test", nullptr, BSDATA_UINT16, {1024, 512}, compression_bslz4, 5, 3, big);
+    auto array_channel_dh = array_channel.get_channel_data_header();
 
     // Information on left taken from Channel constructor.
-    EXPECT_EQ("test", channel_data_header["name"].asString());
-    EXPECT_EQ("uint16", channel_data_header["type"].asString());
-    EXPECT_EQ("big", channel_data_header["encoding"].asString());
-    EXPECT_EQ(5, channel_data_header["modulo"].asInt());
-    EXPECT_EQ(3, channel_data_header["offset"].asInt());
-    EXPECT_EQ(1024, channel_data_header["shape"][0].asInt());
-    EXPECT_EQ(512, channel_data_header["shape"][1].asInt());
+    EXPECT_EQ("test", array_channel_dh["name"].asString());
+    EXPECT_EQ("uint16", array_channel_dh["type"].asString());
+    EXPECT_EQ("big", array_channel_dh["encoding"].asString());
+    EXPECT_EQ(5, array_channel_dh["modulo"].asInt());
+    EXPECT_EQ(3, array_channel_dh["offset"].asInt());
+    EXPECT_EQ(1024, array_channel_dh["shape"][0].asInt());
+    EXPECT_EQ(512, array_channel_dh["shape"][1].asInt());
+}
+
+TEST(Channel, modulo_and_offset) {
+    Channel channel_auto("test", nullptr, BSDATA_UINT16, {1}, compression_none, 3, 0);
 }
