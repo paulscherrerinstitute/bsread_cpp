@@ -27,7 +27,7 @@ TEST(Channel, constructor) {
     EXPECT_EQ(channel_data.timestamp_len, 0);
 }
 
-TEST(Channel, endian_test) {
+TEST(Channel, endian) {
     auto data_provider = make_shared<DirectDataProvider>(nullptr, 0);
 
     auto expected_endianess = htonl(1) == 1 ? "big" : "little";
@@ -45,4 +45,18 @@ TEST(Channel, endian_test) {
 
     Channel channel_big("big", data_provider, BSDATA_INT32, {1}, compression_none, 1, 0, big);
     EXPECT_EQ("big", channel_big.get_channel_data_header()["encoding"].asString());
+}
+
+TEST(Channel, data_header) {
+    Channel channel_auto("test", nullptr, BSDATA_UINT16, {1024, 512}, compression_bslz4, 5, 3, big);
+    auto channel_data_header = channel_auto.get_channel_data_header();
+
+    // Information on left taken from Channel constructor.
+    EXPECT_EQ("test", channel_data_header["name"].asString());
+    EXPECT_EQ("uint16", channel_data_header["type"].asString());
+    EXPECT_EQ("big", channel_data_header["encoding"].asString());
+    EXPECT_EQ(5, channel_data_header["modulo"].asInt());
+    EXPECT_EQ(3, channel_data_header["offset"].asInt());
+    EXPECT_EQ(1024, channel_data_header["shape"][0].asInt());
+    EXPECT_EQ(512, channel_data_header["shape"][1].asInt());
 }
