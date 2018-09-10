@@ -12,7 +12,7 @@
 #define BSREAD_MAIN_HEADER_VERSION "bsr_m-1.1"
 #define BSREAD_DATA_HEADER_VERSION "bsr_d-1.1"
 
-namespace bsread{
+namespace bsread {
 
     /**
      * @brief The BSDataSenderZmq class
@@ -61,7 +61,7 @@ namespace bsread{
         Sender(std::string address, int sndhwm=10, int sock_type=ZMQ_PUSH, int linger=1000,
                compression_type data_header_compression=compression_none, int n_io_threads=1);
 
-        virtual ~Sender();
+        virtual ~Sender() = default;
 
         virtual void add_channel(std::shared_ptr<Channel> channel);
 

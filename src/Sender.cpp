@@ -24,8 +24,6 @@ bsread::Sender::Sender(string address, int sndhwm, int sock_type, int linger,
     }
 }
 
-bsread::Sender::~Sender() = default;
-
 size_t bsread::Sender::send_channel(Channel& channel, uint64_t pulse_id, bool last_channel) {
 
     auto channel_data = channel.get_data_for_pulse_id(pulse_id);
