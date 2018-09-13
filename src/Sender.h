@@ -14,13 +14,12 @@
 
 namespace bsread {
 
-    /**
-     * @brief The BSDataSenderZmq class
-     *
-     * Class that takes BSData messages and transmits them via ZMQ socket
-     * By default the class will create its own context and socket. A static
-     * method exists that perorms the same, but requires ZMQ socket to be passed
-     */
+    enum send_status {
+        FAILED,
+        SENT,
+        SKIPPED
+    };
+
     class Sender{
 
     protected:
@@ -65,7 +64,7 @@ namespace bsread {
 
         virtual void add_channel(std::shared_ptr<Channel> channel);
 
-        virtual size_t send_message(uint64_t pulse_id, bsread::timestamp);
+        virtual send_status send_message(uint64_t pulse_id, bsread::timestamp);
 
         virtual void set_sending_enabled(bool enable);
 

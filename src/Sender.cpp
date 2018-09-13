@@ -45,12 +45,14 @@ size_t bsread::Sender::send_channel(channel_data& channel_data, bool last_channe
     return msg_len;
 }
 
-size_t bsread::Sender::send_message(const uint64_t pulse_id, const bsread::timestamp global_timestamp){
+bsread::send_status bsread::Sender::send_message(const uint64_t pulse_id, const bsread::timestamp global_timestamp){
 
     lock_guard<std::recursive_mutex> lock(m_sender_lock);
 
-    if (!m_sending_enabled) {
-        return 0;
+    size_t n_channels = m_channels.size();
+
+    if (!m_sending_enabled || !n_channels) {
+        return SKIPPED;
     }
 
     size_t msg_len=0;
@@ -60,16 +62,15 @@ size_t bsread::Sender::send_message(const uint64_t pulse_id, const bsread::times
     auto mainheader = get_main_header(pulse_id, global_timestamp);
     part_len = m_sock.send(mainheader.c_str(), mainheader.length(), ZMQ_SNDMORE|ZMQ_NOBLOCK);
 
-    if (part_len != mainheader.length()) return 0;
+    if (part_len != mainheader.length()) return FAILED;
     msg_len += part_len;
 
     auto dataheader = get_data_header();
     part_len = m_sock.send(dataheader.c_str(), dataheader.length(), ZMQ_SNDMORE|ZMQ_NOBLOCK);
 
-    if (part_len != dataheader.length()) return 0;
+    if (part_len != dataheader.length()) return FAILED;
     msg_len += part_len;
 
-    size_t n_channels = m_channels.size();
     for(size_t i=0; i<n_channels; i++){
 
         bool last_channel = (i == n_channels-1);
@@ -77,11 +78,11 @@ size_t bsread::Sender::send_message(const uint64_t pulse_id, const bsread::times
 
         part_len = send_channel(channel_data, last_channel);
 
-        if (part_len != (channel_data.data_len + channel_data.timestamp_len)) return 0;
+        if (part_len != (channel_data.data_len + channel_data.timestamp_len)) return FAILED;
         msg_len += part_len;
     }
 
-    return msg_len;
+    return SENT;
 }
 
 
