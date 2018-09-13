@@ -24,16 +24,14 @@ bsread::Sender::Sender(string address, int sndhwm, int sock_type, int linger,
     }
 }
 
-size_t bsread::Sender::send_channel(Channel& channel, uint64_t pulse_id, bool last_channel) {
-
-    auto channel_data = channel.get_data_for_pulse_id(pulse_id);
+size_t bsread::Sender::send_channel(channel_data& channel_data, bool last_channel) {
 
     size_t msg_len=0;
     size_t part_len=0;
 
     part_len = m_sock.send(channel_data.data, channel_data.data_len, ZMQ_SNDMORE|ZMQ_NOBLOCK);
 
-    if (!part_len) return 0;
+    if (part_len != channel_data.data_len) return 0;
     msg_len += part_len;
 
     if (last_channel) {
@@ -41,7 +39,7 @@ size_t bsread::Sender::send_channel(Channel& channel, uint64_t pulse_id, bool la
     } else {
         part_len = m_sock.send(channel_data.timestamp, channel_data.timestamp_len, ZMQ_SNDMORE | ZMQ_NOBLOCK);
     }
-    if (!part_len) return 0;
+    if (part_len != channel_data.timestamp_len) return 0;
     msg_len += part_len;
 
     return msg_len;
@@ -62,24 +60,24 @@ size_t bsread::Sender::send_message(const uint64_t pulse_id, const bsread::times
     auto mainheader = get_main_header(pulse_id, global_timestamp);
     part_len = m_sock.send(mainheader.c_str(), mainheader.length(), ZMQ_SNDMORE|ZMQ_NOBLOCK);
 
-    if (!part_len) return 0;
+    if (part_len != mainheader.length()) return 0;
     msg_len += part_len;
 
     auto dataheader = get_data_header();
     part_len = m_sock.send(dataheader.c_str(), dataheader.length(), ZMQ_SNDMORE|ZMQ_NOBLOCK);
 
-    if (!part_len) return 0;
+    if (part_len != dataheader.length()) return 0;
     msg_len += part_len;
 
     size_t n_channels = m_channels.size();
     for(size_t i=0; i<n_channels; i++){
 
         bool last_channel = (i == n_channels-1);
-        auto channel = m_channels.at(i);
+        auto channel_data = m_channels.at(i)->get_data_for_pulse_id(pulse_id);
 
-        part_len = send_channel(*channel, pulse_id, last_channel);
+        part_len = send_channel(channel_data, last_channel);
 
-        if (!part_len) return 0;
+        if (part_len != (channel_data.data_len + channel_data.timestamp_len)) return 0;
         msg_len += part_len;
     }
 
