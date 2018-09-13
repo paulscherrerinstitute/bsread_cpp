@@ -10,6 +10,8 @@ file(GLOB EXTERNAL_SOURCES external/*.c*)
 include_directories("external")
 include_directories("//anaconda/include")
 
+link_directories("//anaconda/lib")
+
 add_library(external STATIC ${EXTERNAL_SOURCES})
 
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
