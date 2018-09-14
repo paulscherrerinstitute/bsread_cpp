@@ -13,20 +13,21 @@ bsread::DummyReceiver::DummyReceiver(string address, int rcvhwm, int sock_type) 
     m_sock.connect(address.c_str());
 }
 
-void bsread::DummyReceiver::receive() {
+shared_ptr<bsread::bsread_message> bsread::DummyReceiver::receive() {
     zmq::message_t msg;
     int more;
     size_t more_size = sizeof(more);
 
     m_sock.recv(&msg);
     m_sock.getsockopt(ZMQ_RCVMORE, &more, &more_size);
-
     auto main_header = get_main_header(msg.data(), msg.size());
 
     while (more) {
         m_sock.recv(&msg);
         m_sock.getsockopt(ZMQ_RCVMORE, &more, &more_size);
     }
+
+    return make_shared<bsread::bsread_message>(main_header);
 }
 
 
@@ -41,8 +42,8 @@ std::shared_ptr<bsread::main_header> bsread::DummyReceiver::get_main_header(void
     main_header->dh_compression = compression_type_mapping.at(root["dh_compression"].asString());
     main_header->hash = root["htype"].asString();
     main_header->htype = root["htype"].asString();
-    main_header->global_timestamp = timestamp(root["global_timestamp"]["sec"].asInt64(),
-                                              root["global_timestamp"]["ns"].asInt64());
+    main_header->global_timestamp = timestamp(root["global_timestamp"]["sec"].asUInt64(),
+                                              root["global_timestamp"]["ns"].asUInt64());
 
     return main_header;
 }

@@ -18,6 +18,12 @@ namespace bsread {
         uint64_t pulse_id;
     };
 
+    struct bsread_message {
+        bsread_message(std::shared_ptr<main_header> main_header): main_header(main_header) {};
+
+        std::shared_ptr<main_header> main_header;
+    };
+
     class DummyReceiver {
 
         zmq::context_t m_ctx;
@@ -28,7 +34,7 @@ namespace bsread {
 
     public:
         DummyReceiver(std::string address, int rcvhwm=10, int sock_typ=ZMQ_PULL);
-        void receive();
+        std::shared_ptr<bsread::bsread_message> receive();
         virtual ~DummyReceiver() = default;
 
     private:
