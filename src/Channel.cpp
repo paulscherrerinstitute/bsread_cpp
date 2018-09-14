@@ -67,6 +67,10 @@ channel_data bsread::Channel::get_data_for_pulse_id(uint64_t pulse_id) {
         return {};
     }
 
+    if (!m_data_provider) {
+        return {};
+    }
+
     auto pulse_data = m_data_provider->get_data();
 
     if (m_compression) {
