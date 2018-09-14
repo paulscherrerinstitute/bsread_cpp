@@ -31,6 +31,10 @@ shared_ptr<bsread::bsread_message> bsread::DummyReceiver::receive() {
     while (more) {
         m_sock.recv(&msg);
         m_sock.getsockopt(ZMQ_RCVMORE, &more, &more_size);
+        if (!more) throw runtime_error("Each data message needs to be followed by a timestamp message.");
+
+        m_sock.recv(&msg);
+        m_sock.getsockopt(ZMQ_RCVMORE, &more, &more_size);
     }
 
     return make_shared<bsread::bsread_message>(main_header, data_header);
@@ -62,14 +66,13 @@ std::shared_ptr<bsread::data_header> bsread::DummyReceiver::get_data_header(void
     auto data_header = make_shared<bsread::data_header>();
     data_header->htype = root["htype"].asString();
 
-    // Even if your IDE shows an error, it actually works.
-    for(auto& channel : root["channels"]) {
+    for(Json::Value& channel : root["channels"]) {
 
         data_channel channel_definition;
         channel_definition.name = channel["name"].asString();
         channel_definition.type = bsdata_type_mapping.at(channel.get("type", "float64").asString());
 
-        for(auto& dimension : channel.get("shape", {1})) {
+        for(Json::Value& dimension : channel.get("shape", {1})) {
             channel_definition.shape.push_back(dimension.asUInt());
         }
 

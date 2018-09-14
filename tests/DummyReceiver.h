@@ -11,14 +11,6 @@
 
 namespace bsread {
 
-    struct main_header {
-        compression_type dh_compression;
-        timestamp global_timestamp;
-        std::string hash;
-        std::string htype;
-        uint64_t pulse_id;
-    };
-
     struct data_channel {
         std::string name;
         bsdata_type type;
@@ -32,6 +24,14 @@ namespace bsread {
     struct data_header {
         std::string htype;
         std::map<std::string, data_channel> channels;
+    };
+
+    struct main_header {
+        compression_type dh_compression;
+        timestamp global_timestamp;
+        std::string hash;
+        std::string htype;
+        uint64_t pulse_id;
     };
 
     struct bsread_message {
