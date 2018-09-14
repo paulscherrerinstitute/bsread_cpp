@@ -21,6 +21,12 @@ namespace bsread {
             "bitshuffle_lz4"
     };
 
+    static const std::map<std::string, compression_type> compression_type_mapping = {
+            {"none", compression_none},
+            {"lz4", compression_lz4},
+            {"bitshuffle_lz4", compression_bslz4},
+    };
+
     enum endianess {
         little,
         big,
@@ -41,6 +47,9 @@ namespace bsread {
                 sec(0),
                 nsec(0)
         {};
+
+
+        timestamp(uint64_t sec, int64_t nsec) : sec(sec), nsec(nsec) {};
 
         /**
          * @brief sec seconds past UNIX epoch (1/1/1970)
@@ -122,6 +131,21 @@ namespace bsread {
             "uint32",
             "int64",
             "uint64"};
+
+    static const std::map<std::string, bsdata_type> bsdata_type_mapping = {
+            {"string", BSDATA_STRING},
+            {"bool", BSDATA_BOOl},
+            {"float64",BSDATA_FLOAT64},
+            {"float32",BSDATA_FLOAT32},
+            {"int8", BSDATA_INT8},
+            {"uint8", BSDATA_UINT8},
+            {"int16", BSDATA_INT16},
+            {"uint16", BSDATA_UINT16},
+            {"int32", BSDATA_INT32},
+            {"uint32", BSDATA_UINT32},
+            {"int64", BSDATA_INT64},
+            {"uint64", BSDATA_UINT64},
+    };
 }
 
 
