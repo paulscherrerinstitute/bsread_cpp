@@ -82,3 +82,41 @@ TEST(Sender, disable_sending) {
         EXPECT_EQ(message->main_header->pulse_id, i);
     }
 }
+
+TEST(Sender, data_header) {
+    Sender sender("tcp://127.0.0.1:12345");
+    DummyReceiver receiver("tcp://0.0.0.0:12345");
+
+    sender.add_channel(make_shared<Channel>("default_channel", nullptr));
+    sender.add_channel(make_shared<Channel>("complete_channel", nullptr,
+                                            BSDATA_INT8, vector<size_t>({1,2,3,4}),
+                                            compression_bslz4, 2, 3, big));
+
+    // Wait for the connection to happen.
+    sleep(1);
+
+    auto status = sender.send_message(0, {});
+    EXPECT_EQ(status, SENT);
+
+    auto message = receiver.receive();
+
+    auto& default_channel_definition = message->data_header->channels.at("default_channel");
+    EXPECT_EQ(default_channel_definition.name, "default_channel");
+    EXPECT_EQ(default_channel_definition.type, BSDATA_FLOAT64);
+    EXPECT_EQ(default_channel_definition.shape, vector<uint32_t>({1}));
+    EXPECT_EQ(default_channel_definition.compression, compression_none);
+    EXPECT_EQ(default_channel_definition.endianess, little);
+    EXPECT_EQ(default_channel_definition.modulo, 1);
+    EXPECT_EQ(default_channel_definition.offset, 0);
+
+    auto& complete_channel_definition = message->data_header->channels.at("complete_channel");
+    EXPECT_EQ(complete_channel_definition.name, "complete_channel");
+    EXPECT_EQ(complete_channel_definition.type, BSDATA_INT8);
+    EXPECT_EQ(complete_channel_definition.shape, vector<uint32_t>({1,2,3,4}));
+    EXPECT_EQ(complete_channel_definition.compression, compression_bslz4);
+    EXPECT_EQ(complete_channel_definition.endianess, big);
+    EXPECT_EQ(complete_channel_definition.modulo, 2);
+    EXPECT_EQ(complete_channel_definition.offset, 3);
+
+
+}
