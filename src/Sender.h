@@ -64,7 +64,7 @@ namespace bsread {
 
         virtual void add_channel(std::shared_ptr<Channel> channel);
 
-        virtual send_status send_message(uint64_t pulse_id, bsread::timestamp);
+        virtual send_status send_message(uint64_t pulse_id, bsread::timestamp global_timestamp);
 
         virtual void set_sending_enabled(bool enable);
 
