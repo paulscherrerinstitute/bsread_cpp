@@ -74,7 +74,7 @@ std::shared_ptr<bsread::data_header> bsread::DummyReceiver::get_data_header(void
         }
 
         channel_definition.compression = compression_type_mapping.at(channel.get("compression", "none").asString());
-        channel_definition.endianess = endianess_mapping.at(channel.get("endianess", "little").asString());
+        channel_definition.endianess = endianess_mapping.at(channel.get("encoding", "little").asString());
         channel_definition.modulo = channel.get("modulo", 1).asUInt();
         channel_definition.offset = channel.get("offset", 0).asUInt();
 
