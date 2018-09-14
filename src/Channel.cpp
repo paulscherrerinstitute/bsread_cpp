@@ -54,8 +54,8 @@ Json::Value bsread::Channel::get_channel_data_header() const {
     root["modulo"] = m_modulo;
     root["offset"] = m_offset;
 
-    for (uint16_t i = 0; i<m_shape.size(); i++) {
-        root["shape"][i] = static_cast<int>(m_shape[i]);
+    for (uint32_t i = 0; i<m_shape.size(); i++) {
+        root["shape"][i] = static_cast<uint32_t>(m_shape[i]);
     }
 
     return root;
