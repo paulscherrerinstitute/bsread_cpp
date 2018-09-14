@@ -49,7 +49,7 @@ namespace bsread {
         {};
 
 
-        timestamp(uint64_t sec, int64_t nsec) : sec(sec), nsec(nsec) {};
+        timestamp(uint64_t sec, uint64_t nsec) : sec(sec), nsec(nsec) {};
 
         /**
          * @brief sec seconds past UNIX epoch (1/1/1970)
