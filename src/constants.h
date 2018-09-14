@@ -38,6 +38,11 @@ namespace bsread {
             "big"
     };
 
+    static const std::map<std::string, endianess> endianess_mapping = {
+            {"little", little},
+            {"big", big},
+    };
+
     struct timestamp{
 
         /**
