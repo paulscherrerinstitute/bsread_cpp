@@ -17,7 +17,8 @@ namespace bsread {
     enum send_status {
         FAILED,
         SENT,
-        SKIPPED
+        SKIPPED,
+        BUSY
     };
 
     class Sender{

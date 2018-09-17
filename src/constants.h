@@ -6,6 +6,9 @@
 
 namespace bsread {
 
+    // 100 characters for 6 attributes
+    static const size_t MAX_HEADER_LEN = 100 * 6;
+
     // 200 characters for 200 channels.
     static const size_t MAX_DATA_HEADER_LEN = 200 * 200;
 
