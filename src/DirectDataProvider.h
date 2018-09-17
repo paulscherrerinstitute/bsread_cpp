@@ -4,7 +4,7 @@
 #include "DataProvider.h"
 
 namespace bsread {
-    class DirectDataProvider: public DataProvider{
+    class DirectDataProvider: public DataProvider {
 
     protected:
         void* const m_data;
