@@ -49,14 +49,6 @@ namespace bsread {
 
     public:
 
-        /**
-         * @brief BSDataSenderZmq Holds all infrastructre needed for BSREAD, this includes zmq context and zmq socket.
-         * Parameters passed to constructor are used to create this infrastructure.
-         * @param address
-         * @param sndhwm
-         * @param sock_type
-         * @param linger
-         */
         Sender(std::string address, int sndhwm=10, int sock_type=ZMQ_PUSH, int linger=1000,
                compression_type data_header_compression=compression_none, int n_io_threads=1);
 
