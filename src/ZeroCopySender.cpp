@@ -5,11 +5,6 @@
 using namespace std;
 using namespace bsread;
 
-void release_buffer(void* data, void* buffer_lock){
-    auto buffer_free = static_cast<atomic<bool>*>(buffer_lock);
-    buffer_free->store(true);
-}
-
 ZeroCopySender::ZeroCopySender(string address, int sndhwm, int sock_type, int linger,
                                compression_type data_header_compression, int n_io_threads,
                                size_t max_header_len, size_t max_data_header_len):
@@ -24,7 +19,37 @@ ZeroCopySender::ZeroCopySender(string address, int sndhwm, int sock_type, int li
     m_data_header_buffer_free.store(true);
 }
 
-bsread::send_status bsread::ZeroCopySender::send_message(const uint64_t pulse_id, const bsread::timestamp global_timestamp){
+size_t bsread::ZeroCopySender::send_channel(channel_data& channel_data, bool last_channel,
+                                            zmq_free_fn free_buffer_func,
+                                            void* free_buffer_hint) {
+
+    size_t msg_len=0;
+    bool sent;
+
+    zmq::message_t data_message(channel_data.data, channel_data.data_len, free_buffer_func, free_buffer_hint);
+    sent = m_sock.send(data_message, ZMQ_SNDMORE|ZMQ_NOBLOCK);
+
+    if (!sent) return 0;
+    msg_len += channel_data.data_len;
+
+    zmq::message_t timestamp_message(channel_data.timestamp, channel_data.timestamp_len,
+                                     free_buffer_func, free_buffer_hint);
+
+    if (last_channel) {
+        sent = m_sock.send(data_message, ZMQ_NOBLOCK);
+    } else {
+        sent = m_sock.send(data_message, ZMQ_SNDMORE|ZMQ_NOBLOCK);
+    }
+    if (!sent) return 0;
+    msg_len += channel_data.timestamp_len;
+
+    return msg_len;
+}
+
+bsread::send_status bsread::ZeroCopySender::send_message(const uint64_t pulse_id,
+                                                         const bsread::timestamp global_timestamp,
+                                                         zmq_free_fn free_buffer_func,
+                                                         void* free_buffer_hint){
     lock_guard<std::recursive_mutex> lock(m_sender_lock);
 
     size_t n_channels = m_channels.size();
@@ -97,7 +122,7 @@ bsread::send_status bsread::ZeroCopySender::send_message(const uint64_t pulse_id
         bool last_channel = (i == n_channels-1);
         auto channel_data = m_channels.at(i)->get_data_for_pulse_id(pulse_id);
 
-        part_len = send_channel(channel_data, last_channel);
+        part_len = send_channel(channel_data, last_channel, free_buffer_func, free_buffer_hint);
 
         if (part_len != (channel_data.data_len + channel_data.timestamp_len)) {
             m_header_buffer_free.store(true);
@@ -110,4 +135,9 @@ bsread::send_status bsread::ZeroCopySender::send_message(const uint64_t pulse_id
     }
 
     return SENT;
+}
+
+void ZeroCopySender::release_buffer(void* data, void* buffer_lock){
+    auto buffer_free = static_cast<atomic<bool>*>(buffer_lock);
+    buffer_free->store(true);
 }

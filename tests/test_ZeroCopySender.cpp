@@ -7,9 +7,9 @@
 using namespace std;
 using namespace bsread;
 
-TEST(ZeroCopySender, basic_workflow) {
+TEST(ZeroCopySender, deallocation_callback) {
 
-    size_t n_messages = 50;
+    size_t n_messages = 1;
 
     ZeroCopySender sender("tcp://127.0.0.1:12345", n_messages);
 
@@ -26,14 +26,22 @@ TEST(ZeroCopySender, basic_workflow) {
     DummyReceiver receiver("tcp://0.0.0.0:12345");
     sleep(1);
 
+    atomic<bool> buffer_lock(true);
+
+    auto release_channels = [](void* data, void* buffer_lock) {
+        (static_cast<atomic<bool>*>(buffer_lock))->store(false);
+    };
+
     for (int i=0; i < n_messages; i++) {
         // Simulate 100Hz.
         usleep(10000);
-        EXPECT_TRUE(sender.send_message(i, {}) == SENT);
+        EXPECT_TRUE(sender.send_message(i, {}, release_channels, &buffer_lock) == SENT);
     }
 
     for (int i=0; i < n_messages; i++) {
         auto message = receiver.receive();
         EXPECT_EQ(message->main_header->pulse_id, i);
     }
+
+    EXPECT_FALSE(buffer_lock.load());
 }
