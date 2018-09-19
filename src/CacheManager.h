@@ -4,7 +4,6 @@
 #include <memory>
 #include <vector>
 #include <unordered_map>
-#include <atomic>
 #include <mutex>
 #include "CachedDataProvider.h"
 
