@@ -10,7 +10,7 @@ TEST(data_providers, CachedDataProvider) {
 
     auto random_data = cached_data_provider.get_data();
     EXPECT_FALSE(random_data.data == &some_data);
-    EXPECT_FALSE(*(static_cast<float*>(random_data.data)) != some_data);
+    EXPECT_FALSE(*(static_cast<float*>(random_data.data)) == some_data);
 
     cached_data_provider.cache_data();
 
