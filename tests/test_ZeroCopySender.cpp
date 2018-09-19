@@ -2,6 +2,7 @@
 #include "../src/ZeroCopySender.h"
 #include "../src/DirectDataProvider.h"
 #include "DummyReceiver.h"
+#include "../src/CacheManager.h"
 #include <unistd.h>
 
 using namespace std;
@@ -9,7 +10,7 @@ using namespace bsread;
 
 TEST(ZeroCopySender, deallocation_callback) {
 
-    size_t n_messages = 1;
+    size_t n_messages = 50;
 
     ZeroCopySender sender("tcp://127.0.0.1:12345", n_messages);
 
@@ -44,4 +45,40 @@ TEST(ZeroCopySender, deallocation_callback) {
     }
 
     EXPECT_FALSE(buffer_lock.load());
+}
+
+TEST(ZeroCopySender, cache_manager) {
+    size_t n_messages = 50;
+
+    ZeroCopySender sender("tcp://127.0.0.1:12345", n_messages);
+
+    float test_float = 12.34;
+    auto float_provider = make_shared<CachedDataProvider>(&test_float, sizeof(float));
+    sender.add_channel(make_shared<Channel>("test_channel_float", float_provider, BSDATA_FLOAT32));
+
+    uint64_t test_long = 1234;
+    auto long_provider = make_shared<CachedDataProvider>(&test_long, sizeof(uint64_t));
+    sender.add_channel(make_shared<Channel>("test_channel_long", long_provider, BSDATA_UINT64));
+
+    DummyReceiver receiver("tcp://0.0.0.0:12345");
+    sleep(1);
+
+    CacheManager cache_manager({float_provider,
+                                long_provider});
+
+    for (int i=0; i < n_messages; i++) {
+        // Simulate 100Hz.
+        usleep(10000);
+
+        EXPECT_TRUE(cache_manager.cache_all());
+        // This should fail because the cache is already loaded.
+        EXPECT_FALSE(cache_manager.cache_all());
+
+        EXPECT_TRUE(sender.send_message(i, {}, cache_manager.release_cache, &cache_manager) == SENT);
+    }
+
+    for (int i=0; i < n_messages; i++) {
+        auto message = receiver.receive();
+        EXPECT_EQ(message->main_header->pulse_id, i);
+    }
 }
