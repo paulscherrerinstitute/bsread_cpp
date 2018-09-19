@@ -13,6 +13,6 @@ file(GLOB EXTERNAL_SOURCES external/*.c*)
 add_library(external STATIC ${EXTERNAL_SOURCES})
 
 file(GLOB SOURCES src/*.cpp)
-add_library(${PROJECT_NAME} STATIC ${SOURCES})
+add_library(${PROJECT_NAME} SHARED ${SOURCES})
 
 target_link_libraries(${PROJECT_NAME} external libzmq-static)
