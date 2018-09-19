@@ -1,0 +1,4 @@
+[submodule "external/zmq/libzmq"]
+	path = external/zmq/libzmq
+	url = https://github.com/zeromq/libzmq.git
+	branch = master
