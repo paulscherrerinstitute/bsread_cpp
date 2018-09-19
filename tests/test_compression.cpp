@@ -36,11 +36,11 @@ TEST(compression, compress_buffer) {
 
     auto size_lz4 = compress_buffer(compression_lz4, data, n_elements, element_size, buffer, buffer_length);
 
-    EXPECT_TRUE(size_lz4 < uncompressed_size);
+    EXPECT_TRUE(size_lz4 <= uncompressed_size);
     EXPECT_TRUE(size_lz4 > 0);
 
     auto size_bslz4 = compress_buffer(compression_bslz4, data, n_elements, element_size, buffer, buffer_length);
 
-    EXPECT_TRUE(size_bslz4 < uncompressed_size);
+    EXPECT_TRUE(size_bslz4 <= uncompressed_size);
     EXPECT_TRUE(size_bslz4 > 0);
 }
