@@ -63,3 +63,9 @@ void CacheManager::decrease_ref_count() {
         throw runtime_error("Cache reference count below zero?! Memory corrupted.");
     }
 }
+
+void CacheManager::release_all() {
+    lock_guard<mutex> lock(m_ref_count_lock);
+
+    m_current_ref_count = 0;
+}

@@ -21,6 +21,7 @@ namespace bsread {
         CacheManager(std::vector<std::shared_ptr<CachedDataProvider>> data_providers);
         void add_data_provider(std::shared_ptr<CachedDataProvider> data_provider);
         bool cache_all();
+        void release_all();
 
         static void release_cache(void* data, void* manager);
     };
