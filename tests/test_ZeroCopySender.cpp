@@ -12,7 +12,7 @@ TEST(ZeroCopySender, deallocation_callback) {
 
     size_t n_messages = 50;
 
-    ZeroCopySender sender("tcp://127.0.0.1:12345", n_messages);
+    ZeroCopySender sender("tcp://127.0.0.1:12345");
 
     float test_float = 12.34;
     sender.add_channel(make_shared<Channel>("test_channel_float",
@@ -50,7 +50,7 @@ TEST(ZeroCopySender, deallocation_callback) {
 TEST(ZeroCopySender, cache_manager) {
     size_t n_messages = 50;
 
-    ZeroCopySender sender("tcp://127.0.0.1:12345", n_messages);
+    ZeroCopySender sender("tcp://127.0.0.1:12345");
 
     float test_float = 12.34;
     auto float_provider = make_shared<CachedDataProvider>(&test_float, sizeof(float));

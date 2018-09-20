@@ -5,7 +5,7 @@
 using namespace std;
 using namespace bsread;
 
-ZeroCopySender::ZeroCopySender(string& address, int sock_type, int linger,
+ZeroCopySender::ZeroCopySender(string address, int sock_type, int linger,
                                compression_type data_header_compression, int n_io_threads,
                                size_t max_header_len, size_t max_data_header_len):
         Sender(address, 1, sock_type, linger, data_header_compression, n_io_threads)

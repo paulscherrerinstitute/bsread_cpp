@@ -50,7 +50,7 @@ namespace bsread {
 
     public:
 
-        explicit Sender(std::string address, int sndhwm=10, int sock_type=ZMQ_PUSH, int linger=1000,
+        Sender(std::string address, int sndhwm=10, int sock_type=ZMQ_PUSH, int linger=1000,
                compression_type data_header_compression=compression_none, int n_io_threads=1);
 
         virtual ~Sender() = default;
@@ -60,6 +60,8 @@ namespace bsread {
         virtual send_status send_message(uint64_t pulse_id, bsread::timestamp global_timestamp);
 
         virtual void set_sending_enabled(bool enable);
+
+        virtual bool is_sending_enabled();
 
     private:
         std::unique_ptr<char[]> m_dh_compression_buffer;

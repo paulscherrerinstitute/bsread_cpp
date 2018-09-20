@@ -4,8 +4,9 @@
 #include "compression.h"
 
 using namespace std;
+using namespace bsread;
 
-bsread::Sender::Sender(string address, int sndhwm, int sock_type, int linger,
+Sender::Sender(string address, int sndhwm, int sock_type, int linger,
                        compression_type data_header_compression, int n_io_threads):
         m_ctx(n_io_threads),
         m_sock(m_ctx, sock_type),
@@ -24,7 +25,7 @@ bsread::Sender::Sender(string address, int sndhwm, int sock_type, int linger,
     }
 }
 
-size_t bsread::Sender::send_channel(channel_data& channel_data, bool last_channel) {
+size_t Sender::send_channel(channel_data& channel_data, bool last_channel) {
 
     size_t msg_len=0;
     size_t part_len=0;
@@ -45,7 +46,7 @@ size_t bsread::Sender::send_channel(channel_data& channel_data, bool last_channe
     return msg_len;
 }
 
-bsread::send_status bsread::Sender::send_message(const uint64_t pulse_id, const bsread::timestamp global_timestamp){
+send_status Sender::send_message(const uint64_t pulse_id, const timestamp global_timestamp){
 
     lock_guard<std::recursive_mutex> lock(m_sender_lock);
 
@@ -85,9 +86,7 @@ bsread::send_status bsread::Sender::send_message(const uint64_t pulse_id, const 
     return SENT;
 }
 
-
-
-void bsread::Sender::build_data_header(){
+void Sender::build_data_header(){
     lock_guard<std::recursive_mutex> lock(m_sender_lock);
 
     Json::Value root;
@@ -113,7 +112,7 @@ void bsread::Sender::build_data_header(){
     m_data_header_hash = md5(m_data_header);
 }
 
-const std::string& bsread::Sender::get_data_header(){
+const std::string& Sender::get_data_header(){
     if (m_data_header.empty()) {
         build_data_header();
     }
@@ -121,7 +120,7 @@ const std::string& bsread::Sender::get_data_header(){
     return m_data_header;
 }
 
-const string& bsread::Sender::get_data_header_hash() {
+const string& Sender::get_data_header_hash() {
     if (m_data_header.empty()) {
         build_data_header();
     }
@@ -129,7 +128,7 @@ const string& bsread::Sender::get_data_header_hash() {
     return m_data_header_hash;
 }
 
-const string bsread::Sender::get_main_header(uint64_t pulse_id, timestamp global_timestamp){
+const string Sender::get_main_header(uint64_t pulse_id, timestamp global_timestamp){
     Json::Value root;
 
     root["htype"] = BSREAD_MAIN_HEADER_VERSION;
@@ -142,13 +141,19 @@ const string bsread::Sender::get_main_header(uint64_t pulse_id, timestamp global
     return m_writer.write(root);
 }
 
-void bsread::Sender::set_sending_enabled(bool enable) {
+void Sender::set_sending_enabled(bool enable) {
     lock_guard<std::recursive_mutex> lock(m_sender_lock);
 
     m_sending_enabled = enable;
 }
 
-void bsread::Sender::add_channel(shared_ptr<Channel> channel){
+bool Sender::is_sending_enabled() {
+    lock_guard<std::recursive_mutex> lock(m_sender_lock);
+
+    return m_sending_enabled;
+}
+
+void Sender::add_channel(shared_ptr<Channel> channel){
     lock_guard<std::recursive_mutex> lock(m_sender_lock);
 
     m_channels.push_back(move(channel));

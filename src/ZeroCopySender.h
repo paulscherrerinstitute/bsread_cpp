@@ -7,7 +7,7 @@ namespace bsread {
     class ZeroCopySender : public Sender {
 
     public:
-        explicit ZeroCopySender(std::string& address, int sock_type=ZMQ_PUSH, int linger=1000,
+        ZeroCopySender(std::string address, int sock_type=ZMQ_PUSH, int linger=1000,
                 compression_type data_header_compression=compression_none, int n_io_threads=1,
                 size_t max_header_len=MAX_HEADER_LEN, size_t max_data_header_len=MAX_DATA_HEADER_LEN);
 
