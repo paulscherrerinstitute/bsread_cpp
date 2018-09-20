@@ -2,6 +2,7 @@
 #define BSREAD_RECEIVER_H
 
 #include <zmq.hpp>
+#include <utility>
 #include <string>
 #include <memory>
 #include <vector>
@@ -36,8 +37,8 @@ namespace bsread {
 
     struct bsread_message {
         bsread_message(std::shared_ptr<main_header> main_header,
-                       std::shared_ptr<data_header> data_header): main_header(main_header),
-                                                                  data_header(data_header)
+                       std::shared_ptr<data_header> data_header): main_header(move(main_header)),
+                                                                  data_header(move(data_header))
         {};
 
         std::shared_ptr<main_header> main_header;

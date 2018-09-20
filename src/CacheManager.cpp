@@ -1,15 +1,14 @@
 #include "CacheManager.h"
+#include <utility>
 
 using namespace std;
 using namespace bsread;
 
-#include <iostream>
-
 CacheManager::CacheManager() : m_current_ref_count(0)
 {}
 
-CacheManager::CacheManager(std::vector<shared_ptr<CachedDataProvider>> data_providers) :
-        m_current_ref_count(0), m_data_providers(data_providers)
+CacheManager::CacheManager(vector<shared_ptr<CachedDataProvider>> data_providers) :
+        m_current_ref_count(0), m_data_providers(move(data_providers))
 {}
 
 void CacheManager::add_data_provider(std::shared_ptr<CachedDataProvider> data_provider) {

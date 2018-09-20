@@ -50,7 +50,7 @@ namespace bsread {
 
     public:
 
-        Sender(std::string address, int sndhwm=10, int sock_type=ZMQ_PUSH, int linger=1000,
+        explicit Sender(std::string address, int sndhwm=10, int sock_type=ZMQ_PUSH, int linger=1000,
                compression_type data_header_compression=compression_none, int n_io_threads=1);
 
         virtual ~Sender() = default;
