@@ -12,7 +12,7 @@
 
 namespace bsread {
 
-    struct data_channel {
+    struct data_channel_header {
         std::string name;
         bsdata_type type;
         std::vector<uint32_t> shape;
@@ -24,7 +24,7 @@ namespace bsread {
 
     struct data_header {
         std::string htype;
-        std::vector<data_channel> channels;
+        std::vector<data_channel_header> channels;
     };
 
     struct main_header {

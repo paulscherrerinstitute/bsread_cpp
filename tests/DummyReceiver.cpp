@@ -76,7 +76,7 @@ std::shared_ptr<data_header> DummyReceiver::get_data_header(void* data, size_t d
 
     for(Json::Value& channel : root["channels"]) {
 
-        data_channel channel_definition;
+        data_channel_header channel_definition;
         channel_definition.name = channel["name"].asString();
         channel_definition.type = bsdata_type_mapping.at(channel.get("type", "float64").asString());
 
