@@ -40,9 +40,10 @@ shared_ptr<bsread_message> DummyReceiver::receive() {
 
         m_sock.recv(&msg);
         m_sock.getsockopt(ZMQ_RCVMORE, &more, &more_size);
+        auto timestamp = get_channel_timestamp(msg.data(), msg.size());
     }
 
-    if (more) throw runtime_error("Invalid message format. The multipart message has too many parts.");
+    if (more) throw runtime_error("Invalid message format. The multipart message has too many parts. Check sender.");
 
     return make_shared<bsread_message>(main_header, data_header);
 }
@@ -54,7 +55,7 @@ std::shared_ptr<main_header> DummyReceiver::get_main_header(void* data, size_t d
     auto json_string = string(static_cast<char*>(data), data_len);
     json_reader.parse(json_string, root);
 
-    auto main_header = make_shared<main_header>();
+    auto main_header = make_shared<bsread::main_header>();
     main_header->pulse_id = root["pulse_id"].asUInt64();
     main_header->dh_compression = compression_type_mapping.at(root["dh_compression"].asString());
     main_header->hash = root["htype"].asString();
@@ -70,7 +71,7 @@ std::shared_ptr<data_header> DummyReceiver::get_data_header(void* data, size_t d
     auto json_string = string(static_cast<char*>(data), data_len);
     json_reader.parse(json_string, root);
 
-    auto data_header = make_shared<data_header>();
+    auto data_header = make_shared<bsread::data_header>();
     data_header->htype = root["htype"].asString();
 
     for(Json::Value& channel : root["channels"]) {
@@ -92,4 +93,18 @@ std::shared_ptr<data_header> DummyReceiver::get_data_header(void* data, size_t d
     }
 
     return data_header;
+}
+
+timestamp DummyReceiver::get_channel_timestamp(void *data, size_t data_len) {
+    if (data_len == 0) {
+        return timestamp();
+    }
+
+    if (data_len != sizeof(timestamp)) {
+        throw runtime_error("Timestamp length incorrect. Check sender.");
+    }
+
+    auto channel_timestamp = static_cast<uint64_t*>(data);
+
+    return timestamp(channel_timestamp[0], channel_timestamp[1]);
 }
