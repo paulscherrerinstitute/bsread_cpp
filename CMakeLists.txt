@@ -6,11 +6,12 @@ set(CMAKE_CXX_STANDARD 11)
 set(ZMQ_BUILD_TESTS OFF)
 add_subdirectory(external/zmq/libzmq)
 
-add_subdirectory(tests)
-
+include_directories("external")
 include_directories("external/zmq/")
 include_directories("external/zmq/libzmq/include")
-include_directories("external")
+
+enable_testing()
+add_subdirectory(tests)
 
 file(GLOB EXTERNAL_SOURCES external/*.c*)
 add_library(external STATIC ${EXTERNAL_SOURCES})
