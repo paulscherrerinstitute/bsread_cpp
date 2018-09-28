@@ -34,7 +34,7 @@ TEST(Sender, basic_workflow) {
 
     for (int i=0; i < n_messages; i++) {
         auto message = receiver.receive();
-        EXPECT_EQ(message->main_header->pulse_id, i);
+        EXPECT_EQ(message.main_header->pulse_id, i);
     }
 }
 
@@ -79,7 +79,7 @@ TEST(Sender, disable_sending) {
 
     for (int i=0; i < n_messages; i++) {
         auto message = receiver.receive();
-        EXPECT_EQ(message->main_header->pulse_id, i);
+        EXPECT_EQ(message.main_header->pulse_id, i);
     }
 }
 
@@ -100,7 +100,7 @@ TEST(Sender, data_header) {
 
     auto message = receiver.receive();
 
-    auto& default_channel_definition = message->data_header->channels[0];
+    auto& default_channel_definition = message.data_header->channels[0];
     EXPECT_EQ(default_channel_definition.name, "default_channel");
     EXPECT_EQ(default_channel_definition.type, BSDATA_FLOAT64);
     EXPECT_EQ(default_channel_definition.shape, vector<uint32_t>({1}));
@@ -109,7 +109,7 @@ TEST(Sender, data_header) {
     EXPECT_EQ(default_channel_definition.modulo, 1);
     EXPECT_EQ(default_channel_definition.offset, 0);
 
-    auto& complete_channel_definition = message->data_header->channels[1];
+    auto& complete_channel_definition = message.data_header->channels[1];
     EXPECT_EQ(complete_channel_definition.name, "complete_channel");
     EXPECT_EQ(complete_channel_definition.type, BSDATA_INT8);
     EXPECT_EQ(complete_channel_definition.shape, vector<uint32_t>({1,2,3,4}));
@@ -117,6 +117,4 @@ TEST(Sender, data_header) {
     EXPECT_EQ(complete_channel_definition.endianess, big);
     EXPECT_EQ(complete_channel_definition.modulo, 2);
     EXPECT_EQ(complete_channel_definition.offset, 3);
-
-
 }

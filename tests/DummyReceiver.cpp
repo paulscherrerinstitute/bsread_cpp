@@ -14,7 +14,7 @@ DummyReceiver::DummyReceiver(string address, int rcvhwm, int sock_type) :
     m_sock.connect(address.c_str());
 }
 
-shared_ptr<bsread_message> DummyReceiver::receive() {
+bsread_message DummyReceiver::receive() {
     zmq::message_t msg;
     int more;
     size_t more_size = sizeof(more);
@@ -29,23 +29,29 @@ shared_ptr<bsread_message> DummyReceiver::receive() {
     m_sock.getsockopt(ZMQ_RCVMORE, &more, &more_size);
     auto data_header = get_data_header(msg.data(), msg.size());
 
+    auto channels_value = make_shared<unordered_map<string, data_channel_value>>();
+
     for (auto& channel_header : data_header->channels) {
 
-        if (!more) throw runtime_error("Invalid message format. The multipart message terminated prematurely.");
-
-        m_sock.recv(&msg);
-        m_sock.getsockopt(ZMQ_RCVMORE, &more, &more_size);
+        data_channel_value channel_value;
 
         if (!more) throw runtime_error("Invalid message format. The multipart message terminated prematurely.");
 
         m_sock.recv(&msg);
         m_sock.getsockopt(ZMQ_RCVMORE, &more, &more_size);
-        auto timestamp = get_channel_timestamp(msg.data(), msg.size());
+
+        if (!more) throw runtime_error("Invalid message format. The multipart message terminated prematurely.");
+
+        m_sock.recv(&msg);
+        m_sock.getsockopt(ZMQ_RCVMORE, &more, &more_size);
+        channel_value.timestamp = get_channel_timestamp(msg.data(), msg.size());
+
+        channels_value->emplace(channel_header.name, channel_value);
     }
 
     if (more) throw runtime_error("Invalid message format. The multipart message has too many parts. Check sender.");
 
-    return make_shared<bsread_message>(main_header, data_header);
+    return bsread_message(main_header, data_header, channels_value);
 }
 
 
@@ -95,9 +101,9 @@ std::shared_ptr<data_header> DummyReceiver::get_data_header(void* data, size_t d
     return data_header;
 }
 
-timestamp DummyReceiver::get_channel_timestamp(void *data, size_t data_len) {
+shared_ptr<timestamp> DummyReceiver::get_channel_timestamp(void *data, size_t data_len) {
     if (data_len == 0) {
-        return timestamp();
+        return nullptr;
     }
 
     if (data_len != sizeof(timestamp)) {
@@ -106,5 +112,5 @@ timestamp DummyReceiver::get_channel_timestamp(void *data, size_t data_len) {
 
     auto channel_timestamp = static_cast<uint64_t*>(data);
 
-    return timestamp(channel_timestamp[0], channel_timestamp[1]);
+    return make_shared<timestamp>(channel_timestamp[0], channel_timestamp[1]);
 }

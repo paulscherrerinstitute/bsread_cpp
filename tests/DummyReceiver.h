@@ -12,6 +12,11 @@
 
 namespace bsread {
 
+    struct data_channel_value {
+        std::shared_ptr<void*> data;
+        std::shared_ptr<timestamp> timestamp;
+    };
+
     struct data_channel_header {
         std::string name;
         bsdata_type type;
@@ -37,12 +42,16 @@ namespace bsread {
 
     struct bsread_message {
         bsread_message(std::shared_ptr<main_header> main_header,
-                       std::shared_ptr<data_header> data_header): main_header(move(main_header)),
-                                                                  data_header(move(data_header))
+                       std::shared_ptr<data_header> data_header,
+                       std::shared_ptr<std::unordered_map<std::string, data_channel_value>> channels_value):
+                main_header(move(main_header)),
+                data_header(move(data_header)),
+                channels_value(move(channels_value))
         {};
 
         std::shared_ptr<main_header> main_header;
         std::shared_ptr<data_header> data_header;
+        std::shared_ptr<std::unordered_map<std::string, data_channel_value>> channels_value;
     };
 
     class DummyReceiver {
@@ -55,13 +64,13 @@ namespace bsread {
 
     public:
         DummyReceiver(std::string address, int rcvhwm=10, int sock_typ=ZMQ_PULL);
-        std::shared_ptr<bsread::bsread_message> receive();
+        bsread::bsread_message receive();
         virtual ~DummyReceiver() = default;
 
     private:
         std::shared_ptr<main_header> get_main_header(void* data, size_t data_len);
         std::shared_ptr<data_header> get_data_header(void* data, size_t data_len);
-        bsread::timestamp get_channel_timestamp(void* data, size_t data_len);
+        std::shared_ptr<timestamp> get_channel_timestamp(void* data, size_t data_len);
     };
 }
 

@@ -41,7 +41,7 @@ TEST(ZeroCopySender, deallocation_callback) {
 
     for (int i=0; i < n_messages; i++) {
         auto message = receiver.receive();
-        EXPECT_EQ(message->main_header->pulse_id, i);
+        EXPECT_EQ(message.main_header->pulse_id, i);
     }
 
     EXPECT_FALSE(buffer_lock.load());
@@ -79,7 +79,7 @@ TEST(ZeroCopySender, cache_manager) {
 
     for (int i=0; i < n_messages; i++) {
         auto message = receiver.receive();
-        EXPECT_EQ(message->main_header->pulse_id, i);
+        EXPECT_EQ(message.main_header->pulse_id, i);
     }
 }
 
@@ -112,7 +112,7 @@ TEST(ZeroCopySender, cannot_send_anymore) {
     EXPECT_FALSE(cache_manager.cache_all());
 
     // Only the pulse_id=1 sent should have been sent.
-    EXPECT_EQ(receiver.receive()->main_header->pulse_id, 1);
+    EXPECT_EQ(receiver.receive().main_header->pulse_id, 1);
 
     usleep(1*1000);
 
@@ -122,6 +122,6 @@ TEST(ZeroCopySender, cannot_send_anymore) {
 
     EXPECT_EQ(BUSY, sender.send_message(4, {}, cache_manager.release_cache, &cache_manager));
 
-    EXPECT_EQ(receiver.receive()->main_header->pulse_id, 3);
+    EXPECT_EQ(receiver.receive().main_header->pulse_id, 3);
 
 }
