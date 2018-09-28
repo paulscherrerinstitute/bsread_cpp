@@ -28,14 +28,20 @@ shared_ptr<bsread::bsread_message> bsread::DummyReceiver::receive() {
     m_sock.getsockopt(ZMQ_RCVMORE, &more, &more_size);
     auto data_header = get_data_header(msg.data(), msg.size());
 
-    while (more) {
+    for (auto& channel_header : data_header->channels) {
+
+        if (!more) throw runtime_error("Invalid message format. The multipart message terminated prematurely.");
+
         m_sock.recv(&msg);
         m_sock.getsockopt(ZMQ_RCVMORE, &more, &more_size);
-        if (!more) throw runtime_error("Each data message needs to be followed by a timestamp message.");
+
+        if (!more) throw runtime_error("Invalid message format. The multipart message terminated prematurely.");
 
         m_sock.recv(&msg);
         m_sock.getsockopt(ZMQ_RCVMORE, &more, &more_size);
     }
+
+    if (more) throw runtime_error("Invalid message format. The multipart message has too many parts.");
 
     return make_shared<bsread::bsread_message>(main_header, data_header);
 }
