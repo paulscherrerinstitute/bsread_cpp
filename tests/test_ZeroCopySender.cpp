@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 #include "../src/ZeroCopySender.h"
 #include "../src/DirectDataProvider.h"
-#include "Receiver.h"
+#include "../src/Receiver.h"
 #include "../src/CacheManager.h"
 #include <unistd.h>
 

@@ -8,7 +8,7 @@
 #include <vector>
 #include "json.h"
 
-#include "../src/constants.h"
+#include "constants.h"
 
 namespace bsread {
 

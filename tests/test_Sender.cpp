@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 #include "../src/Sender.h"
 #include "../src/DirectDataProvider.h"
-#include "Receiver.h"
+#include "../src/Receiver.h"
 #include <unistd.h>
 
 using namespace std;
