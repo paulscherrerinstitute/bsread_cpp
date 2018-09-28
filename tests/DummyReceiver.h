@@ -13,7 +13,17 @@
 namespace bsread {
 
     struct data_channel_value {
-        std::shared_ptr<void*> data;
+
+        data_channel_value() : data(nullptr), data_len(0)
+        {}
+
+        data_channel_value(char* data, size_t data_len) :
+                data(data, std::default_delete<char[]>()),
+                data_len(data_len)
+        {}
+
+        std::shared_ptr<char> data;
+        size_t data_len;
         std::shared_ptr<timestamp> timestamp;
     };
 
@@ -70,6 +80,7 @@ namespace bsread {
     private:
         std::shared_ptr<main_header> get_main_header(void* data, size_t data_len);
         std::shared_ptr<data_header> get_data_header(void* data, size_t data_len);
+        data_channel_value get_channel_data(void* data, size_t data_len, compression_type compression);
         std::shared_ptr<timestamp> get_channel_timestamp(void* data, size_t data_len);
     };
 }

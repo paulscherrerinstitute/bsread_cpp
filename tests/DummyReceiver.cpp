@@ -33,12 +33,11 @@ bsread_message DummyReceiver::receive() {
 
     for (auto& channel_header : data_header->channels) {
 
-        data_channel_value channel_value;
-
         if (!more) throw runtime_error("Invalid message format. The multipart message terminated prematurely.");
 
         m_sock.recv(&msg);
         m_sock.getsockopt(ZMQ_RCVMORE, &more, &more_size);
+        auto channel_value = get_channel_data(msg.data(), msg.size(), channel_header.compression);
 
         if (!more) throw runtime_error("Invalid message format. The multipart message terminated prematurely.");
 
@@ -101,7 +100,18 @@ std::shared_ptr<data_header> DummyReceiver::get_data_header(void* data, size_t d
     return data_header;
 }
 
-shared_ptr<timestamp> DummyReceiver::get_channel_timestamp(void *data, size_t data_len) {
+data_channel_value DummyReceiver::get_channel_data(void* data, size_t data_len, compression_type compression) {
+    if (data_len == 0) {
+        return data_channel_value(nullptr, 0);
+    }
+
+    char* buffer_data = new char[data_len];
+    memcpy(buffer_data, data, data_len);
+
+    return data_channel_value(buffer_data, data_len);
+}
+
+shared_ptr<timestamp> DummyReceiver::get_channel_timestamp(void* data, size_t data_len) {
     if (data_len == 0) {
         return nullptr;
     }
