@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 #include "../src/Sender.h"
 #include "../src/DirectDataProvider.h"
-#include "DummyReceiver.h"
+#include "Receiver.h"
 #include <unistd.h>
 
 using namespace std;
@@ -23,7 +23,7 @@ TEST(Sender, basic_workflow) {
                                             make_shared<DirectDataProvider>(&test_long, sizeof(uint64_t)),
                                             BSDATA_UINT64));
 
-    DummyReceiver receiver("tcp://0.0.0.0:12345");
+    Receiver receiver("tcp://0.0.0.0:12345");
     sleep(1);
 
     for (int i=0; i < n_messages; i++) {
@@ -43,7 +43,7 @@ TEST(Sender, disable_sending) {
     size_t n_messages = 10;
 
     Sender sender("tcp://127.0.0.1:12345", n_messages);
-    DummyReceiver receiver("tcp://0.0.0.0:12345");
+    Receiver receiver("tcp://0.0.0.0:12345");
 
     // There are no channels, all messages should be SKIPPED.
     for (int i=0; i < n_messages; i++) {
@@ -85,7 +85,7 @@ TEST(Sender, disable_sending) {
 
 TEST(Sender, data_header) {
     Sender sender("tcp://127.0.0.1:12345");
-    DummyReceiver receiver("tcp://0.0.0.0:12345");
+    Receiver receiver("tcp://0.0.0.0:12345");
 
     sender.add_channel(make_shared<Channel>("default_channel", nullptr));
     sender.add_channel(make_shared<Channel>("complete_channel", nullptr,

@@ -64,7 +64,7 @@ namespace bsread {
         std::shared_ptr<std::unordered_map<std::string, data_channel_value>> channels_value;
     };
 
-    class DummyReceiver {
+    class Receiver {
 
         zmq::context_t m_ctx;
         zmq::socket_t m_sock;
@@ -73,9 +73,9 @@ namespace bsread {
         Json::Reader json_reader;
 
     public:
-        DummyReceiver(std::string address, int rcvhwm=10, int sock_typ=ZMQ_PULL);
+        Receiver(std::string address, int rcvhwm=10, int sock_typ=ZMQ_PULL);
         bsread::bsread_message receive();
-        virtual ~DummyReceiver() = default;
+        virtual ~Receiver() = default;
 
     private:
         std::shared_ptr<main_header> get_main_header(void* data, size_t data_len);

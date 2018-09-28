@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 #include "../src/ZeroCopySender.h"
 #include "../src/DirectDataProvider.h"
-#include "DummyReceiver.h"
+#include "Receiver.h"
 #include "../src/CacheManager.h"
 #include <unistd.h>
 
@@ -24,7 +24,7 @@ TEST(ZeroCopySender, deallocation_callback) {
                                             make_shared<DirectDataProvider>(&test_long, sizeof(uint64_t)),
                                             BSDATA_UINT64));
 
-    DummyReceiver receiver("tcp://0.0.0.0:12345");
+    Receiver receiver("tcp://0.0.0.0:12345");
     sleep(1);
 
     atomic<bool> buffer_lock(true);
@@ -60,7 +60,7 @@ TEST(ZeroCopySender, cache_manager) {
     auto long_provider = make_shared<CachedDataProvider>(&test_long, sizeof(uint64_t));
     sender.add_channel(make_shared<Channel>("test_channel_long", long_provider, BSDATA_UINT64));
 
-    DummyReceiver receiver("tcp://0.0.0.0:12345");
+    Receiver receiver("tcp://0.0.0.0:12345");
     sleep(1);
 
     CacheManager cache_manager({float_provider,
@@ -102,7 +102,7 @@ TEST(ZeroCopySender, cannot_send_anymore) {
 
     EXPECT_TRUE(cache_manager.cache_all());
 
-    DummyReceiver receiver("tcp://0.0.0.0:12345");
+    Receiver receiver("tcp://0.0.0.0:12345");
     sleep(1);
 
     EXPECT_EQ(SENT, sender.send_message(1, {}, cache_manager.release_cache, &cache_manager));

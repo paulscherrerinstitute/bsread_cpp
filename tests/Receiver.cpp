@@ -1,11 +1,11 @@
-#include "DummyReceiver.h"
+#include "Receiver.h"
 
 #include <iostream>
 
 using namespace std;
 using namespace bsread;
 
-DummyReceiver::DummyReceiver(string address, int rcvhwm, int sock_type) :
+Receiver::Receiver(string address, int rcvhwm, int sock_type) :
         m_ctx(1),
         m_sock(m_ctx, sock_type),
         m_address(address)
@@ -14,7 +14,7 @@ DummyReceiver::DummyReceiver(string address, int rcvhwm, int sock_type) :
     m_sock.connect(address.c_str());
 }
 
-bsread_message DummyReceiver::receive() {
+bsread_message Receiver::receive() {
     zmq::message_t msg;
     int more;
     size_t more_size = sizeof(more);
@@ -54,7 +54,7 @@ bsread_message DummyReceiver::receive() {
 }
 
 
-std::shared_ptr<main_header> DummyReceiver::get_main_header(void* data, size_t data_len) {
+std::shared_ptr<main_header> Receiver::get_main_header(void* data, size_t data_len) {
 
     Json::Value root;
     auto json_string = string(static_cast<char*>(data), data_len);
@@ -71,7 +71,7 @@ std::shared_ptr<main_header> DummyReceiver::get_main_header(void* data, size_t d
     return main_header;
 }
 
-std::shared_ptr<data_header> DummyReceiver::get_data_header(void* data, size_t data_len, compression_type compression) {
+std::shared_ptr<data_header> Receiver::get_data_header(void* data, size_t data_len, compression_type compression) {
 
     if (compression != compression_none) {
         throw runtime_error("Data header de-compression not implemented yet. Use compression 'none'.");
@@ -105,7 +105,7 @@ std::shared_ptr<data_header> DummyReceiver::get_data_header(void* data, size_t d
     return data_header;
 }
 
-data_channel_value DummyReceiver::get_channel_data(void* data, size_t data_len, compression_type compression) {
+data_channel_value Receiver::get_channel_data(void* data, size_t data_len, compression_type compression) {
     if (data_len == 0) {
         return data_channel_value(nullptr, 0);
     }
@@ -120,7 +120,7 @@ data_channel_value DummyReceiver::get_channel_data(void* data, size_t data_len, 
     return data_channel_value(buffer_data, data_len);
 }
 
-shared_ptr<timestamp> DummyReceiver::get_channel_timestamp(void* data, size_t data_len) {
+shared_ptr<timestamp> Receiver::get_channel_timestamp(void* data, size_t data_len) {
     if (data_len == 0) {
         return nullptr;
     }
