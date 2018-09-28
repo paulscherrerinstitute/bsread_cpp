@@ -79,7 +79,7 @@ namespace bsread {
 
     private:
         std::shared_ptr<main_header> get_main_header(void* data, size_t data_len);
-        std::shared_ptr<data_header> get_data_header(void* data, size_t data_len);
+        std::shared_ptr<data_header> get_data_header(void* data, size_t data_len, compression_type compression);
         data_channel_value get_channel_data(void* data, size_t data_len, compression_type compression);
         std::shared_ptr<timestamp> get_channel_timestamp(void* data, size_t data_len);
     };

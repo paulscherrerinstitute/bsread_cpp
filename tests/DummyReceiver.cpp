@@ -27,7 +27,7 @@ bsread_message DummyReceiver::receive() {
 
     m_sock.recv(&msg);
     m_sock.getsockopt(ZMQ_RCVMORE, &more, &more_size);
-    auto data_header = get_data_header(msg.data(), msg.size());
+    auto data_header = get_data_header(msg.data(), msg.size(), main_header->dh_compression);
 
     auto channels_value = make_shared<unordered_map<string, data_channel_value>>();
 
@@ -71,7 +71,12 @@ std::shared_ptr<main_header> DummyReceiver::get_main_header(void* data, size_t d
     return main_header;
 }
 
-std::shared_ptr<data_header> DummyReceiver::get_data_header(void* data, size_t data_len) {
+std::shared_ptr<data_header> DummyReceiver::get_data_header(void* data, size_t data_len, compression_type compression) {
+
+    if (compression != compression_none) {
+        throw runtime_error("Data header de-compression not implemented yet. Use compression 'none'.");
+    }
+
     Json::Value root;
     auto json_string = string(static_cast<char*>(data), data_len);
     json_reader.parse(json_string, root);
@@ -103,6 +108,10 @@ std::shared_ptr<data_header> DummyReceiver::get_data_header(void* data, size_t d
 data_channel_value DummyReceiver::get_channel_data(void* data, size_t data_len, compression_type compression) {
     if (data_len == 0) {
         return data_channel_value(nullptr, 0);
+    }
+
+    if (compression != compression_none) {
+        throw runtime_error("Data de-compression not implemented yet. Use compression 'none'.");
     }
 
     char* buffer_data = new char[data_len];
