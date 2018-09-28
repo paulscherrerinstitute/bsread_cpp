@@ -3,8 +3,9 @@
 #include <iostream>
 
 using namespace std;
+using namespace bsread;
 
-bsread::DummyReceiver::DummyReceiver(string address, int rcvhwm, int sock_type) :
+DummyReceiver::DummyReceiver(string address, int rcvhwm, int sock_type) :
         m_ctx(1),
         m_sock(m_ctx, sock_type),
         m_address(address)
@@ -13,7 +14,7 @@ bsread::DummyReceiver::DummyReceiver(string address, int rcvhwm, int sock_type) 
     m_sock.connect(address.c_str());
 }
 
-shared_ptr<bsread::bsread_message> bsread::DummyReceiver::receive() {
+shared_ptr<bsread_message> DummyReceiver::receive() {
     zmq::message_t msg;
     int more;
     size_t more_size = sizeof(more);
@@ -43,17 +44,17 @@ shared_ptr<bsread::bsread_message> bsread::DummyReceiver::receive() {
 
     if (more) throw runtime_error("Invalid message format. The multipart message has too many parts.");
 
-    return make_shared<bsread::bsread_message>(main_header, data_header);
+    return make_shared<bsread_message>(main_header, data_header);
 }
 
 
-std::shared_ptr<bsread::main_header> bsread::DummyReceiver::get_main_header(void* data, size_t data_len) {
+std::shared_ptr<main_header> DummyReceiver::get_main_header(void* data, size_t data_len) {
 
     Json::Value root;
     auto json_string = string(static_cast<char*>(data), data_len);
     json_reader.parse(json_string, root);
 
-    auto main_header = make_shared<bsread::main_header>();
+    auto main_header = make_shared<main_header>();
     main_header->pulse_id = root["pulse_id"].asUInt64();
     main_header->dh_compression = compression_type_mapping.at(root["dh_compression"].asString());
     main_header->hash = root["htype"].asString();
@@ -64,12 +65,12 @@ std::shared_ptr<bsread::main_header> bsread::DummyReceiver::get_main_header(void
     return main_header;
 }
 
-std::shared_ptr<bsread::data_header> bsread::DummyReceiver::get_data_header(void* data, size_t data_len) {
+std::shared_ptr<data_header> DummyReceiver::get_data_header(void* data, size_t data_len) {
     Json::Value root;
     auto json_string = string(static_cast<char*>(data), data_len);
     json_reader.parse(json_string, root);
 
-    auto data_header = make_shared<bsread::data_header>();
+    auto data_header = make_shared<data_header>();
     data_header->htype = root["htype"].asString();
 
     for(Json::Value& channel : root["channels"]) {
