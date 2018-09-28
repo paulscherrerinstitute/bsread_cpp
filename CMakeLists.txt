@@ -2,7 +2,10 @@ cmake_minimum_required(VERSION 2.8)
 project(bsread)
 set(CMAKE_CXX_STANDARD 11)
 
+# Do not include ZMQ tests.
+set(ZMQ_BUILD_TESTS OFF)
 add_subdirectory(external/zmq/libzmq)
+
 add_subdirectory(tests)
 
 include_directories("external/zmq/")
