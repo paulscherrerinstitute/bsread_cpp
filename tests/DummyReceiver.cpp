@@ -81,7 +81,7 @@ std::shared_ptr<bsread::data_header> bsread::DummyReceiver::get_data_header(void
         channel_definition.modulo = channel.get("modulo", 1).asUInt();
         channel_definition.offset = channel.get("offset", 0).asUInt();
 
-        data_header->channels[channel_definition.name] = channel_definition;
+        data_header->channels.push_back(channel_definition);
     }
 
     return data_header;

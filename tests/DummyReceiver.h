@@ -24,7 +24,7 @@ namespace bsread {
 
     struct data_header {
         std::string htype;
-        std::map<std::string, data_channel> channels;
+        std::vector<data_channel> channels;
     };
 
     struct main_header {
