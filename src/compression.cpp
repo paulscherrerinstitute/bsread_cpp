@@ -65,47 +65,70 @@ size_t bsread::compress_lz4(const char* data, size_t n_elements, size_t element_
 
 size_t bsread::decompress_lz4(const char* compressed_data, size_t compressed_size, char* data) {
 
-    uint32_t expected_data_len;
+    uint32_t expected_data_size;
 
     if(is_little_endian){
-        expected_data_len = ntohl(((uint32_t*)compressed_data)[0]);
+        expected_data_size = ntohl(((uint32_t*)compressed_data)[0]);
     } else {
-        expected_data_len = ((uint32_t*)compressed_data)[0];
+        expected_data_size = ((uint32_t*)compressed_data)[0];
     }
 
-    int decompressed_len = LZ4_decompress_safe(&compressed_data[4], data, compressed_size-4, expected_data_len);
+    int decompressed_size = LZ4_decompress_safe(&compressed_data[4], data, compressed_size-4, expected_data_size);
 
-    if (expected_data_len != decompressed_len) throw runtime_error("Expected and decompressed data len do not match.");
+    if (expected_data_size != decompressed_size) throw runtime_error("Expected and decompressed data len do not match.");
 
     // If the value is not positive, we throw an exception anyway.
-    return (size_t)decompressed_len;
+    return (size_t)decompressed_size;
 }
 
 size_t bsread::compress_bitshuffle(const char* data, size_t n_elements, size_t element_size, char* buffer){
 
-    size_t compressed_size;
     size_t block_size = bshuf_default_block_size(element_size);
 
-
     uint64_t uncompressed_data_len = (uint64_t) n_elements * element_size;
-
-    // The system is little endian, convert the 64bit value to big endian (network order).
-    if (is_little_endian) {
-        uint32_t high_bytes = htonl((uint32_t)(uncompressed_data_len >> 32));
-        uint32_t low_bytes = htonl((uint32_t)(uncompressed_data_len & 0xFFFFFFFFLL));
-        uncompressed_data_len = (((uint64_t)low_bytes) << 32) | high_bytes;
-    }
-
-    ((int64_t*)buffer)[0] = uncompressed_data_len;
-
     // The block size has to be multiplied by the elm_size before inserting it into the binary header.
     // https://github.com/kiyo-masui/bitshuffle/blob/04e58bd553304ec26e222654f1d9b6ff64e97d10/src/bshuf_h5filter.c#L167
     uint32_t header_block_size = (uint32_t) block_size * element_size;
 
-    ((int32_t*)buffer)[2] = htonl(header_block_size);
+    // The system is little endian, convert values to big endian (network order).
+    if (is_little_endian) {
+        uint32_t high_bytes = htonl((uint32_t)(uncompressed_data_len >> 32));
+        uint32_t low_bytes = htonl((uint32_t)(uncompressed_data_len & 0xFFFFFFFFLL));
+        uncompressed_data_len = (((uint64_t)low_bytes) << 32) | high_bytes;
 
-    compressed_size = bshuf_compress_lz4(data, &buffer[12], n_elements, element_size, block_size);
+        header_block_size = htonl(header_block_size);
+    }
 
-    if(!compressed_size) throw runtime_error("Error while compressing [LZ4] channel:");
-    return compressed_size+12;
+    ((int64_t*)buffer)[0] = uncompressed_data_len;
+    ((int32_t*)buffer)[2] = header_block_size;
+
+    auto compressed_size = bshuf_compress_lz4(data, &buffer[12], n_elements, element_size, block_size);
+
+    if (compressed_size <= 0) throw runtime_error("Error while compressing [LZ4] channel:");
+
+    // If the value is not positive, we throw an exception anyway.
+    return (size_t)compressed_size+12;
+}
+
+size_t bsread::decompress_bitshuffle(const char* compressed_data, size_t n_elements, size_t element_size, char* data) {
+
+    uint64_t header_expected_data_size = ((uint64_t*)compressed_data)[0];
+    uint32_t header_block_size = ((uint32_t*)compressed_data)[2];
+
+    size_t expected_data_size = header_expected_data_size;
+    size_t block_size = header_block_size;
+
+    if (is_little_endian) {
+        uint32_t high_bytes = ntohl((uint32_t)(header_expected_data_size & 0xFFFFFFFFLL));
+        uint32_t low_bytes = ntohl((uint32_t)(header_expected_data_size >> 32));
+        expected_data_size = (((uint64_t)high_bytes) << 32) | low_bytes;
+
+        block_size = ntohl(header_block_size);
+    }
+
+    auto decompressed_size = bshuf_decompress_lz4(&compressed_data[12], data, n_elements, element_size, block_size);
+
+    if (expected_data_size != decompressed_size) throw runtime_error("Expected and decompressed data len do not match.");
+
+    return (size_t)decompressed_size;
 }
