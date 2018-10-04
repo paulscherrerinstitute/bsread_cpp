@@ -85,3 +85,46 @@ TEST(compression, decompress_lz4) {
 
     compare_buffers(original_buffer.get(), decompressed_buffer.get(), image_bytes);
 }
+
+TEST(compression, decompress_bitshufflelz4) {
+
+    size_t image_pixel_size = 2160 * 2560;
+    size_t n_element_bytes = sizeof(uint16_t);
+    size_t image_bytes = image_pixel_size * n_element_bytes;
+
+    auto populate_buffer = [](char* buffer, size_t buffer_size, uint16_t init_value) {
+        for (size_t index=0; index<buffer_size/2; index++) {
+            ((uint16_t*)buffer)[index] = init_value;
+        }
+    };
+
+    auto compare_buffers = [](char* original_buffer, char* new_buffer, size_t buffer_size) {
+        for (size_t index=0; index<buffer_size; index++) {
+            SCOPED_TRACE(index);
+            EXPECT_EQ(original_buffer[index], new_buffer[index]);
+
+            if (original_buffer[index] != new_buffer[index]) {
+                return;
+            }
+        }
+    };
+
+    auto compression_buffer_size = get_compression_buffer_size(compression_bslz4, image_pixel_size, n_element_bytes);
+
+    unique_ptr<char[]> original_buffer(new char[image_bytes]);
+    unique_ptr<char[]> compressed_buffer(new char[compression_buffer_size]);
+    unique_ptr<char[]> decompressed_buffer(new char[image_bytes]);
+
+    populate_buffer(compressed_buffer.get(), compression_buffer_size, 0);
+    populate_buffer(original_buffer.get(), image_bytes, 65000);
+
+    auto compressed_size = compress_bitshuffle(original_buffer.get(), image_pixel_size, n_element_bytes,
+            compressed_buffer.get());
+
+    auto decompressed_size = decompress_bitshuffle(compressed_buffer.get(), compressed_size,
+            image_pixel_size, n_element_bytes, decompressed_buffer.get());
+
+    EXPECT_EQ(image_bytes, decompressed_size);
+
+    compare_buffers(original_buffer.get(), decompressed_buffer.get(), image_bytes);
+}
