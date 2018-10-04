@@ -79,7 +79,8 @@ TEST(compression, decompress_lz4) {
     auto compressed_size = compress_lz4(original_buffer.get(), image_pixel_size, sizeof(uint16_t),
             compressed_buffer.get(), compression_buffer_size);
 
-    auto decompressed_size = decompress_lz4(compressed_buffer.get(), compressed_size, decompressed_buffer.get());
+    auto decompressed_size = decompress_buffer(compression_lz4, compressed_buffer.get(), compressed_size,
+                                               image_pixel_size, n_element_bytes, decompressed_buffer.get());
 
     EXPECT_EQ(image_bytes, decompressed_size);
 
@@ -121,7 +122,7 @@ TEST(compression, decompress_bitshufflelz4) {
     auto compressed_size = compress_bitshuffle(original_buffer.get(), image_pixel_size, n_element_bytes,
             compressed_buffer.get());
 
-    auto decompressed_size = decompress_bitshuffle(compressed_buffer.get(), compressed_size,
+    auto decompressed_size = decompress_buffer(compression_bslz4, compressed_buffer.get(), compressed_size,
             image_pixel_size, n_element_bytes, decompressed_buffer.get());
 
     EXPECT_EQ(image_bytes, decompressed_size);
