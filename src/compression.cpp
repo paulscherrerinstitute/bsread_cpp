@@ -43,21 +43,6 @@ size_t bsread::compress_buffer(compression_type compression, const char* data, s
     }
 }
 
-
-
- /**
- * @brief compress auxilary function that wraps lz4 so that they are bs compatible (prepends length, etc..)
- *
- * The routine accepts uncompressed data and lvalue pointing to buffer pointer. If buffer_size is 0 than new buffer is alocated. If not,
- * the buffer will be reuesed if possible, otherwise it will be replaced by a larger buffer.
- *
- * @param uncompressed_data
- * @param uncompressed_data_len
- * @param buffer
- * @param buffer_size
- * @param network_order
- * @return
- */
 size_t bsread::compress_lz4(const char* data, size_t n_elements, size_t element_size,
                             char* buffer, size_t buffer_size){
 
@@ -76,6 +61,24 @@ size_t bsread::compress_lz4(const char* data, size_t n_elements, size_t element_
     if(!compressed_size) throw runtime_error("Error while compressing [LZ4] channel:");
     return compressed_size+4;
 
+}
+
+size_t bsread::decompress_lz4(const char* compressed_data, size_t compressed_size, char* data) {
+
+    uint32_t expected_data_len;
+
+    if(is_little_endian){
+        expected_data_len = ntohl(((uint32_t*)compressed_data)[0]);
+    } else {
+        expected_data_len = ((uint32_t*)compressed_data)[0];
+    }
+
+    int decompressed_len = LZ4_decompress_safe(&compressed_data[4], data, compressed_size-4, expected_data_len);
+
+    if (expected_data_len != decompressed_len) throw runtime_error("Expected and decompressed data len do not match.");
+
+    // If the value is not positive, we throw an exception anyway.
+    return (size_t)decompressed_len;
 }
 
 size_t bsread::compress_bitshuffle(const char* data, size_t n_elements, size_t element_size, char* buffer){
