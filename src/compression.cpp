@@ -43,6 +43,22 @@ size_t bsread::compress_buffer(compression_type compression, const char* data, s
     }
 }
 
+size_t bsread::decompress_buffer(compression_type compression, const char* compressed_data, size_t compressed_size,
+                                 size_t n_elements, size_t element_size, char* data) {
+    switch (compression) {
+
+        case compression_lz4: {
+            return decompress_lz4(compressed_data, compressed_size, data);
+        }
+
+        case compression_bslz4:
+            return decompress_bitshuffle(compressed_data, compressed_size, n_elements, element_size, data);
+
+        default:
+            throw runtime_error("Cannot decompress with unknown compression type.");
+    }
+}
+
 size_t bsread::compress_lz4(const char* data, size_t n_elements, size_t element_size,
                             char* buffer, size_t buffer_size){
 
