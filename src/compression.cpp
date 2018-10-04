@@ -73,7 +73,10 @@ size_t bsread::decompress_lz4(const char* compressed_data, size_t compressed_siz
         expected_data_size = ((uint32_t*)compressed_data)[0];
     }
 
-    int decompressed_size = LZ4_decompress_safe(&compressed_data[4], data, compressed_size-4, expected_data_size);
+    // 4 bytes of our header.
+    compressed_size -= 4;
+
+    int decompressed_size = LZ4_decompress_safe(&compressed_data[4], data, compressed_size, expected_data_size);
 
     if (expected_data_size != decompressed_size) throw runtime_error("Expected and decompressed data len do not match.");
 
@@ -110,25 +113,31 @@ size_t bsread::compress_bitshuffle(const char* data, size_t n_elements, size_t e
     return (size_t)compressed_size+12;
 }
 
-size_t bsread::decompress_bitshuffle(const char* compressed_data, size_t n_elements, size_t element_size, char* data) {
+size_t bsread::decompress_bitshuffle(const char* compressed_data, size_t compressed_size,
+                                     size_t n_elements, size_t element_size, char* data) {
 
     uint64_t header_expected_data_size = ((uint64_t*)compressed_data)[0];
     uint32_t header_block_size = ((uint32_t*)compressed_data)[2];
 
     size_t expected_data_size = header_expected_data_size;
-    size_t block_size = header_block_size;
 
     if (is_little_endian) {
         uint32_t high_bytes = ntohl((uint32_t)(header_expected_data_size & 0xFFFFFFFFLL));
         uint32_t low_bytes = ntohl((uint32_t)(header_expected_data_size >> 32));
         expected_data_size = (((uint64_t)high_bytes) << 32) | low_bytes;
 
-        block_size = ntohl(header_block_size);
+        header_block_size = ntohl(header_block_size);
     }
 
-    auto decompressed_size = bshuf_decompress_lz4(&compressed_data[12], data, n_elements, element_size, block_size);
+    // The block size has to be multiplied by the elm_size before inserting it into the binary header.
+    // https://github.com/kiyo-masui/bitshuffle/blob/04e58bd553304ec26e222654f1d9b6ff64e97d10/src/bshuf_h5filter.c#L167
+    size_t block_size = header_block_size / element_size;
 
-    if (expected_data_size != decompressed_size) throw runtime_error("Expected and decompressed data len do not match.");
+    auto n_processed_bytes = bshuf_decompress_lz4(&compressed_data[12], data, n_elements, element_size, block_size);
 
-    return (size_t)decompressed_size;
+    // 12 bytes of our header.
+    compressed_size -= 12;
+    if (compressed_size != n_processed_bytes) throw runtime_error("Compressed and processed data len do not match.");
+
+    return expected_data_size;
 }

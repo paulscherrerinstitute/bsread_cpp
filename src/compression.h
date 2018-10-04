@@ -19,7 +19,8 @@ namespace bsread{
 
     size_t compress_bitshuffle(const char* data, size_t n_elements, size_t element_size, char* buffer);
 
-    size_t decompress_bitshuffle(const char* compressed_data, size_t n_elements, size_t element_size, char* data);
+    size_t decompress_bitshuffle(const char* compressed_data, size_t compressed_size,
+                                 size_t n_elements, size_t element_size, char* data);
 };
 
 #endif //BSREAD_COMPRESSION_H
